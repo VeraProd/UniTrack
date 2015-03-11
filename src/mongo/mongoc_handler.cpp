@@ -5,6 +5,7 @@
 std::mutex mongo::mongoc_handler::init_mutex_;
 bool mongo::mongoc_handler::was_init_ = false;
 
+
 mongo::mongoc_handler::mongoc_handler()
 {
 	mongo::mongoc_handler::init_mutex_.lock();
@@ -14,6 +15,7 @@ mongo::mongoc_handler::mongoc_handler()
 	}
 	mongo::mongoc_handler::init_mutex_.unlock();
 }
+
 
 mongo::mongoc_handler::~mongoc_handler()
 {
