@@ -18,7 +18,7 @@ SOURCES_CPP = \
 MAIN_SOURCES_CPP = main.cpp
 
 # Static library
-TARGETS = unitrack
+MAIN_TARGETS = unitrack
 
 # Tests
 TEST_SOURCES_CPP = 
@@ -52,11 +52,11 @@ AR = ar cr
 
 
 # Terminal colors (0 -- reset, 1 -- bold, 31 -- red, 32 -- green, 34 -- blue).
-# See the 'check' target.
+# See 'run' and 'run-tests' targets.
 COLOR_RESET				= \033[0m
-COLOR_TEST_RUN			= \033[34m
-COLOR_TEST_PASS			= \033[32m
-COLOR_TEST_FAIL			= \033[31m
+COLOR_RUN				= \033[34m
+COLOR_PASS				= \033[32m
+COLOR_FAIL				= \033[31m
 
 
 # Files
@@ -74,16 +74,16 @@ MAIN_OBJECT_FILES		= $(addprefix $(OBJECTS_DIR)/,$(MAIN_OBJECTS))
 TEST_OBJECTS			= $(TEST_SOURCES_CPP:.cpp=.o)
 TEST_OBJECT_FILES		= $(addprefix $(OBJECTS_DIR)/,$(TEST_OBJECTS))
 
-# TargetS files
-TARGET_FILES			= $(addprefix $(BUILD_DIR)/,$(TARGETS))
+# Target files
+TARGET_FILES			= $(addprefix $(BUILD_DIR)/,$(MAIN_TARGETS))
 
 TEST_TARGETS			= $(basename $(TEST_SOURCES_CPP))
 TEST_TARGET_FILES		= $(addprefix $(TEST_DIR)/,$(TEST_TARGETS))
 
 
 # Targets
-.PHONY: all clean check dirs main run-tests
-.SILENT: run-tests dirs
+.PHONY: all clean check dirs main run run-tests
+.SILENT: dirs run run-tests
 
 
 all: dirs main
@@ -102,15 +102,29 @@ dirs:
 
 main: $(TARGET_FILES)
 
+
+run: main
+	for T in $(MAIN_TARGETS); do														\
+		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";					\
+		$(realpath $(BUILD_DIR))/$$T;													\
+		STATUS=$$?;																		\
+		if (( $$STATUS == 0 )); then													\
+			echo "$(COLOR_PASS)Program \"$$T\" return code: 0.$(COLOR_RESET)";			\
+		else																			\
+			echo "$(COLOR_FAIL)Program \"$$T\" return code: $$STATUS.$(COLOR_RESET)";	\
+		fi;																				\
+	done
+
+
 run-tests: $(TEST_TARGET_FILES)
-	for T in $(TEST_TARGETS); do											\
-		echo "$(COLOR_TEST_RUN)Running test: \"$$T\"...$(COLOR_RESET)";		\
-		$(realpath $(TEST_DIR))/$$T;										\
-		if (( $$? == 0 )); then												\
-			echo "$(COLOR_TEST_PASS)Test \"$$T\" passed.$(COLOR_RESET)";	\
-		else																\
-			echo "$(COLOR_TEST_FAIL)Test \"$$T\" failed.$(COLOR_RESET)";	\
-		fi;																	\
+	for T in $(TEST_TARGETS); do									\
+		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";	\
+		$(realpath $(TEST_DIR))/$$T;								\
+		if (( $$? == 0 )); then										\
+			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";	\
+		else														\
+			echo "$(COLOR_FAIL)Test \"$$T\" failed.$(COLOR_RESET)";	\
+		fi;															\
 	done
 
 
