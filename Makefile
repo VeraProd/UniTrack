@@ -103,7 +103,7 @@ dirs:
 main: $(TARGET_FILES)
 
 
-run: main
+run: dirs main
 	for T in $(MAIN_TARGETS); do															\
 		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";						\
 		$(realpath $(BUILD_DIR))/$$T;														\
