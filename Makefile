@@ -104,27 +104,28 @@ main: $(TARGET_FILES)
 
 
 run: main
-	for T in $(MAIN_TARGETS); do														\
-		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";					\
-		$(realpath $(BUILD_DIR))/$$T;													\
-		STATUS=$$?;																		\
-		if (( $$STATUS == 0 )); then													\
-			echo "$(COLOR_PASS)Program \"$$T\" return code: 0.$(COLOR_RESET)";			\
-		else																			\
-			echo "$(COLOR_FAIL)Program \"$$T\" return code: $$STATUS.$(COLOR_RESET)";	\
-		fi;																				\
+	for T in $(MAIN_TARGETS); do															\
+		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";						\
+		$(realpath $(BUILD_DIR))/$$T;														\
+		STATUS=$$?;																			\
+		if (( $$STATUS == 0 )); then														\
+			echo "$(COLOR_PASS)Program \"$$T\" completed successfully.$(COLOR_RESET)";		\
+		else																				\
+			echo "$(COLOR_FAIL)Program \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";	\
+		fi;																					\
 	done
 
 
 run-tests: $(TEST_TARGET_FILES)
-	for T in $(TEST_TARGETS); do									\
-		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";	\
-		$(realpath $(TEST_DIR))/$$T;								\
-		if (( $$? == 0 )); then										\
-			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";	\
-		else														\
-			echo "$(COLOR_FAIL)Test \"$$T\" failed.$(COLOR_RESET)";	\
-		fi;															\
+	for T in $(TEST_TARGETS); do														\
+		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";						\
+		$(realpath $(TEST_DIR))/$$T;													\
+		STATUS=$$?;																		\
+		if (( $$? == 0 )); then															\
+			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";						\
+		else																			\
+			echo "$(COLOR_FAIL)Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";	\
+		fi;																				\
 	done
 
 
