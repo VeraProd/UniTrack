@@ -2,8 +2,6 @@
 
 #include "client_pool.h"
 
-#include <functional>
-
 mongo::client_pool::client_pool(const mongo::uri &uri) noexcept:
 	client_pool_(mongoc_client_pool_new(uri.raw()),
 				 mongoc_client_pool_destroy)
@@ -18,20 +16,20 @@ mongo::client_pool::client_pool(client_pool &&other) noexcept:
 {}
 
 
-mongo::client &&
+mongo::client
 mongo::client_pool::pop() noexcept
 {
-	return std::move(mongo::client(mongoc_client_pool_pop(this->client_pool_.get()),
-								   this->client_pusher_));
+	return mongo::client(mongoc_client_pool_pop(this->client_pool_.get()),
+						 this->client_pusher_);
 }
 
-mongo::client &&
+mongo::client
 mongo::client_pool::try_pop()
 {
 	mongoc_client_t *client = mongoc_client_pool_try_pop(this->client_pool_.get());
 	if (client == nullptr)
 		throw mongo::client_pool::cant_pop();
-	return std::move(mongo::client(client, this->client_pusher_));
+	return mongo::client(client, this->client_pusher_);
 }
 
 

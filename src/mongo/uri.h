@@ -5,6 +5,7 @@
 
 #include <string>
 #include <memory>
+#include <stdexcept>
 #include <mongoc.h>
 
 namespace mongo {
@@ -12,12 +13,20 @@ namespace mongo {
 class uri
 {
 public:
-	uri(const std::string &uri);
+	uri(const std::string &uri_string) noexcept;
+	uri(const uri &other) noexcept;
+	uri(uri &&other) noexcept;
 	
-	inline mongoc_uri_t * raw() const
-	{ return this->raw_uri_.get(); }
+	uri & operator=(const uri &other) noexcept;
+	uri & operator=(uri &&other) noexcept;
+	
+	inline mongoc_uri_t * raw() const noexcept
+	{ return this->uri_.get(); }
+	
+	inline bool ok() const noexcept
+	{ return this->uri_ != nullptr; }
 private:
-	std::unique_ptr<mongoc_uri_t, void (*)(mongoc_uri_t *)> raw_uri_;
+	std::unique_ptr<mongoc_uri_t, void (*)(mongoc_uri_t *)> uri_;
 };
 
 };

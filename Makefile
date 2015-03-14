@@ -4,6 +4,8 @@
 HEADERS = \
 	mongo/client.h \
 	mongo/client_pool.h \
+	mongo/collection.h \
+	mongo/cursor.h \
 	mongo/document.h \
 	mongo/mongoc_handler.h \
 	mongo/uri.h
@@ -11,6 +13,8 @@ HEADERS = \
 SOURCES_CPP = \
 	mongo/client.cpp \
 	mongo/client_pool.cpp \
+	mongo/collection.cpp \
+	mongo/cursor.cpp \
 	mongo/document.cpp \
 	mongo/mongoc_handler.cpp \
 	mongo/uri.cpp
@@ -95,9 +99,9 @@ clean:
 check: dirs run-tests
 
 dirs:
-	mkdir -p $(sort $(realpath $(BUILD_DIR) $(OBJECTS_DIR) $(TEST_DIR) \
-							   $(dir $(addprefix $(OBJECTS_DIR)/, \
-							   					 $(SOURCES_CPP) $(MAIN_SOURCES_CPP)))))
+	mkdir -p $(sort $(BUILD_DIR) $(OBJECTS_DIR) $(TEST_DIR) \
+					$(dir $(addprefix $(OBJECTS_DIR)/, \
+						  $(SOURCES_CPP) $(MAIN_SOURCES_CPP))))
 
 
 main: $(TARGET_FILES)
@@ -106,7 +110,7 @@ main: $(TARGET_FILES)
 run: dirs main
 	for T in $(MAIN_TARGETS); do															\
 		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";						\
-		$(realpath $(BUILD_DIR))/$$T;														\
+		$(BUILD_DIR)/$$T;																	\
 		STATUS=$$?;																			\
 		if (( $$STATUS == 0 )); then														\
 			echo "$(COLOR_PASS)Program \"$$T\" completed successfully.$(COLOR_RESET)";		\
@@ -119,7 +123,7 @@ run: dirs main
 run-tests: $(TEST_TARGET_FILES)
 	for T in $(TEST_TARGETS); do														\
 		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";						\
-		$(realpath $(TEST_DIR))/$$T;													\
+		$(TEST_DIR)/$$T;																\
 		STATUS=$$?;																		\
 		if (( $$? == 0 )); then															\
 			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";						\
