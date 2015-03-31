@@ -8,7 +8,13 @@ HEADERS = \
 	mongo/cursor.h \
 	mongo/document.h \
 	mongo/mongoc_handler.h \
-	mongo/uri.h
+	mongo/oid.h \
+	mongo/uri.h \
+	\
+	application.h \
+	userprofile.h \
+	userheader.h
+
 
 SOURCES_CPP = \
 	mongo/client.cpp \
@@ -17,7 +23,14 @@ SOURCES_CPP = \
 	mongo/cursor.cpp \
 	mongo/document.cpp \
 	mongo/mongoc_handler.cpp \
-	mongo/uri.cpp
+	mongo/oid.cpp \
+	mongo/uri.cpp \
+	\
+	application.cpp \
+	mainwindow.cpp \
+	userprofile.cpp \
+	userheader.cpp
+
 
 MAIN_SOURCES_CPP = main.cpp
 
@@ -42,17 +55,23 @@ TEST_DIR	= test
 
 
 # Compiler and library archiever
-GPP					= g++ -pipe -O2 -Wall -std=c++11 $(EXTRA_CPPFLAGS)
-GPP_COMPILEFLAGS	= $(shell pkg-config --cflags libmongoc-1.0)
-GPP_LINKFLAGS		= $(shell pkg-config --libs libmongoc-1.0)
-
-ifeq ($(shell uname -s),Darwin)
-	GPP_COMPILEFLAGS	+= -I/opt/local/include
-	GPP_LINKFLAGS		+= -L/opt/local/lib
-endif
+GPP					 = g++ -pipe -O2 -Wall -std=c++11 $(EXTRA_CPPFLAGS)
 
 # Don't need yet
 AR = ar cr
+
+
+# Mongo flags
+GPP_COMPILEFLAGS		+= $(shell pkg-config --cflags libmongoc-1.0)
+GPP_LINKFLAGS			+= $(shell pkg-config --libs libmongoc-1.0)
+
+
+# Other flags
+ifeq ($(shell uname -s),Darwin)
+	# MacPorts installs boost and others into /opt/local
+	GPP_COMPILEFLAGS	+= -I/opt/local/include
+	GPP_LINKFLAGS		+= -L/opt/local/lib
+endif
 
 
 # Terminal colors (0 -- reset, 1 -- bold, 31 -- red, 32 -- green, 34 -- blue).
@@ -86,8 +105,12 @@ TEST_TARGET_FILES		= $(addprefix $(TEST_DIR)/,$(TEST_TARGETS))
 
 
 # Targets
-.PHONY: all clean check dirs main run run-tests
+.PHONY: all clean check dirs main run run-tests python-server
 .SILENT: dirs run run-tests
+
+
+python-server:
+	cd ./www && python3 -m http.server 8080; cd ../
 
 
 all: dirs main
@@ -110,7 +133,7 @@ main: $(TARGET_FILES)
 run: dirs main
 	for T in $(MAIN_TARGETS); do															\
 		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";						\
-		$(BUILD_DIR)/$$T;																	\
+		$(BUILD_DIR)/$$T --docroot test/docroot/ --http-address 127.0.0.1 --http-port 8080;	\
 		STATUS=$$?;																			\
 		if (( $$STATUS == 0 )); then														\
 			echo "$(COLOR_PASS)Program \"$$T\" completed successfully.$(COLOR_RESET)";		\

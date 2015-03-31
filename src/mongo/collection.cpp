@@ -34,8 +34,15 @@ mongo::collection::drop_index(const std::string &index_name, bson_error_t *error
 
 
 bool
-mongo::collection::insert(const bson_t *document,
+mongo::collection::insert(const mongo::document &doc,
+						  bson_error_t *error,
 						  mongoc_insert_flags_t flags,
-						  const mongoc_write_concern_t *write_concern,
-						  bson_error_t *error)
-{ return mongoc_collection_insert(this->raw(), flags, document, write_concern, error); }
+						  const mongoc_write_concern_t *write_concern)
+{ return mongoc_collection_insert(this->raw(), flags, doc.raw(), write_concern, error); }
+
+bool
+mongo::collection::erase(const mongo::document &selector,
+						 bson_error_t *error,
+						 mongoc_remove_flags_t flags,
+						 const mongoc_write_concern_t *write_concern)
+{ return mongoc_collection_remove(this->raw(), flags, selector.raw(), write_concern, error); }
