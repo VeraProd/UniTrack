@@ -11,9 +11,8 @@ HEADERS = \
 	mongo/oid.h \
 	mongo/uri.h \
 	\
-	application.h \
-	userprofile.h \
-	userheader.h
+	template_page.h \
+	template_page_model.h
 
 
 SOURCES_CPP = \
@@ -26,10 +25,8 @@ SOURCES_CPP = \
 	mongo/oid.cpp \
 	mongo/uri.cpp \
 	\
-	application.cpp \
-	mainwindow.cpp \
-	userprofile.cpp \
-	userheader.cpp
+	template_page.cpp \
+	template_page_model.cpp
 
 
 MAIN_SOURCES_CPP = main.cpp
@@ -109,10 +106,6 @@ TEST_TARGET_FILES		= $(addprefix $(TEST_DIR)/,$(TEST_TARGETS))
 .SILENT: dirs run run-tests
 
 
-python-server:
-	cd ./www && python3 -m http.server 8080; cd ../
-
-
 all: dirs main
 
 clean:
@@ -133,9 +126,9 @@ main: $(TARGET_FILES)
 run: dirs main
 	for T in $(MAIN_TARGETS); do															\
 		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";						\
-		$(BUILD_DIR)/$$T --docroot test/docroot/ --http-address 127.0.0.1 --http-port 8080;	\
+		$(BUILD_DIR)/$$T;																	\
 		STATUS=$$?;																			\
-		if (( $$STATUS == 0 )); then														\
+		if [ "X$$STATUS" == 'X0' ]; then													\
 			echo "$(COLOR_PASS)Program \"$$T\" completed successfully.$(COLOR_RESET)";		\
 		else																				\
 			echo "$(COLOR_FAIL)Program \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";	\
@@ -148,7 +141,7 @@ run-tests: $(TEST_TARGET_FILES)
 		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";						\
 		$(TEST_DIR)/$$T;																\
 		STATUS=$$?;																		\
-		if (( $$? == 0 )); then															\
+		if [ "X$$STATUS" == 'X0' ]; then												\
 			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";						\
 		else																			\
 			echo "$(COLOR_FAIL)Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";	\
@@ -169,3 +162,7 @@ $(TARGET_FILES): $(HEADER_FILES) $(OBJECT_FILES) $(MAIN_OBJECT_FILES)
 # Tests
 $(TEST_DIR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
 	$(GPP) $(GPP_LINKFLAGS) -o "$@" "$<" $(OBJECT_FILES)
+
+
+python-server:
+	cd ./www && python3 -m http.server 8080; cd ../

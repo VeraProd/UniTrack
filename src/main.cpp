@@ -2,14 +2,33 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 
 // #include "mongo/mongoc_handler.h"
 // #include "mongo/client_pool.h"
 // #include "mongo/document.h"
 
-#include <Wt/WServer>
+#include "template_page.h"
+#include "template_page_model.h"
 
-#include "application.h"
+
+class model:
+	public template_page_model,
+	public std::unordered_map<std::string, std::string>
+{
+public:
+	const std::string & at(const std::string &var_name) const override
+	{
+		try {
+			return this->std::unordered_map<std::string, std::string>::at(var_name);
+		} catch (...) {
+			return this->unknown_;
+		}
+	}
+private:
+	std::string unknown_ = "!!!UNKNOWN_VAR!!!";
+};
+
 
 int main(int argc, char **argv)
 {
@@ -29,6 +48,14 @@ int main(int argc, char **argv)
 	// if (!collection.insert(doc, &error))
 	// 	std::cerr << error.message << std::endl;
 	
+	template_page page("www/contacts.html");
 	
-	return Wt::WRun(argc, argv, Application::create);
+	model m;
+	m.emplace("hello", "Yo, man!");
+	m.emplace("MY_VAR", "Some text here.");
+	
+	std::cout << std::endl << "Generated page:" << std::endl
+			  << page(m) << std::endl;
+	
+	return 0;
 }
