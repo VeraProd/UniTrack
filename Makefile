@@ -1,38 +1,36 @@
 # Author: Dmitry Kukovinets (d1021976@gmail.com)
 
+# This is the main Makefile of project.
+
+# Helper Makefile with advanced feautures (include it into all subprojects' Makefiles)
+MAKEFILE_ADVANCED = Makefile.advanced
+export MAKEFILE_ADVANCED_ABS = $(abspath $(MAKEFILE_ADVANCED))
+include $(MAKEFILE_ADVANCED_ABS)
+
+
 # Sources and headers
-HEADERS = \
-	mongo/client.h \
-	mongo/client_pool.h \
-	mongo/collection.h \
-	mongo/cursor.h \
-	mongo/document.h \
-	mongo/mongoc_handler.h \
-	mongo/oid.h \
-	mongo/uri.h \
-	\
-	template_page.h \
-	template_page_model.h
+HEADERS =						\
+	
 
 
-SOURCES_CPP = \
-	mongo/client.cpp \
-	mongo/client_pool.cpp \
-	mongo/collection.cpp \
-	mongo/cursor.cpp \
-	mongo/document.cpp \
-	mongo/mongoc_handler.cpp \
-	mongo/oid.cpp \
-	mongo/uri.cpp \
-	\
-	template_page.cpp \
-	template_page_model.cpp
+SOURCES_CPP =					\
+	
 
 
-MAIN_SOURCES_CPP = main.cpp
+# Sources needed for only main targets
+MAIN_SOURCES_CPP =				\
+	main.cpp
 
-# Static library
+
+# Modules should be linked as static libraries
+MODULES =						\
+	mongo						\
+	templatizer
+
+
+# Executables
 MAIN_TARGETS = unitrack
+
 
 # Tests
 TEST_SOURCES_CPP = 
@@ -44,6 +42,9 @@ SOURCES_DIR	= src
 # Result of build only (executable)
 BUILD_DIR	= build
 
+# Static libraries (for modules)
+LIBS_DIR	= libs
+
 # All .o files (including tests)
 OBJECTS_DIR	= obj
 
@@ -52,81 +53,120 @@ TEST_DIR	= test
 
 
 # Compiler and library archiever
-GPP					 = g++ -pipe -O2 -Wall -std=c++11 $(EXTRA_CPPFLAGS)
+export GPP			= g++ -pipe -O2 -Wall -std=c++11 $(EXTRA_CPPFLAGS)
 
-# Don't need yet
-AR = ar cr
-
-
-# Mongo flags
-GPP_COMPILEFLAGS		+= $(shell pkg-config --cflags libmongoc-1.0)
-GPP_LINKFLAGS			+= $(shell pkg-config --libs libmongoc-1.0)
+# Need for modules
+export AR			= ar cr
 
 
 # Other flags
 ifeq ($(shell uname -s),Darwin)
 	# MacPorts installs boost and others into /opt/local
-	GPP_COMPILEFLAGS	+= -I/opt/local/include
-	GPP_LINKFLAGS		+= -L/opt/local/lib
+	export GPP_COMPILEFLAGS	+= -I/opt/local/include
+	export GPP_LINKFLAGS	+= -L/opt/local/lib
 endif
 
 
 # Terminal colors (0 -- reset, 1 -- bold, 31 -- red, 32 -- green, 34 -- blue).
 # See 'run' and 'run-tests' targets.
-COLOR_RESET				= \033[0m
-COLOR_RUN				= \033[34m
-COLOR_PASS				= \033[32m
-COLOR_FAIL				= \033[31m
+export COLOR_RESET			= \033[0m
+export COLOR_RUN			= \033[34m
+export COLOR_PASS			= \033[32m
+export COLOR_FAIL			= \033[31m
 
 
+# Absolute paths
+export SOURCES_DIR_ABS		= $(abspath $(SOURCES_DIR))
+export BUILD_DIR_ABS		= $(abspath $(BUILD_DIR))
+export LIBS_DIR_ABS			= $(abspath $(LIBS_DIR))
+export OBJECTS_DIR_ABS		= $(abspath $(OBJECTS_DIR))
+export TEST_DIR_ABS			= $(abspath $(TEST_DIR))
+
+
+# Current module pathes
+SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)
+BUILD_DIR_CURR				= $(BUILD_DIR_ABS)
+LIBS_DIR_CURR				= $(LIBS_DIR_ABS)
+OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)
+TEST_DIR_CURR				= $(TEST_DIR_ABS)
+
+
+# Current project
+export GPP_COMPILEFLAGS		= -I"$(SOURCES_DIR_CURR)"
+export GPP_LINKFLAGS		=
+
+
+# Local data
 # Files
-HEADER_FILES			= $(addprefix $(SOURCES_DIR)/,$(HEADERS))
-SOURCES_CPP_FILES		= $(addprefix $(SOURCES_DIR)/,$(SOURCES_CPP))
-MAIN_SOURCES_CPP_FILES	= $(addprefix $(SOURCES_DIR)/,$(MAIN_SOURCES_CPP))
+HEADER_FILES				= $(call get_sources_files,$(HEADERS))
+SOURCES_CPP_FILES			= $(call get_sources_files,$(SOURCES_CPP))
+MAIN_SOURCES_CPP_FILES		= $(call get_sources_files,$(MAIN_SOURCES_CPP))
 
 # Object files
-OBJECTS					= $(SOURCES_CPP:.cpp=.o)
-MAIN_OBJECTS			= $(MAIN_SOURCES_CPP:.cpp=.o)
+OBJECTS						= $(call get_objects_cpp,$(SOURCES_CPP))
+MAIN_OBJECTS				= $(call get_objects_cpp,$(MAIN_SOURCES_CPP))
+TEST_OBJECTS				= $(call get_objects_cpp,$(TEST_SOURCES_CPP))
 
-OBJECT_FILES			= $(addprefix $(OBJECTS_DIR)/,$(OBJECTS))
-MAIN_OBJECT_FILES		= $(addprefix $(OBJECTS_DIR)/,$(MAIN_OBJECTS))
-
-TEST_OBJECTS			= $(TEST_SOURCES_CPP:.cpp=.o)
-TEST_OBJECT_FILES		= $(addprefix $(OBJECTS_DIR)/,$(TEST_OBJECTS))
+OBJECT_FILES				= $(call get_object_files,$(OBJECTS))
+MAIN_OBJECT_FILES			= $(call get_object_files,$(MAIN_OBJECTS))
+TEST_OBJECT_FILES			= $(call get_object_files,$(TEST_OBJECTS))
 
 # Target files
-TARGET_FILES			= $(addprefix $(BUILD_DIR)/,$(MAIN_TARGETS))
+TARGET_FILES				= $(call get_target_files,$(MAIN_TARGETS))
 
-TEST_TARGETS			= $(basename $(TEST_SOURCES_CPP))
-TEST_TARGET_FILES		= $(addprefix $(TEST_DIR)/,$(TEST_TARGETS))
+TEST_TARGETS				= $(call get_targets,$(TEST_SOURCES_CPP))
+TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
+
+# Module static libraries
+MODULE_FILES				= $(call get_target_lib_files,$(addprefix lib,$(addsuffix .a,$(MODULES))))
 
 
 # Targets
-.PHONY: all clean check dirs main run run-tests python-server
-.SILENT: dirs run run-tests
+.PHONY: all clean check dirs modules main run run-tests python-server
+.SILENT: clean dirs modules run run-tests
 
 
-all: dirs main
+all: dirs modules main
 
+
+# Cleaning submodules too
 clean:
-	rm -rf $(OBJECTS_DIR)/* $(TEST_TARGET_FILES)
+	rm -rf $(OBJECT_FILES) $(MAIN_OBJECT_FILES) $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
+	for T in $(MODULES); do																	\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean;					\
+	done
+
 
 # Tests targets
 check: dirs run-tests
 
+
 dirs:
-	mkdir -p $(sort $(BUILD_DIR) $(OBJECTS_DIR) $(TEST_DIR) \
-					$(dir $(addprefix $(OBJECTS_DIR)/, \
-						  $(SOURCES_CPP) $(MAIN_SOURCES_CPP))))
+	mkdir -p $(sort $(BUILD_DIR_CURR) $(LIBS_DIR_CURR) \
+					$(OBJECTS_DIR_CURR) $(TEST_DIR_CURR) \
+					$(dir $(OBJECT_FILES) $(MAIN_OBJECT_FILES)))
 
 
 main: $(TARGET_FILES)
 
 
+modules:
+	for T in $(MODULES); do																	\
+		echo "$(COLOR_RUN)Building module: \"$$T\"...$(COLOR_RESET)";						\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T";						\
+		STATUS=$$?;																			\
+		if [ "X$$STATUS" == 'X0' ]; then													\
+			echo "$(COLOR_PASS)Module \"$$T\" built successfully.$(COLOR_RESET)";			\
+		else																				\
+			echo "$(COLOR_FAIL)Module \"$$T\" building failed.$(COLOR_RESET)";				\
+		fi;																					\
+	done
+
+
 run: dirs main
 	for T in $(MAIN_TARGETS); do															\
 		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";						\
-		$(BUILD_DIR)/$$T;																	\
+		$(call get_target_files,$$T);														\
 		STATUS=$$?;																			\
 		if [ "X$$STATUS" == 'X0' ]; then													\
 			echo "$(COLOR_PASS)Program \"$$T\" completed successfully.$(COLOR_RESET)";		\
@@ -136,31 +176,35 @@ run: dirs main
 	done
 
 
+# Running tests for submodules too
 run-tests: $(TEST_TARGET_FILES)
-	for T in $(TEST_TARGETS); do														\
-		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";						\
-		$(TEST_DIR)/$$T;																\
-		STATUS=$$?;																		\
-		if [ "X$$STATUS" == 'X0' ]; then												\
-			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";						\
-		else																			\
-			echo "$(COLOR_FAIL)Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";	\
-		fi;																				\
+	for T in $(TEST_TARGETS); do															\
+		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";							\
+		$(call get_test_files,$$T);															\
+		STATUS=$$?;																			\
+		if [ "X$$STATUS" == 'X0' ]; then													\
+			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";							\
+		else																				\
+			echo "$(COLOR_FAIL)Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";		\
+		fi;																					\
+	done																					\
+	for T in $(MODULES); do																	\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;				\
 	done
 
 
 # Objects compilation (universal for main program and tests)
-$(OBJECTS_DIR)/%.o: $(SOURCES_DIR)/%.cpp $(HEADER_FILES)
+$(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
 	$(GPP) $(GPP_COMPILEFLAGS) -c -o "$@" "$<"
 
 
 # Main targets
 $(TARGET_FILES): $(HEADER_FILES) $(OBJECT_FILES) $(MAIN_OBJECT_FILES)
-	$(GPP) $(GPP_LINKFLAGS) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES)
+	$(GPP) $(GPP_LINKFLAGS) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES) $(MODULE_FILES)
 
 
 # Tests
-$(TEST_DIR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
+$(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
 	$(GPP) $(GPP_LINKFLAGS) -o "$@" "$<" $(OBJECT_FILES)
 
 

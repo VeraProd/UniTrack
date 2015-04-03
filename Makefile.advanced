@@ -1,0 +1,15 @@
+# Author: Dmitry Kukovinets (d1021976@gmail.com)
+
+# This Makefile contains some useful functions, that can simplify
+# writing Makefiles for submodules.
+# NOTE: the root Makefile exports MAKEFILE_ADVANCED_ABS varialbe,
+# so don't forget: include $(MAKEFILE_ADVANCED_ABS)
+
+# Helper functions
+get_sources_files		= $(addprefix $(SOURCES_DIR_CURR)/,$(1))
+get_target_lib_files	= $(addprefix $(LIBS_DIR_CURR)/,$(1))
+get_objects_cpp			= $(1:.cpp=.o)
+get_object_files		= $(addprefix $(OBJECTS_DIR_CURR)/,$(1))
+get_target_files		= $(addprefix $(BUILD_DIR_CURR)/,$(1))
+get_test_files			= $(addprefix $(TEST_DIR_CURR)/,$(1))
+get_targets				= $(basename $(1))

@@ -8,8 +8,8 @@
 // #include "mongo/client_pool.h"
 // #include "mongo/document.h"
 
-#include "template_page.h"
-#include "template_page_model.h"
+#include <templatizer/template_page.h>
+#include <templatizer/template_page_model.h>
 
 
 class model:
