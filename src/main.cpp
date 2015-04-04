@@ -4,16 +4,16 @@
 #include <vector>
 #include <unordered_map>
 
-// #include "mongo/mongoc_handler.h"
-// #include "mongo/client_pool.h"
-// #include "mongo/document.h"
+// #include <mongo/mongoc_handler.h>
+// #include <mongo/client_pool.h>
+// #include <mongo/document.h>
 
-#include <templatizer/template_page.h>
-#include <templatizer/template_page_model.h>
+#include <templatizer/page.h>
+#include <templatizer/model.h>
 
 
 class model:
-	public template_page_model,
+	public templatizer::model,
 	public std::unordered_map<std::string, std::string>
 {
 public:
@@ -48,9 +48,9 @@ int main(int argc, char **argv)
 	// if (!collection.insert(doc, &error))
 	// 	std::cerr << error.message << std::endl;
 	
-	template_page page("www/contacts.html");
+	templatizer::page page("www/contacts.html");
 	
-	model m;
+	templatizer::model m;
 	m.emplace("hello", "Yo, man!");
 	m.emplace("MY_VAR", "Some text here.");
 	

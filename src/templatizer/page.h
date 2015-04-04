@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef TEMPLATE_PAGE_H
-#define TEMPLATE_PAGE_H
+#ifndef TEMPLATIZER_PAGE_H
+#define TEMPLATIZER_PAGE_H
 
 #include <iostream>
 #include <string>
@@ -12,25 +12,27 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
-#include <templatizer/template_page_model.h>
+#include <templatizer/model.h>
 
+
+namespace templatizer {
 
 // State
-namespace template_page_state {
+namespace page_state {
 	extern const int ok,			// = 0
 					 file_error,	// = 10
 					 parse_error;	// = 20
 };
 
 
-class template_page
+class page
 {
 public:
 	// Constructors
-	template_page();									// Default
-	template_page(const template_page &other) = delete;	// Do NOT copy!
-	template_page(template_page &&other);				// Move
-	template_page(const std::string &file);				// Constructs and loads template data
+	page();									// Default
+	page(const page &other) = delete;	// Do NOT copy!
+	page(page &&other);				// Move
+	page(const std::string &file);				// Constructs and loads template data
 	
 	
 	// Loads template from file
@@ -43,10 +45,10 @@ public:
 	
 	
 	// Generates result page from template using data model
-	std::string generate(const template_page_model &model) const;
+	std::string generate(const templatizer::model &model) const;
 	
 	// Same as generate()
-	inline std::string operator()(const template_page_model &model) const
+	inline std::string operator()(const templatizer::model &model) const
 	{ return this->generate(model); }
 	
 	
@@ -59,14 +61,13 @@ public:
 	{ return this->state_; }
 	
 	inline bool good() const
-	{ return this->state_ == template_page_state::ok; }
+	{ return this->state_ == page_state::ok; }
 	
 	inline bool bad() const
 	{ return this->good(); }
 protected:
 	// State
-	inline void set_state(int new_state)
-	{ this->state_ = new_state; }
+	void set_state(int new_state);
 	
 	
 	// Data chunks
@@ -75,7 +76,7 @@ protected:
 	public:
 		virtual ~chunk() noexcept = 0;
 		
-		virtual void init(const template_page_model &model) const = 0;
+		virtual void init(const templatizer::model &model) const = 0;
 		virtual void clear() const noexcept = 0;
 		
 		virtual const char * data() const = 0;
@@ -90,7 +91,7 @@ protected:
 	public:
 		raw_chunk(const char *data, size_t size) noexcept;
 		
-		virtual void init(const template_page_model &model) const noexcept override;
+		virtual void init(const templatizer::model &model) const noexcept override;
 		virtual void clear() const noexcept override;
 		
 		virtual const char * data() const noexcept override;
@@ -109,7 +110,7 @@ protected:
 		var_chunk(const std::string &symbol) noexcept;
 		var_chunk(std::string &&symbol) noexcept;
 		
-		virtual void init(const template_page_model &model) const override;
+		virtual void init(const templatizer::model &model) const override;
 		virtual void clear() const noexcept override;
 		
 		virtual const char * data() const noexcept override;
@@ -134,6 +135,8 @@ private:
 	
 	boost::interprocess::file_mapping mapping_;
 	boost::interprocess::mapped_region region_;
-};	// class template_page
+};	// class page
 
-#endif // TEMPLATE_PAGE_H
+};	// namespace templatizer
+
+#endif // TEMPLATIZER_PAGE_H

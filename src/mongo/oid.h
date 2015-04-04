@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef OID_H
-#define OID_H
+#ifndef MONGO_OID_H
+#define MONGO_OID_H
 
 #include <bson.h>
 
@@ -25,4 +25,4 @@ private:
 
 };	// namespace mongo
 
-#endif // OID_H
+#endif // MONGO_OID_H

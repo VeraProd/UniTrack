@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef URI_H
-#define URI_H
+#ifndef MONGO_URI_H
+#define MONGO_URI_H
 
 #include <string>
 #include <memory>
@@ -31,4 +31,4 @@ private:
 
 };
 
-#endif // URI_H
+#endif // MONGO_URI_H

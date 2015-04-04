@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef CLIENT_H
-#define CLIENT_H
+#ifndef MONGO_CLIENT_H
+#define MONGO_CLIENT_H
 
 #include <string>
 #include <functional>
@@ -37,4 +37,4 @@ private:
 
 }	// namespace mongo
 
-#endif // CLIENT_H
+#endif // MONGO_CLIENT_H

@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef DOCUMENT_H
-#define DOCUMENT_H
+#ifndef MONGO_DOCUMENT_H
+#define MONGO_DOCUMENT_H
 
 #include <string>
 #include <functional>
@@ -127,4 +127,4 @@ private:
 
 };	// namespace mongo
 
-#endif // DOCUMENT_H
+#endif // MONGO_DOCUMENT_H

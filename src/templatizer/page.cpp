@@ -1,24 +1,24 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <templatizer/template_page.h>
+#include <templatizer/page.h>
 
 #include <fstream>
 #include <regex>
 
 
 // State
-const int template_page_state::ok			=  0,
-		  template_page_state::file_error	= 10,
-		  template_page_state::parse_error	= 20;
+const int templatizer::page_state::ok			=  0,
+		  templatizer::page_state::file_error	= 10,
+		  templatizer::page_state::parse_error	= 20;
 
 
 // Default constructor
-template_page::template_page():
-	state_(template_page_state::ok)
+templatizer::page::page():
+	state_(templatizer::page_state::ok)
 {}
 
 // Move constructor
-template_page::template_page(template_page &&other):
+templatizer::page::page(templatizer::page &&other):
 	state_(std::move(other.state_)),
 	chunks_(std::move(other.chunks_)),
 	mapping_(std::move(other.mapping_)),
@@ -26,14 +26,14 @@ template_page::template_page(template_page &&other):
 {}
 
 // Constructs and loads template data
-template_page::template_page(const std::string &file):
-	state_(template_page_state::ok)
+templatizer::page::page(const std::string &file):
+	state_(templatizer::page_state::ok)
 { this->load(file); }
 
 
 // Loads template from file
 bool
-template_page::load(const std::string &file)
+templatizer::page::load(const std::string &file)
 {
 	using namespace boost::interprocess;
 	
@@ -85,13 +85,13 @@ template_page::load(const std::string &file)
 		this->mapping_	= std::move(mapping);
 		this->region_	= std::move(region);
 		
-		this->set_state(template_page_state::ok);
+		this->set_state(templatizer::page_state::ok);
 	} catch (interprocess_exception &e) {
 		std::cerr << "Can't map file: \"" << file << "\": " << e.what() << std::endl;
-		this->set_state(template_page_state::file_error);
+		this->set_state(templatizer::page_state::file_error);
 	} catch (...) {
 		std::cerr << "Can't parse file: \"" << file << "\": " << std::endl;
-		this->set_state(template_page_state::parse_error);
+		this->set_state(templatizer::page_state::parse_error);
 	}
 	
 	return this->good();
@@ -99,20 +99,20 @@ template_page::load(const std::string &file)
 
 // Simply deletes all loaded template data
 void
-template_page::clear() noexcept
+templatizer::page::clear() noexcept
 {
 	using namespace boost::interprocess;
 	
 	this->chunks_.clear();
 	this->mapping_ = std::move(file_mapping());
 	this->region_ = std::move(mapped_region());
-	this->set_state(template_page_state::ok);
+	this->set_state(templatizer::page_state::ok);
 }
 
 
 // Generates result page from template using data model
 std::string
-template_page::generate(const template_page_model &model) const
+templatizer::page::generate(const templatizer::model &model) const
 {
 	std::string res;
 	for (const auto &chunk: this->chunks_) {
@@ -129,7 +129,8 @@ template_page::generate(const template_page_model &model) const
 
 
 // All symbols need to get from model
-std::unordered_set<std::string> template_page::symbols() const
+std::unordered_set<std::string>
+templatizer::page::symbols() const
 {
 	std::unordered_set<std::string> res;
 	for (const auto &chunk: this->chunks_) {
@@ -140,62 +141,75 @@ std::unordered_set<std::string> template_page::symbols() const
 }
 
 
+// State
+void
+templatizer::page::set_state(int new_state)
+{
+	switch (new_state) {
+		case templatizer::page_state::ok:
+		case templatizer::page_state::file_error:
+		case templatizer::page_state::parse_error:
+			this->state_ = new_state;
+	}
+}
+
+
 // private:
 
 // class chunk
-template_page::chunk::~chunk() noexcept
+templatizer::page::chunk::~chunk() noexcept
 {}
 
 
 // class raw_chunk
-template_page::raw_chunk::raw_chunk(const char *data, size_t size) noexcept:
+templatizer::page::raw_chunk::raw_chunk(const char *data, size_t size) noexcept:
 	data_(data),
 	size_(size)
 {}
 
 void
-template_page::raw_chunk::init(const template_page_model &) const noexcept
+templatizer::page::raw_chunk::init(const templatizer::model &) const noexcept
 {}
 
 void
-template_page::raw_chunk::clear() const noexcept
+templatizer::page::raw_chunk::clear() const noexcept
 {}
 
 
 const char *
-template_page::raw_chunk::data() const noexcept
+templatizer::page::raw_chunk::data() const noexcept
 { return this->data_; }
 
 size_t
-template_page::raw_chunk::size() const noexcept
+templatizer::page::raw_chunk::size() const noexcept
 { return this->size_; }
 
 std::string
-template_page::raw_chunk::symbol() const noexcept
+templatizer::page::raw_chunk::symbol() const noexcept
 { return ""; }
 
 
 // class var_chunk
-template_page::var_chunk::var_chunk(const std::string &symbol) noexcept:
+templatizer::page::var_chunk::var_chunk(const std::string &symbol) noexcept:
 	symbol_(symbol),
 	data_(nullptr)
 {}
 
-template_page::var_chunk::var_chunk(std::string &&symbol) noexcept:
+templatizer::page::var_chunk::var_chunk(std::string &&symbol) noexcept:
 	symbol_(std::move(symbol)),
 	data_(nullptr)
 {}
 
 
 void
-template_page::var_chunk::init(const template_page_model &model) const
+templatizer::page::var_chunk::init(const templatizer::model &model) const
 {
 	// This can throw:
 	this->data_ = &model.at(this->symbol_);
 }
 
 void
-template_page::var_chunk::clear() const noexcept
+templatizer::page::var_chunk::clear() const noexcept
 {
 	// Do NOT delete! Model manages it.
 	this->data_ = nullptr;
@@ -203,19 +217,19 @@ template_page::var_chunk::clear() const noexcept
 
 
 const char *
-template_page::var_chunk::data() const noexcept
+templatizer::page::var_chunk::data() const noexcept
 {
 	// Don't forget to init() first!
 	return this->data_->c_str();
 }
 
 size_t
-template_page::var_chunk::size() const noexcept
+templatizer::page::var_chunk::size() const noexcept
 {
 	// Don't forget to init() first!
 	return this->data_->size();
 }
 
 std::string
-template_page::var_chunk::symbol() const noexcept
+templatizer::page::var_chunk::symbol() const noexcept
 { return this->symbol_; }

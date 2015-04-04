@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef CLIENT_POOL_H
-#define CLIENT_POOL_H
+#ifndef MONGO_CLIENT_POOL_H
+#define MONGO_CLIENT_POOL_H
 
 #include <functional>
 #include <memory>
@@ -44,4 +44,4 @@ private:
 
 };	// namespace mongo
 
-#endif // CLIENT_POOL_H
+#endif // MONGO_CLIENT_POOL_H

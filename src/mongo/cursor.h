@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef CURSOR_H
-#define CURSOR_H
+#ifndef MONGO_CURSOR_H
+#define MONGO_CURSOR_H
 
 #include <memory>
 #include <mongoc.h>
@@ -33,4 +33,4 @@ private:
 
 };	// namespace mongo
 
-#endif // CURSOR_H
+#endif // MONGO_CURSOR_H

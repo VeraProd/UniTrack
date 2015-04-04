@@ -9,13 +9,15 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 # Sources and headers
 HEADERS =						\
-	template_page.h				\
-	template_page_model.h
+	page.h						\
+	model.h						\
+	module_registrar.h
 
 
 SOURCES_CPP =					\
-	template_page.cpp			\
-	template_page_model.cpp
+	page.cpp					\
+	model.cpp					\
+	module_registrar.cpp
 
 
 # Static library

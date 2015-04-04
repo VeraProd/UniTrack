@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef COLLECTION_H
-#define COLLECTION_H
+#ifndef MONGO_COLLECTION_H
+#define MONGO_COLLECTION_H
 
 #include <string>
 #include <memory>
@@ -49,4 +49,4 @@ private:
 
 };	// namespace mongo
 
-#endif // COLLECTION_H
+#endif // MONGO_COLLECTION_H
