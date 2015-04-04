@@ -12,7 +12,7 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
-#include "template_page_model.h"
+#include <templatizer/template_page_model.h>
 
 
 // State

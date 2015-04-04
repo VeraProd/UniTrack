@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include "cursor.h"
+#include <mongo/cursor.h>
 
 mongo::cursor::cursor(mongoc_cursor_t *raw_cursor) noexcept:
 	cursor_(raw_cursor, mongoc_cursor_destroy)

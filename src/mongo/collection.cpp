@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include "collection.h"
+#include <mongo/collection.h>
 
 mongo::collection::collection(mongoc_collection_t *raw_collection) noexcept:
 	collection_(raw_collection, mongoc_collection_destroy)

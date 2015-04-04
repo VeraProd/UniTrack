@@ -7,7 +7,7 @@
 #include <memory>
 #include <mongoc.h>
 
-#include "document.h"
+#include <mongo/document.h>
 
 namespace mongo {
 

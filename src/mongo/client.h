@@ -8,8 +8,8 @@
 #include <memory>
 #include <mongoc.h>
 
-#include <uri.h>
-#include <collection.h>
+#include <mongo/uri.h>
+#include <mongo/collection.h>
 
 namespace mongo {
 

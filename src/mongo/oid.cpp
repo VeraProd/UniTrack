@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include "oid.h"
+#include <mongo/oid.h>
 
 mongo::oid::oid(bson_context_t *context) noexcept
 { bson_oid_init(&this->oid_, context); }

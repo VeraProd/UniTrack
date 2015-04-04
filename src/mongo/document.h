@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <bson.h>
 
-#include "oid.h"
+#include <mongo/oid.h>
 
 namespace mongo {
 

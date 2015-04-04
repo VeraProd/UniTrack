@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include "template_page.h"
+#include <templatizer/template_page.h>
 
 #include <fstream>
 #include <regex>

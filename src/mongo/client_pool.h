@@ -8,8 +8,8 @@
 #include <stdexcept>
 #include <mongoc.h>
 
-#include "uri.h"
-#include "client.h"
+#include <mongo/uri.h>
+#include <mongo/client.h>
 
 namespace mongo {
 

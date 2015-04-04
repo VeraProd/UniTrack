@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include "mongoc_handler.h"
+#include <mongo/mongoc_handler.h>
 
 std::mutex mongo::mongoc_handler::init_mutex_;
 bool mongo::mongoc_handler::was_init_ = false;

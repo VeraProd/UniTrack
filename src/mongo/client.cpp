@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <client.h>
+#include <mongo/client.h>
 
 mongo::client::client(mongoc_client_t *new_client, deleter_t d) noexcept:
 	client_(new_client, std::move(d))
