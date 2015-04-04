@@ -1,6 +1,6 @@
 # Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-# Makefile for MongoDB driver module
+# Makefile for Templatizer -- [html] template engine module.
 
 
 # Makefile advanced
@@ -12,6 +12,7 @@ HEADERS =						\
 	template_page.h				\
 	template_page_model.h
 
+
 SOURCES_CPP =					\
 	template_page.cpp			\
 	template_page_model.cpp
@@ -22,7 +23,8 @@ TARGET_LIB = libtemplatizer.a
 
 
 # Tests
-TEST_SOURCES_CPP = 
+TEST_SOURCES_CPP =				\
+	
 
 
 # Mongo flags
@@ -73,7 +75,8 @@ check: dirs run-tests
 
 
 dirs:
-	mkdir -p $(sort $(dir $(OBJECT_FILES) $(MAIN_OBJECT_FILES) $(TARGET_LIB_FILE)))
+	mkdir -p $(sort $(dir $(OBJECT_FILES) $(MAIN_OBJECT_FILES) $(TEST_OBJECT_FILES) \
+						  $(TARGET_LIB_FILE) $(TEST_TARGET_FILES)))
 
 
 main: $(TARGET_LIB_FILE)

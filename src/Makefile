@@ -1,6 +1,12 @@
 # Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-# Makefile for MongoDB driver module.
+# This is Makefile for building the main part of program. This part
+# of program has object files as targets, so there is no rules for
+# linking executeble or static/dynamic library. See root Makefile
+# and modules' Makefiles, they do that.
+
+# NOTE: This Makefile is NOT for modules building, for that purpose
+# see the root Makefile (../Makefile).
 
 
 # Makefile advanced
@@ -9,29 +15,16 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 # Sources and headers
 HEADERS =						\
-	client.h					\
-	client_pool.h				\
-	collection.h				\
-	cursor.h					\
-	document.h					\
-	mongoc_handler.h			\
-	oid.h						\
-	uri.h
+	
 
 
 SOURCES_CPP =					\
-	client.cpp					\
-	client_pool.cpp				\
-	collection.cpp				\
-	cursor.cpp					\
-	document.cpp				\
-	mongoc_handler.cpp			\
-	oid.cpp						\
-	uri.cpp
+	
 
 
-# Static library
-TARGET_LIB = libmongo.a
+# Sources needed for only main targets
+MAIN_SOURCES_CPP =				\
+	main.cpp
 
 
 # Tests
@@ -39,17 +32,12 @@ TEST_SOURCES_CPP =				\
 	
 
 
-# Mongo flags
-GPP_COMPILEFLAGS			+= $(shell pkg-config --cflags libmongoc-1.0)
-GPP_LINKFLAGS				+= $(shell pkg-config --libs libmongoc-1.0)
-
-
 # Absolute paths
-SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)/$(MODULE_NAME)
-BUILD_DIR_CURR				= $(BUILD_DIR_ABS)/$(MODULE_NAME)
+SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)
+BUILD_DIR_CURR				= $(BUILD_DIR_ABS)
 LIBS_DIR_CURR				= $(LIBS_DIR_ABS)
-OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)/$(MODULE_NAME)
-TEST_DIR_CURR				= $(TEST_DIR_ABS)/$(MODULE_NAME)
+OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)
+TEST_DIR_CURR				= $(TEST_DIR_ABS)
 
 
 # Files
@@ -59,39 +47,35 @@ MAIN_SOURCES_CPP_FILES		= $(call get_sources_files,$(MAIN_SOURCES_CPP))
 
 # Object files
 OBJECTS						= $(call get_objects_cpp,$(SOURCES_CPP))
+MAIN_OBJECTS				= $(call get_objects_cpp,$(MAIN_SOURCES_CPP))
 TEST_OBJECTS				= $(call get_objects_cpp,$(TEST_SOURCES_CPP))
 
 OBJECT_FILES				= $(call get_object_files,$(OBJECTS))
+MAIN_OBJECT_FILES			= $(call get_object_files,$(MAIN_OBJECTS))
 TEST_OBJECT_FILES			= $(call get_object_files,$(TEST_OBJECTS))
 
 # Target files
-TARGET_LIB_FILE				= $(call get_target_lib_files,$(TARGET_LIB))
-
 TEST_TARGETS				= $(call get_targets,$(TEST_SOURCES_CPP))
 TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 
+# Targets
 .PHONY: all clean check dirs main run-tests
-.SILENT: clean dirs modules run-tests
+.SILENT: clean dirs run-tests
 
 
 all: dirs main
 
 
 clean:
-	rm -rf $(OBJECT_FILES) $(TEST_TARGET_FILES)
+	rm -rf $(OBJECT_FILES) $(MAIN_OBJECT_FILES) $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
 
 
 # Tests targets
 check: dirs run-tests
 
 
-dirs:
-	mkdir -p $(sort $(dir $(OBJECT_FILES) $(MAIN_OBJECT_FILES) $(TEST_OBJECT_FILES) \
-						  $(TARGET_LIB_FILE) $(TEST_TARGET_FILES)))
-
-
-main: $(TARGET_LIB_FILE)
+main: $(OBJECT_FILES) $(MAIN_OBJECT_FILES)
 
 
 run-tests: $(TEST_TARGET_FILES)
@@ -110,13 +94,6 @@ run-tests: $(TEST_TARGET_FILES)
 # Objects compilation (universal for main program and tests)
 $(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
 	$(GPP) $(GPP_COMPILEFLAGS) -c -o "$@" "$<"
-
-
-$(TARGET_LIB_FILE): $(HEADER_FILES) $(TARGET_LIB_FILE)($(OBJECTS))
-
-
-$(TARGET_LIB_FILE)(%.o): $(call get_object_files,%.o)
-	$(AR) "$@" "$<"
 
 
 # Tests

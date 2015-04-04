@@ -1,6 +1,6 @@
 # Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-# This is the main Makefile of project.
+# This is the root Makefile of project.
 
 # Helper Makefile with advanced feautures (include it into all subprojects' Makefiles)
 MAKEFILE_ADVANCED = Makefile.advanced
@@ -8,34 +8,7 @@ export MAKEFILE_ADVANCED_ABS = $(abspath $(MAKEFILE_ADVANCED))
 include $(MAKEFILE_ADVANCED_ABS)
 
 
-# Sources and headers
-HEADERS =						\
-	
-
-
-SOURCES_CPP =					\
-	
-
-
-# Sources needed for only main targets
-MAIN_SOURCES_CPP =				\
-	main.cpp
-
-
-# Modules should be linked as static libraries
-MODULES =						\
-	mongo						\
-	templatizer
-
-
-# Executables
-MAIN_TARGETS = unitrack
-
-
-# Tests
-TEST_SOURCES_CPP = 
-
-
+# Project directories
 # Sources only
 SOURCES_DIR	= src
 
@@ -50,6 +23,26 @@ OBJECTS_DIR	= obj
 
 # All test executables
 TEST_DIR	= test
+
+
+# Makefile that builds the main part of program only
+MAIN_MAKEFILE =	$(SOURCES_DIR)/Makefile
+
+
+# Modules should be linked as static libraries
+MODULES =						\
+	mongo						\
+	templatizer
+
+
+# Executables
+MAIN_TARGETS = unitrack
+
+
+# Tests (extra tests, that must do some specific. For usual tests
+# see Makefiles of main part and modules).
+TEST_SOURCES_CPP =				\
+	
 
 
 # Compiler and library archiever
@@ -96,19 +89,20 @@ export GPP_COMPILEFLAGS		= -I"$(SOURCES_DIR_CURR)"
 export GPP_LINKFLAGS		=
 
 
-# Local data
 # Files
-HEADER_FILES				= $(call get_sources_files,$(HEADERS))
-SOURCES_CPP_FILES			= $(call get_sources_files,$(SOURCES_CPP))
-MAIN_SOURCES_CPP_FILES		= $(call get_sources_files,$(MAIN_SOURCES_CPP))
+# HEADER_FILES				= $(call get_sources_files,$(HEADERS))
+# SOURCES_CPP_FILES			= $(call get_sources_files,$(SOURCES_CPP))
+# MAIN_SOURCES_CPP_FILES		= $(call get_sources_files,$(MAIN_SOURCES_CPP))
 
 # Object files
-OBJECTS						= $(call get_objects_cpp,$(SOURCES_CPP))
-MAIN_OBJECTS				= $(call get_objects_cpp,$(MAIN_SOURCES_CPP))
-TEST_OBJECTS				= $(call get_objects_cpp,$(TEST_SOURCES_CPP))
+# OBJECTS						= $(call get_objects_cpp,$(SOURCES_CPP))
+# MAIN_OBJECTS				= $(call get_objects_cpp,$(MAIN_SOURCES_CPP))
+# TEST_OBJECTS				= $(call get_objects_cpp,$(TEST_SOURCES_CPP))
 
-OBJECT_FILES				= $(call get_object_files,$(OBJECTS))
-MAIN_OBJECT_FILES			= $(call get_object_files,$(MAIN_OBJECTS))
+# OBJECT_FILES				= $(call get_object_files,$(OBJECTS))
+# MAIN_OBJECT_FILES			= $(call get_object_files,$(MAIN_OBJECTS))
+
+OBJECT_FILES				= $(OBJECTS_DIR_CURR)/*.o
 TEST_OBJECT_FILES			= $(call get_object_files,$(TEST_OBJECTS))
 
 # Target files
@@ -122,8 +116,8 @@ MODULE_FILES				= $(call get_target_lib_files,$(addprefix lib,$(addsuffix .a,$(M
 
 
 # Targets
-.PHONY: all clean check dirs modules main run run-tests python-server
-.SILENT: clean dirs modules run run-tests
+.PHONY: all clean check dirs modules main all-main-objs run run-tests python-server
+.SILENT: clean dirs modules main all-main-objs run run-tests
 
 
 all: dirs modules main
@@ -131,7 +125,8 @@ all: dirs modules main
 
 # Cleaning submodules too
 clean:
-	rm -rf $(OBJECT_FILES) $(MAIN_OBJECT_FILES) $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
+	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
+	$(MAKE) -C $(SOURCES_DIR_CURR) clean;
 	for T in $(MODULES); do																	\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean;					\
 	done
@@ -193,13 +188,17 @@ run-tests: $(TEST_TARGET_FILES)
 	done
 
 
-# Objects compilation (universal for main program and tests)
-$(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
-	$(GPP) $(GPP_COMPILEFLAGS) -c -o "$@" "$<"
+# Building of all object files of the main part
+$(OBJECT_FILES):
+	$(MAKE) -C $(SOURCES_DIR_CURR)
+
+
+# Building of all module files
+$(MODULE_FILES): modules
 
 
 # Main targets
-$(TARGET_FILES): $(HEADER_FILES) $(OBJECT_FILES) $(MAIN_OBJECT_FILES)
+$(TARGET_FILES): $(HEADER_FILES) $(OBJECT_FILES) $(MODULE_FILES)
 	$(GPP) $(GPP_LINKFLAGS) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES) $(MODULE_FILES)
 
 
