@@ -79,7 +79,7 @@ all: dirs main
 
 
 clean:
-	rm -rf $(OBJECT_FILES) $(TEST_TARGET_FILES)
+	rm -rf $(OBJECT_FILES) $(TEST_TARGET_FILES) $(TARGET_LIB_FILE)
 
 
 # Tests targets

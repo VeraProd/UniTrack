@@ -2,6 +2,11 @@
 
 # Makefile for Templatizer -- [html] template engine module.
 
+# IMPORTANT!!!
+# NOTE: This module has own sub-modules (see modules/).
+# Sub-modules need to be _AFTER_ module_registrar in HEADERS
+# and SOURCES_CPP lists! Otherwise, module will NOT work!
+
 
 # Makefile advanced
 include $(MAKEFILE_ADVANCED_ABS)
@@ -15,6 +20,7 @@ HEADERS =						\
 	module_registrar.h			\
 	module.h module.hpp			\
 	modules/var_chunk.h
+	
 
 
 SOURCES_CPP =					\
@@ -23,6 +29,7 @@ SOURCES_CPP =					\
 	model.cpp					\
 	module_registrar.cpp		\
 	modules/var_chunk.cpp
+	
 
 
 # Static library
@@ -74,7 +81,7 @@ all: dirs main
 
 
 clean:
-	rm -rf $(OBJECT_FILES) $(TEST_TARGET_FILES)
+	rm -rf $(OBJECT_FILES) $(TEST_TARGET_FILES) $(TARGET_LIB_FILE)
 
 
 # Tests targets
