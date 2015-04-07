@@ -12,6 +12,7 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
+#include <templatizer/chunk.h>
 #include <templatizer/model.h>
 
 
@@ -29,10 +30,10 @@ class page
 {
 public:
 	// Constructors
-	page();									// Default
+	page();								// Default
 	page(const page &other) = delete;	// Do NOT copy!
-	page(page &&other);				// Move
-	page(const std::string &file);				// Constructs and loads template data
+	page(page &&other);					// Move
+	page(const std::string &file);		// Constructs and loads template data
 	
 	
 	// Loads template from file
@@ -45,15 +46,22 @@ public:
 	
 	
 	// Generates result page from template using data model
-	std::string generate(const templatizer::model &model) const;
+	void generate(std::ostream &stream, const templatizer::model &model) const;
 	
-	// Same as generate()
-	inline std::string operator()(const templatizer::model &model) const
-	{ return this->generate(model); }
+	// Syntax sugar, same as generate(). Usage:
+	// 	std::cout << page(model);
+	struct page_printer;
+	inline page_printer operator()(const templatizer::model &model) const;
 	
+	
+	// Symbols (variable names)
+	typedef std::unordered_set<std::string> symbol_set;
 	
 	// All symbols need to get from model
-	std::unordered_set<std::string> symbols() const;
+	symbol_set symbols() const;
+	
+	// Same as symbols(), but puts them into set
+	void export_symbols(symbol_set &symbols) const;
 	
 	
 	// State
@@ -70,65 +78,13 @@ protected:
 	void set_state(int new_state);
 	
 	
-	// Data chunks
-	class chunk
-	{
-	public:
-		virtual ~chunk() noexcept = 0;
-		
-		virtual void init(const templatizer::model &model) const = 0;
-		virtual void clear() const noexcept = 0;
-		
-		virtual const char * data() const = 0;
-		virtual size_t size() const = 0;
-		
-		virtual std::string symbol() const noexcept = 0;
-	};	// class chunk
-	
-	
-	class raw_chunk: public chunk
-	{
-	public:
-		raw_chunk(const char *data, size_t size) noexcept;
-		
-		virtual void init(const templatizer::model &model) const noexcept override;
-		virtual void clear() const noexcept override;
-		
-		virtual const char * data() const noexcept override;
-		virtual size_t size() const noexcept override;
-		
-		virtual std::string symbol() const noexcept override;
-	private:
-		char const * const data_;
-		const size_t size_;
-	};	// class raw_chunk
-	
-	
-	class var_chunk: public chunk
-	{
-	public:
-		var_chunk(const std::string &symbol) noexcept;
-		var_chunk(std::string &&symbol) noexcept;
-		
-		virtual void init(const templatizer::model &model) const override;
-		virtual void clear() const noexcept override;
-		
-		virtual const char * data() const noexcept override;
-		virtual size_t size() const noexcept override;
-		
-		virtual std::string symbol() const noexcept override;
-	private:
-		const std::string symbol_;
-		mutable std::string const *data_;
-	};	// class var_chunk
-	
-	
 	// Data
-	typedef std::unique_ptr<chunk> chunk_ptr_t;
+	typedef std::unique_ptr<templatizer::chunk> chunk_ptr_t;
 	typedef std::list<chunk_ptr_t> chunk_list_t;
 private:
 	// State
 	int state_;
+	
 	
 	// Data
 	chunk_list_t chunks_;
@@ -138,5 +94,13 @@ private:
 };	// class page
 
 };	// namespace templatizer
+
+
+inline
+std::ostream &
+operator<<(std::ostream &stream, const templatizer::page::page_printer &printer);
+
+
+#include <templatizer/page.hpp>
 
 #endif // TEMPLATIZER_PAGE_H

@@ -9,15 +9,20 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 # Sources and headers
 HEADERS =						\
-	page.h						\
+	chunk.h						\
+	page.h page.hpp				\
 	model.h						\
-	module_registrar.h
+	module_registrar.h			\
+	module.h module.hpp			\
+	modules/var_chunk.h
 
 
 SOURCES_CPP =					\
+	chunk.cpp					\
 	page.cpp					\
 	model.cpp					\
-	module_registrar.cpp
+	module_registrar.cpp		\
+	modules/var_chunk.cpp
 
 
 # Static library

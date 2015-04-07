@@ -116,11 +116,11 @@ MODULE_FILES				= $(call get_target_lib_files,$(addprefix lib,$(addsuffix .a,$(M
 
 
 # Targets
-.PHONY: all clean check dirs modules main all-main-objs run run-tests python-server
-.SILENT: clean dirs modules main all-main-objs run run-tests
+.PHONY: all clean check dirs modules main objects run run-tests python-server
+.SILENT: clean dirs modules main objects run run-tests $(TARGET_FILES)
 
 
-all: dirs modules main
+all: dirs main
 
 
 # Cleaning submodules too
@@ -133,7 +133,7 @@ clean:
 
 
 # Tests targets
-check: dirs run-tests
+check: run-tests
 
 
 dirs:
@@ -144,8 +144,18 @@ dirs:
 
 main: $(TARGET_FILES)
 
+objects:
+	echo "$(COLOR_RUN)Building objects...$(COLOR_RESET)";									\
+	$(MAKE) -C $(SOURCES_DIR_CURR);															\
+	STATUS=$$?;																				\
+	if [ "X$$STATUS" == 'X0' ]; then														\
+		echo "$(COLOR_PASS)Objects built successfully.$(COLOR_RESET)";						\
+	else																					\
+		echo "$(COLOR_FAIL)Objects building failed.$(COLOR_RESET)";							\
+	fi;
 
-modules:
+
+modules: dirs
 	for T in $(MODULES); do																	\
 		echo "$(COLOR_RUN)Building module: \"$$T\"...$(COLOR_RESET)";						\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T";						\
@@ -158,7 +168,7 @@ modules:
 	done
 
 
-run: dirs main
+run: all
 	for T in $(MAIN_TARGETS); do															\
 		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";						\
 		$(call get_target_files,$$T);														\
@@ -172,7 +182,7 @@ run: dirs main
 
 
 # Running tests for submodules too
-run-tests: $(TEST_TARGET_FILES)
+run-tests: dirs $(TEST_TARGET_FILES)
 	for T in $(TEST_TARGETS); do															\
 		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";							\
 		$(call get_test_files,$$T);															\
@@ -189,8 +199,7 @@ run-tests: $(TEST_TARGET_FILES)
 
 
 # Building of all object files of the main part
-$(OBJECT_FILES):
-	$(MAKE) -C $(SOURCES_DIR_CURR)
+$(OBJECT_FILES) $(MAIN_OBJECT_FILES): objects
 
 
 # Building of all module files
@@ -198,8 +207,15 @@ $(MODULE_FILES): modules
 
 
 # Main targets
-$(TARGET_FILES): $(HEADER_FILES) $(OBJECT_FILES) $(MODULE_FILES)
-	$(GPP) $(GPP_LINKFLAGS) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES) $(MODULE_FILES)
+$(TARGET_FILES): $(HEADER_FILES) modules objects
+	echo "$(COLOR_RUN)Linking target...$(COLOR_RESET)";										\
+	$(GPP) $(GPP_LINKFLAGS) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES) $(MODULE_FILES);	\
+	STATUS=$$?;																				\
+	if [ "X$$STATUS" == 'X0' ]; then														\
+		echo "$(COLOR_PASS)Target linked successfully.$(COLOR_RESET)";						\
+	else																					\
+		echo "$(COLOR_FAIL)Target linking failed.$(COLOR_RESET)";							\
+	fi;
 
 
 # Tests

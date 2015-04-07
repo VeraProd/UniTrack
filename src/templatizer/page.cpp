@@ -5,6 +5,9 @@
 #include <fstream>
 #include <regex>
 
+#include <templatizer/module_registrar.h>
+#include <templatizer/modules/var_chunk.h>
+
 
 // State
 const int templatizer::page_state::ok			=  0,
@@ -47,17 +50,22 @@ templatizer::page::load(const std::string &file)
 			const char *region_data = static_cast<const char *>(region.get_address());
 			size_t region_size = region.get_size() / sizeof(char);
 			
-			std::cerr << "Here!" << std::endl
-					  << "Read characters: " << region_size << std::endl
-					  << region_data << std::endl;
 			
-			// REGEX: $(VAR_NAME)
+			// REGEX: ${command ARGUMENTS}	-- full form
+			//    or: $VAR_NAME				-- short form, equvivalents to: $(var VAR_NAME)
 			// VAR_NAME can contain characters: a-z, A-Z, 0-9 and '_', but must to begin with
-			// letter (like in C). Minimum length of name is 1 symbol.
+			// letter or '_' (like in C). Minimum length of name is 1 symbol.
 			// NOTE: Some space symbols around VAR_NAME is allowed (but not a newline).
 			// VAR_NAME is a first group of the regex.
-			std::regex regex("\\$([[:blank:]]*\\([[:alpha:]_][[:alnum:]_]*\\)[[:blank:]]*)",
-							 std::regex::grep);
+			static const std::regex regex(
+					// Full form: ${ COMMAND ... }
+					"\\${[[:blank:]]*\\([[:alpha:]_][[:alnum:]_]*\\)"	// Group 1: COMMAND
+						"[[:blank:]]*\\([^}]*\\)}"						// Group 2: ARG
+				"\n"	// 'Or' in grep mode
+					// Short form: $VAR_NAME
+					"\\$\\([[:alpha:]_][[:alnum:]_]*\\)",				// Group 3: VAR_NAME (in short form)
+				std::regex::grep | std::regex::optimize);
+			
 			
 			std::regex_iterator<const char *>
 				it(region_data, region_data + region_size, regex),
@@ -65,12 +73,24 @@ templatizer::page::load(const std::string &file)
 			
 			size_t old_pos = 0;
 			while (it != end) {
+				// Adding previous raw chunk
 				size_t current_pos = it->position();
 				if (current_pos > old_pos) {	// Indexing previous raw chunk...
 					chunks.emplace_back(new raw_chunk(region_data + old_pos, current_pos - old_pos));
 					old_pos = current_pos + it->length();
 				}
-				chunks.emplace_back(new var_chunk(std::move(it->str(1))));	// ...and founded var chunk
+				
+				
+				// Adding current extra chunk
+				std::string command  = std::move(it->str(1)),
+							argument = std::move(it->str(2));
+				if (it->length(1) == 0) {	// Short form (because of command is empty)
+					command  = templatizer::var_chunk::var_chunk_cmd;
+					argument = std::move(it->str(3));
+				}
+				
+				auto chunk_generator = std::move(templatizer::default_module_registrar.at(command));
+				chunks.emplace_back(std::move(chunk_generator(std::move(argument))));
 				
 				++it;
 			}
@@ -89,6 +109,9 @@ templatizer::page::load(const std::string &file)
 	} catch (interprocess_exception &e) {
 		std::cerr << "Can't map file: \"" << file << "\": " << e.what() << std::endl;
 		this->set_state(templatizer::page_state::file_error);
+	} catch (std::out_of_range &e) {
+		std::cerr << "Can't parse file: \"" << file << "\": " << e.what() << std::endl;
+		this->set_state(templatizer::page_state::parse_error);
 	} catch (...) {
 		std::cerr << "Can't parse file: \"" << file << "\": " << std::endl;
 		this->set_state(templatizer::page_state::parse_error);
@@ -111,125 +134,34 @@ templatizer::page::clear() noexcept
 
 
 // Generates result page from template using data model
-std::string
-templatizer::page::generate(const templatizer::model &model) const
+void
+templatizer::page::generate(std::ostream &stream, const templatizer::model &model) const
 {
-	std::string res;
-	for (const auto &chunk: this->chunks_) {
-		chunk->init(model);	// This can throw (using model.at())!
-		
-		size_t chunk_size = chunk->size();
-		if (chunk_size > 0)
-			res.append(chunk->data(), chunk_size);
-		
-		chunk->clear();
-	}
-	return res;
+	for (const auto &chunk: this->chunks_)
+		chunk->generate(stream, model);
 }
 
 
 // All symbols need to get from model
-std::unordered_set<std::string>
+templatizer::page::symbol_set
 templatizer::page::symbols() const
 {
-	std::unordered_set<std::string> res;
-	for (const auto &chunk: this->chunks_) {
-		auto &&sym = chunk->symbol();
-		if (!sym.empty()) res.insert(sym);
-	}
+	templatizer::page::symbol_set res;
+	this->export_symbols(res);
 	return res;
+}
+
+
+// Same as symbols(), but puts them into set
+void
+templatizer::page::export_symbols(templatizer::page::symbol_set &symbols) const
+{
+	for (const auto &chunk: this->chunks_)
+		chunk->export_symbols(symbols);
 }
 
 
 // State
 void
 templatizer::page::set_state(int new_state)
-{
-	switch (new_state) {
-		case templatizer::page_state::ok:
-		case templatizer::page_state::file_error:
-		case templatizer::page_state::parse_error:
-			this->state_ = new_state;
-	}
-}
-
-
-// private:
-
-// class chunk
-templatizer::page::chunk::~chunk() noexcept
-{}
-
-
-// class raw_chunk
-templatizer::page::raw_chunk::raw_chunk(const char *data, size_t size) noexcept:
-	data_(data),
-	size_(size)
-{}
-
-void
-templatizer::page::raw_chunk::init(const templatizer::model &) const noexcept
-{}
-
-void
-templatizer::page::raw_chunk::clear() const noexcept
-{}
-
-
-const char *
-templatizer::page::raw_chunk::data() const noexcept
-{ return this->data_; }
-
-size_t
-templatizer::page::raw_chunk::size() const noexcept
-{ return this->size_; }
-
-std::string
-templatizer::page::raw_chunk::symbol() const noexcept
-{ return ""; }
-
-
-// class var_chunk
-templatizer::page::var_chunk::var_chunk(const std::string &symbol) noexcept:
-	symbol_(symbol),
-	data_(nullptr)
-{}
-
-templatizer::page::var_chunk::var_chunk(std::string &&symbol) noexcept:
-	symbol_(std::move(symbol)),
-	data_(nullptr)
-{}
-
-
-void
-templatizer::page::var_chunk::init(const templatizer::model &model) const
-{
-	// This can throw:
-	this->data_ = &model.at(this->symbol_);
-}
-
-void
-templatizer::page::var_chunk::clear() const noexcept
-{
-	// Do NOT delete! Model manages it.
-	this->data_ = nullptr;
-}
-
-
-const char *
-templatizer::page::var_chunk::data() const noexcept
-{
-	// Don't forget to init() first!
-	return this->data_->c_str();
-}
-
-size_t
-templatizer::page::var_chunk::size() const noexcept
-{
-	// Don't forget to init() first!
-	return this->data_->size();
-}
-
-std::string
-templatizer::page::var_chunk::symbol() const noexcept
-{ return this->symbol_; }
+{ this->state_ = new_state; }

@@ -17,11 +17,12 @@ class model:
 	public std::unordered_map<std::string, std::string>
 {
 public:
-	const std::string & at(const std::string &var_name) const override
+	virtual const std::string & at(const std::string &var_name) const override
 	{
 		try {
 			return this->std::unordered_map<std::string, std::string>::at(var_name);
 		} catch (...) {
+			std::cerr << "Requested unknown variable: \"" << var_name << "\"." << std::endl;
 			return this->unknown_;
 		}
 	}
@@ -50,7 +51,7 @@ int main(int argc, char **argv)
 	
 	templatizer::page page("www/contacts.html");
 	
-	templatizer::model m;
+	model m;
 	m.emplace("hello", "Yo, man!");
 	m.emplace("MY_VAR", "Some text here.");
 	
