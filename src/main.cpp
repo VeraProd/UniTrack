@@ -49,11 +49,13 @@ int main(int argc, char **argv)
 	// if (!collection.insert(doc, &error))
 	// 	std::cerr << error.message << std::endl;
 	
-	templatizer::page page("www/contacts.html");
+	templatizer::page page("www/profile.html");
 	
 	model m;
-	m.emplace("hello", "Yo, man!");
-	m.emplace("MY_VAR", "Some text here.");
+	m.emplace("USERNAME", "Dmitry Kukovinets");
+	m.emplace("UNIVERSITY", "STANKIN");
+	m.emplace("DEPARTMENT", "Inteh");
+	m.emplace("TAGS", "Student");
 	
 	std::cout << std::endl << "Generated page:" << std::endl
 			  << page(m) << std::endl;
