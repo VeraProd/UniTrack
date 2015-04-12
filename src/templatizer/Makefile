@@ -41,11 +41,6 @@ TEST_SOURCES_CPP =				\
 	
 
 
-# Mongo flags
-GPP_COMPILEFLAGS			+= $(shell pkg-config --cflags libmongoc-1.0)
-GPP_LINKFLAGS				+= $(shell pkg-config --libs libmongoc-1.0)
-
-
 # Absolute paths
 SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)/$(MODULE_NAME)
 BUILD_DIR_CURR				= $(BUILD_DIR_ABS)/$(MODULE_NAME)

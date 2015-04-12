@@ -83,7 +83,7 @@ run-tests: $(TEST_TARGET_FILES)
 		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";							\
 		$(call get_test_files,$$T);															\
 		STATUS=$$?;																			\
-		if [ "X$$STATUS" == 'X0' ]; then													\
+		if [ "X$$STATUS" = 'X0' ]; then														\
 			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";							\
 		else																				\
 			echo "$(COLOR_FAIL)Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";		\

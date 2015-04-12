@@ -31,8 +31,8 @@ MAIN_MAKEFILE =	$(SOURCES_DIR)/Makefile
 
 # Modules should be linked as static libraries
 MODULES =						\
-	mongo						\
-	templatizer
+	templatizer					\
+	# mongo
 
 
 # Executables
@@ -90,18 +90,6 @@ export GPP_LINKFLAGS		=
 
 
 # Files
-# HEADER_FILES				= $(call get_sources_files,$(HEADERS))
-# SOURCES_CPP_FILES			= $(call get_sources_files,$(SOURCES_CPP))
-# MAIN_SOURCES_CPP_FILES		= $(call get_sources_files,$(MAIN_SOURCES_CPP))
-
-# Object files
-# OBJECTS						= $(call get_objects_cpp,$(SOURCES_CPP))
-# MAIN_OBJECTS				= $(call get_objects_cpp,$(MAIN_SOURCES_CPP))
-# TEST_OBJECTS				= $(call get_objects_cpp,$(TEST_SOURCES_CPP))
-
-# OBJECT_FILES				= $(call get_object_files,$(OBJECTS))
-# MAIN_OBJECT_FILES			= $(call get_object_files,$(MAIN_OBJECTS))
-
 OBJECT_FILES				= $(OBJECTS_DIR_CURR)/*.o
 TEST_OBJECT_FILES			= $(call get_object_files,$(TEST_OBJECTS))
 
@@ -148,7 +136,7 @@ objects:
 	echo "$(COLOR_RUN)Building objects...$(COLOR_RESET)";									\
 	$(MAKE) -C $(SOURCES_DIR_CURR);															\
 	STATUS=$$?;																				\
-	if [ "X$$STATUS" == 'X0' ]; then														\
+	if [ "X$$STATUS" = 'X0' ]; then															\
 		echo "$(COLOR_PASS)Objects built successfully.$(COLOR_RESET)";						\
 	else																					\
 		echo "$(COLOR_FAIL)Objects building failed.$(COLOR_RESET)";							\
@@ -160,7 +148,7 @@ modules: dirs
 		echo "$(COLOR_RUN)Building module: \"$$T\"...$(COLOR_RESET)";						\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T";						\
 		STATUS=$$?;																			\
-		if [ "X$$STATUS" == 'X0' ]; then													\
+		if [ "X$$STATUS" = 'X0' ]; then														\
 			echo "$(COLOR_PASS)Module \"$$T\" built successfully.$(COLOR_RESET)";			\
 		else																				\
 			echo "$(COLOR_FAIL)Module \"$$T\" building failed.$(COLOR_RESET)";				\
@@ -173,7 +161,7 @@ run: all
 		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";						\
 		$(call get_target_files,$$T);														\
 		STATUS=$$?;																			\
-		if [ "X$$STATUS" == 'X0' ]; then													\
+		if [ "X$$STATUS" = 'X0' ]; then														\
 			echo "$(COLOR_PASS)Program \"$$T\" completed successfully.$(COLOR_RESET)";		\
 		else																				\
 			echo "$(COLOR_FAIL)Program \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";	\
@@ -187,7 +175,7 @@ run-tests: dirs $(TEST_TARGET_FILES)
 		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";							\
 		$(call get_test_files,$$T);															\
 		STATUS=$$?;																			\
-		if [ "X$$STATUS" == 'X0' ]; then													\
+		if [ "X$$STATUS" = 'X0' ]; then														\
 			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";							\
 		else																				\
 			echo "$(COLOR_FAIL)Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";		\
@@ -211,7 +199,7 @@ $(TARGET_FILES): $(HEADER_FILES) modules objects
 	echo "$(COLOR_RUN)Linking target...$(COLOR_RESET)";										\
 	$(GPP) $(GPP_LINKFLAGS) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES) $(MODULE_FILES);	\
 	STATUS=$$?;																				\
-	if [ "X$$STATUS" == 'X0' ]; then														\
+	if [ "X$$STATUS" = 'X0' ]; then															\
 		echo "$(COLOR_PASS)Target linked successfully.$(COLOR_RESET)";						\
 	else																					\
 		echo "$(COLOR_FAIL)Target linking failed.$(COLOR_RESET)";							\
