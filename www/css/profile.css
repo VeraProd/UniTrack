@@ -1,0 +1,35 @@
+.profile-info {
+	position: absolute;
+	height: 218px;
+	min-height: 218px;
+	top: 0;
+	padding: 9px 0 9px 0;
+}
+
+.profile-content {
+	margin-top: 218px;
+}
+
+.profile-info > .user-avatar {
+	float: left;
+	width: 212px;
+	height: 200px;
+	padding: 0 12px 0 0;
+}
+
+.profile-info > .user-info {
+	float: left;
+	width: 500px;
+	height: 200px;
+}
+
+.user-info > .key {
+	float: left;
+	width: 120px;
+	color: #999999;
+}
+
+.user-info > .value {
+	float: left;
+}
+

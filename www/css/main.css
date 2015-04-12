@@ -1,0 +1,15 @@
+body > .container {
+	padding: 0 15px 0;
+}
+
+.clear {
+	clear: left;
+}
+
+.float-left {
+	float: left;
+}
+
+.float-right {
+	float: right;
+}

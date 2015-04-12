@@ -1,9 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="utf-8">
 	<title>Profile</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<link rel="stylesheet" type="text/css" href="css/profile.css">
 </head>
 <body>
-	<h1>User profile page</h1>
+	<div class="container">
+		<div class="profile-info">
+			<div class="user-avatar"><img src="images/avatar.jpg"></div>
+			<div class="user-info">
+				<h4>$USERNAME</h4>
+				
+				<div class="key">University:</div>
+				<div class="value">$UNIVERSITY</div>
+				<div class="clear"></div>
+				
+				<div class="key">Department:</div>
+				<div class="value">$DEPARTMENT</div>
+				<div class="clear"></div>
+				
+				<div class="key">Tags:</div>
+				<div class="value">$TAGS</div>
+				<div class="clear"></div>
+			</div>
+			<div class="clear"></div>
+		</div>
+		<div class="profile-content">
+			<p class="text-primary">The Templatizer will fill variables, beginning with '$'.</p>
+		</div>
+	</div>
 </body>
 </html>
