@@ -5,6 +5,7 @@
 # NOTE: the root Makefile exports MAKEFILE_ADVANCED_ABS varialbe,
 # so don't forget: include $(MAKEFILE_ADVANCED_ABS)
 
+
 # Helper functions
 get_sources_files		= $(addprefix $(SOURCES_DIR_CURR)/,$(1))
 get_target_lib_files	= $(addprefix $(LIBS_DIR_CURR)/,$(1))
@@ -13,3 +14,8 @@ get_object_files		= $(addprefix $(OBJECTS_DIR_CURR)/,$(1))
 get_target_files		= $(addprefix $(BUILD_DIR_CURR)/,$(1))
 get_test_files			= $(addprefix $(TEST_DIR_CURR)/,$(1))
 get_targets				= $(basename $(1))
+
+
+gpp_compile				= $(GPP) $(GPP_COMPILE_FLAGS) $(GPP_HEADER_PATHS)
+gpp_shared_lib			= $(GPP) $(GPP_SHARED_LIB_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS)
+gpp_link				= $(GPP) $(GPP_LINK_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS)

@@ -1,11 +1,6 @@
 # Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-# Makefile for Templatizer -- [html] template engine module.
-
-# IMPORTANT!!!
-# NOTE: This module has own sub-modules (see modules/).
-# Sub-modules need to be _AFTER_ module_registrar in HEADERS
-# and SOURCES_CPP lists! Otherwise, module will NOT work!
+# Makefile for server part of this program.
 
 
 # Makefile advanced
@@ -14,31 +9,27 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 # Sources and headers
 HEADERS =						\
-	chunk.h						\
-	page.h page.hpp				\
-	model.h						\
-	module_registrar.h			\
-	module.h module.hpp			\
-	modules/var_chunk.h
+	server_http.h				\
+	client_manager.h			\
 	
 
 
 SOURCES_CPP =					\
-	chunk.cpp					\
-	page.cpp					\
-	model.cpp					\
-	module_registrar.cpp		\
-	modules/var_chunk.cpp
+	server_http.cpp				\
+	client_manager.cpp			\
 	
 
 
 # Static library
-TARGET_LIB = libtemplatizer.so
+TARGET_LIB = libserver.so
 
 
 # Tests
 TEST_SOURCES_CPP =				\
 	
+
+# Requrements
+GPP_LIBS					+= -lboost_system-mt
 
 
 # Absolute paths

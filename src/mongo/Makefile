@@ -31,7 +31,7 @@ SOURCES_CPP =					\
 
 
 # Static library
-TARGET_LIB = libmongo.a
+TARGET_LIB = libmongo.so
 
 
 # Tests
@@ -40,8 +40,8 @@ TEST_SOURCES_CPP =				\
 
 
 # Mongo flags
-GPP_COMPILEFLAGS			+= $(shell pkg-config --cflags libmongoc-1.0)
-GPP_LINKFLAGS				+= $(shell pkg-config --libs libmongoc-1.0)
+GPP_HEADER_PATHS			+= $(shell pkg-config --cflags libmongoc-1.0 libbson-1.0)
+GPP_LIBS					+= $(shell pkg-config --libs libmongoc-1.0 libbson-1.0)
 
 
 # Absolute paths
@@ -109,16 +109,13 @@ run-tests: $(TEST_TARGET_FILES)
 
 # Objects compilation (universal for main program and tests)
 $(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
-	$(GPP) $(GPP_COMPILEFLAGS) -c -o "$@" "$<"
+	$(call gpp_compile) -o "$@" "$<"
 
 
-$(TARGET_LIB_FILE): $(HEADER_FILES) $(TARGET_LIB_FILE)($(OBJECTS))
-
-
-$(TARGET_LIB_FILE)(%.o): $(call get_object_files,%.o)
-	$(AR) "$@" "$<"
+$(TARGET_LIB_FILE): $(HEADER_FILES) $(OBJECT_FILES)
+	$(call gpp_shared_lib) -o "$@" $(OBJECT_FILES)
 
 
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
-	$(GPP) $(GPP_LINKFLAGS) -o "$@" "$<" $(OBJECT_FILES)
+	$(call gpp_link) -o "$@" "$<" $(OBJECT_FILES)

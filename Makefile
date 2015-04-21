@@ -25,14 +25,11 @@ OBJECTS_DIR	= obj
 TEST_DIR	= test
 
 
-# Makefile that builds the main part of program only
-MAIN_MAKEFILE =	$(SOURCES_DIR)/Makefile
-
-
 # Modules should be linked as static libraries
 MODULES =						\
+	server						\
 	templatizer					\
-	# mongo
+	mongo
 
 
 # Executables
@@ -45,19 +42,41 @@ TEST_SOURCES_CPP =				\
 	
 
 
-# Compiler and library archiever
-export GPP			= g++ -pipe -O2 -Wall -std=c++11 $(EXTRA_CPPFLAGS)
-
-# Need for modules
-export AR			= ar cr
-
-
-# Other flags
+# Compiler settings
 ifeq ($(shell uname -s),Darwin)
+	GPP						= g++
+	
 	# MacPorts installs boost and others into /opt/local
-	export GPP_COMPILEFLAGS	+= -I/opt/local/include
-	export GPP_LINKFLAGS	+= -L/opt/local/lib
+	GPP_HEADER_PATHS		+= -I/opt/local/include
+	GPP_LIB_PATHS			+= -L/opt/local/lib
+else
+	# Use g++-4.9 because of c++11 features
+	GPP						= g++-4.9
 endif
+
+
+# Current project settings
+GPP_HEADER_PATHS			+= -I"$(abspath $(SOURCES_DIR))"
+GPP_LIB_PATHS				+= -L"$(abspath $(LIBS_DIR))"
+
+
+GPP_LIBS					+= -lboost_system-mt
+
+
+# Compiler flags
+GPP_COMPILE_FLAGS			+= -pipe -O2 -Wall -std=c++11 -c $(GPP_HEADER_PATHS) $(EXTRA_CPPFLAGS) 
+GPP_LINK_FLAGS				+= -pipe -O2 -Wall $(GPP_LIB_PATHS) $(EXTRA_LINKFLEGS)
+GPP_SHARED_LIB_FLAGS		+= -pipe -O2 -Wall --shared $(EXTRA_SHARED_LIB_FLAGS)
+
+
+# Export commands
+export GPP
+export GPP_HEADER_PATHS
+export GPP_LIB_PATHS
+export GPP_LIBS
+export GPP_COMPILE_FLAGS
+export GPP_LINK_FLAGS
+export GPP_SHARED_LIB_FLAGS
 
 
 # Terminal colors (0 -- reset, 1 -- bold, 31 -- red, 32 -- green, 34 -- blue).
@@ -84,11 +103,6 @@ OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)
 TEST_DIR_CURR				= $(TEST_DIR_ABS)
 
 
-# Current project
-export GPP_COMPILEFLAGS		= -I"$(SOURCES_DIR_CURR)"
-export GPP_LINKFLAGS		=
-
-
 # Files
 OBJECT_FILES				= $(OBJECTS_DIR_CURR)/*.o
 TEST_OBJECT_FILES			= $(call get_object_files,$(TEST_OBJECTS))
@@ -100,7 +114,7 @@ TEST_TARGETS				= $(call get_targets,$(TEST_SOURCES_CPP))
 TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 # Module static libraries
-MODULE_FILES				= $(call get_target_lib_files,$(addprefix lib,$(addsuffix .a,$(MODULES))))
+MODULE_FILES				= $(call get_target_lib_files,$(addprefix lib,$(addsuffix .so,$(MODULES))))
 
 
 # Targets
@@ -131,6 +145,7 @@ dirs:
 
 
 main: $(TARGET_FILES)
+
 
 objects:
 	echo "$(COLOR_RUN)Building objects...$(COLOR_RESET)";									\
@@ -197,7 +212,7 @@ $(MODULE_FILES): modules
 # Main targets
 $(TARGET_FILES): $(HEADER_FILES) modules objects
 	echo "$(COLOR_RUN)Linking target...$(COLOR_RESET)";										\
-	$(GPP) $(GPP_LINKFLAGS) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES) $(MODULE_FILES);	\
+	$(call gpp_link) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES) $(MODULE_FILES);			\
 	STATUS=$$?;																				\
 	if [ "X$$STATUS" = 'X0' ]; then															\
 		echo "$(COLOR_PASS)Target linked successfully.$(COLOR_RESET)";						\
@@ -208,7 +223,7 @@ $(TARGET_FILES): $(HEADER_FILES) modules objects
 
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
-	$(GPP) $(GPP_LINKFLAGS) -o "$@" "$<" $(OBJECT_FILES)
+	$(call gpp_link) -o "$@" "$<" $(OBJECT_FILES)
 
 
 python-server:

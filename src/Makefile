@@ -93,9 +93,9 @@ run-tests: $(TEST_TARGET_FILES)
 
 # Objects compilation (universal for main program and tests)
 $(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
-	$(GPP) $(GPP_COMPILEFLAGS) -c -o "$@" "$<"
+	$(call gpp_compile) -o "$@" "$<"
 
 
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
-	$(GPP) $(GPP_LINKFLAGS) -o "$@" "$<" $(OBJECT_FILES)
+	$(call gpp_link) -o "$@" "$<" $(OBJECT_FILES)

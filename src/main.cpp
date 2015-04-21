@@ -8,6 +8,8 @@
 // #include <mongo/client_pool.h>
 // #include <mongo/document.h>
 
+#include <server/server_http.h>
+
 #include <templatizer/page.h>
 #include <templatizer/model.h>
 
@@ -49,16 +51,19 @@ int main(int argc, char **argv)
 	// if (!collection.insert(doc, &error))
 	// 	std::cerr << error.message << std::endl;
 	
-	templatizer::page page("www/profile.html");
+	// templatizer::page page("www/profile.html");
 	
-	model m;
-	m.emplace("USERNAME", "Dmitry Kukovinets");
-	m.emplace("UNIVERSITY", "STANKIN");
-	m.emplace("DEPARTMENT", "Inteh");
-	m.emplace("TAGS", "Student");
+	// model m;
+	// m.emplace("USERNAME", "Dmitry Kukovinets");
+	// m.emplace("UNIVERSITY", "STANKIN");
+	// m.emplace("DEPARTMENT", "Inteh");
+	// m.emplace("TAGS", "Student");
 	
-	std::cout << std::endl << "Generated page:" << std::endl
-			  << page(m) << std::endl;
+	// std::cout << std::endl << "Generated page:" << std::endl
+	// 		  << page(m) << std::endl;
+	
+	server::server_http server(8080);
+	server.run();
 	
 	return 0;
 }
