@@ -29,7 +29,7 @@ TEST_DIR	= test
 MODULES =						\
 	server						\
 	templatizer					\
-	mongo
+	# mongo
 
 
 # Executables
@@ -49,18 +49,21 @@ ifeq ($(shell uname -s),Darwin)
 	# MacPorts installs boost and others into /opt/local
 	GPP_HEADER_PATHS		+= -I/opt/local/include
 	GPP_LIB_PATHS			+= -L/opt/local/lib
+	
+	# Strange, but this need for server
+	GPP_LIBS				+= -lboost_system-mt
 else
 	# Use g++-4.9 because of c++11 features
 	GPP						= g++-4.9
+	
+	# Strange, but this need for server
+	GPP_LIBS				+= -lboost_system
 endif
 
 
 # Current project settings
 GPP_HEADER_PATHS			+= -I"$(abspath $(SOURCES_DIR))"
 GPP_LIB_PATHS				+= -L"$(abspath $(LIBS_DIR))"
-
-
-GPP_LIBS					+= -lboost_system-mt
 
 
 # Compiler flags
