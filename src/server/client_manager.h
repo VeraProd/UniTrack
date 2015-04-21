@@ -12,8 +12,10 @@ namespace server {
 class client_manager
 {
 public:
-	client_manager(boost::asio::ip::tcp::socket &&socket);
+	client_manager(boost::asio::io_service &io_service,
+				   boost::asio::ip::tcp::socket &&socket);
 private:
+	boost::asio::io_service &io_service_;
 	boost::asio::ip::tcp::socket socket_;
 };	// class client_manager
 
