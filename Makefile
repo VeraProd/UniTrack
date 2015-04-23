@@ -43,8 +43,11 @@ TEST_SOURCES_CPP =				\
 	
 
 
+# Target system
+export SYSTEM				= $(shell uname -s)
+
 # Compiler settings
-ifeq ($(shell uname -s),Darwin)
+ifeq ($(SYSTEM),Darwin)
 	GPP						= g++
 	
 	# MacPorts installs boost and others into /opt/local
@@ -68,9 +71,9 @@ GPP_LIB_PATHS				+= -L"$(abspath $(LIBS_DIR))"
 
 
 # Compiler flags
-GPP_COMPILE_FLAGS			+= -pipe -O2 -Wall -std=c++11 -c $(GPP_HEADER_PATHS) $(EXTRA_CPPFLAGS) 
-GPP_LINK_FLAGS				+= -pipe -O2 -Wall $(GPP_LIB_PATHS) $(EXTRA_LINKFLEGS)
-GPP_SHARED_LIB_FLAGS		+= -pipe -O2 -Wall --shared $(EXTRA_SHARED_LIB_FLAGS)
+GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++11 -c $(GPP_HEADER_PATHS) $(EXTRA_CPPFLAGS) 
+GPP_LINK_FLAGS				+= -pipe -fPIC -O2 -Wall $(GPP_LIB_PATHS) $(EXTRA_LINKFLEGS)
+GPP_SHARED_LIB_FLAGS		+= -pipe -fPIC -O2 -Wall --shared $(EXTRA_SHARED_LIB_FLAGS)
 
 
 # Export commands

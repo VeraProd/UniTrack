@@ -30,7 +30,13 @@ TEST_SOURCES_CPP =				\
 	
 
 # Requrements
-GPP_LIBS					+= -lboost_system-mt -llogger
+GPP_LIBS					+= -llogger
+
+ifeq ($(SYSTEM),Darwin)
+	GPP_LIBS				+= -lboost_system-mt
+else
+	GPP_LIBS				+= -lboost_system
+endif
 
 
 # Absolute paths
