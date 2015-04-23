@@ -8,6 +8,8 @@
 // #include <mongo/client_pool.h>
 // #include <mongo/document.h>
 
+#include <logger/logger.h>
+
 #include <server/server_http.h>
 
 #include <templatizer/page.h>
@@ -62,11 +64,13 @@ int main(int argc, char **argv)
 	// std::cout << std::endl << "Generated page:" << std::endl
 	// 		  << page(m) << std::endl;
 	
+	logger::logger logger(std::cerr);
+	
 	server::server_parameters parameters;
 	parameters.port = 8080;
 	parameters.workers = 3;
 	
-	server::server_http server(parameters);
+	server::server_http server(logger, parameters);
 	server.run();
 	
 	return 0;

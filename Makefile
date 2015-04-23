@@ -27,6 +27,7 @@ TEST_DIR	= test
 
 # Modules should be linked as static libraries
 MODULES =						\
+	logger						\
 	server						\
 	templatizer					\
 	# mongo
@@ -118,6 +119,9 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 # Module static libraries
 MODULE_FILES				= $(call get_target_lib_files,$(addprefix lib,$(addsuffix .so,$(MODULES))))
+
+
+GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 
 
 # Targets
@@ -215,7 +219,7 @@ $(MODULE_FILES): modules
 # Main targets
 $(TARGET_FILES): $(HEADER_FILES) modules objects
 	echo "$(COLOR_RUN)Linking target...$(COLOR_RESET)";										\
-	$(call gpp_link) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES) $(MODULE_FILES);			\
+	$(call gpp_link) $(GPP_LIBS_CURR) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES);			\
 	STATUS=$$?;																				\
 	if [ "X$$STATUS" = 'X0' ]; then															\
 		echo "$(COLOR_PASS)Target linked successfully.$(COLOR_RESET)";						\

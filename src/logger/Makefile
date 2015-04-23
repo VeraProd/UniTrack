@@ -9,28 +9,26 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 # Sources and headers
 HEADERS =						\
-	server_http.h				\
-	client_manager.h			\
-	worker.h					\
+	level.h						\
+	logger.h					\
+	record_object.h				\
+	
 
 
 SOURCES_CPP =					\
-	server_http.cpp				\
-	client_manager.cpp			\
-	worker.cpp					\
+	level.cpp					\
+	logger.cpp					\
+	record_object.cpp			\
 	
 
 
 # Static library
-TARGET_LIB = libserver.so
+TARGET_LIB = liblogger.so
 
 
 # Tests
 TEST_SOURCES_CPP =				\
 	
-
-# Requrements
-GPP_LIBS					+= -lboost_system-mt -llogger
 
 
 # Absolute paths

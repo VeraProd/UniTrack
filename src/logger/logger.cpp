@@ -1,0 +1,32 @@
+// Author: Dmitry Kukovinets (d1021976@gmail.com)
+
+#include <logger/logger.h>
+
+
+logger::logger::logger(std::ostream &log_stream):
+	log_stream_(log_stream)
+{}
+
+
+logger::logger::~logger()
+{
+	std::unique_lock<std::mutex> lock(this->log_stream_mutex_);
+	this->log_stream_.flush();
+}
+
+
+logger::record_object
+logger::logger::stream(level level_)
+{
+	return std::move(record_object(level_, *this));
+}
+
+
+void
+logger::logger::log_raw(level level_, const std::string &data)
+{
+	const auto &level_str = level_to_str(level_);
+	
+	std::unique_lock<std::mutex> lock(this->log_stream_mutex_);
+	std::cerr << level_str << ' ' << data << std::endl;
+}

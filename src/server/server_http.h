@@ -9,6 +9,7 @@
 #include <boost/asio.hpp>
 
 #include <server/worker.h>
+#include <logger/logger.h>
 
 
 namespace server {
@@ -24,7 +25,8 @@ struct server_parameters
 class server_http
 {
 public:
-	server_http(const server_parameters &parameters);
+	server_http(logger::logger &logger,
+				const server_parameters &parameters);
 	
 	void run();
 private:
@@ -34,6 +36,14 @@ private:
 	void signal_handler(const boost::system::error_code &err,
 						int signal_number);
 	
+	void accept_handler(socket_ptr_t socket_ptr,
+						const boost::system::error_code &err);
+	
+	void add_accept_handler();
+	
+	
+	// Data
+	logger::logger &logger_;
 	
 	server_parameters parameters_;
 	
@@ -43,6 +53,7 @@ private:
 	boost::asio::signal_set signal_set_;
 	
 	std::vector<std::unique_ptr<worker>> workers_;
+	worker_id_t current_worker_id_;
 };	// class server_http
 
 
