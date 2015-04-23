@@ -11,12 +11,13 @@ include $(MAKEFILE_ADVANCED_ABS)
 HEADERS =						\
 	server_http.h				\
 	client_manager.h			\
-	
+	worker.h					\
 
 
 SOURCES_CPP =					\
 	server_http.cpp				\
 	client_manager.cpp			\
+	worker.cpp					\
 	
 
 

@@ -6,9 +6,9 @@
 
 
 server::client_manager::client_manager(boost::asio::io_service &io_service,
-									   boost::asio::ip::tcp::socket &&socket):
+									   socket_ptr_t socket_ptr):
 	io_service_(io_service),
-	socket_(std::move(socket))
+	socket_ptr_(socket_ptr)
 {
 	std::cerr << "Connected!!!" << std::endl;
 }

@@ -3,6 +3,7 @@
 #ifndef SERVER_SERVER_HTTP_H
 #define SERVER_SERVER_HTTP_H
 
+#include <memory>
 #include <vector>
 
 #include <boost/asio.hpp>
@@ -15,8 +16,8 @@ namespace server {
 
 struct server_parameters
 {
-	unsigned short port		= 8080;
-	unsigned int workers	= 1;
+	unsigned short	port	= 8080;
+	unsigned int	workers	= 1;
 };
 
 
@@ -26,16 +27,22 @@ public:
 	server_http(const server_parameters &parameters);
 	
 	void run();
-	void stop();
-protected:
-	void start_worker();
 private:
+	void stop();
+	
+	// Handlers
+	void signal_handler(const boost::system::error_code &err,
+						int signal_number);
+	
+	
 	server_parameters parameters_;
 	
 	boost::asio::io_service io_service_;
 	boost::asio::ip::tcp::endpoint endpoint_;
+	boost::asio::ip::tcp::acceptor acceptor_;
+	boost::asio::signal_set signal_set_;
 	
-	std::vector<worker> workers_;
+	std::vector<std::unique_ptr<worker>> workers_;
 };	// class server_http
 
 

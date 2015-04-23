@@ -62,7 +62,11 @@ int main(int argc, char **argv)
 	// std::cout << std::endl << "Generated page:" << std::endl
 	// 		  << page(m) << std::endl;
 	
-	server::server_http server({ .port = 8080, .workers = 3 });
+	server::server_parameters parameters;
+	parameters.port = 8080;
+	parameters.workers = 3;
+	
+	server::server_http server(parameters);
 	server.run();
 	
 	return 0;

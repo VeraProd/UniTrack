@@ -22,22 +22,31 @@ class worker
 public:
 	worker(worker_id_t id,
 		   boost::asio::io_service &io_service,
-		   boost::asio::ip::tcp::endpoint &endpoint);
+		   boost::asio::ip::tcp::acceptor &acceptor);
 	
 	inline worker_id_t id() const
 	{ return this->id_; }
-protected:
-	void run();
-	void stop();
-	
-	void accept_handler(std::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr,
-						const boost::system::error_code &err);
-	void add_accept_handler();
 private:
+	void run();		// Must be called in worker_thread_ thread
+	void stop();	// Stops worker
+	
+	// Handlers
+	void signal_handler(const boost::system::error_code &err,
+						int signal_number);
+	
+	void accept_handler(socket_ptr_t socket_ptr,
+						const boost::system::error_code &err);
+	
+	void add_accept_handler();
+	
+	void add_client(socket_ptr_t socket_ptr);
+	
+	
 	worker_id_t id_;
 	
 	boost::asio::io_service &io_service_;
-	boost::asio::ip::tcp::acceptor acceptor_;
+	boost::asio::ip::tcp::acceptor &acceptor_;
+	boost::asio::signal_set signal_set_;
 	
 	std::list<client_manager> client_managers_;
 	
