@@ -3,6 +3,7 @@
 #ifndef SERVER_SERVER_HTTP_H
 #define SERVER_SERVER_HTTP_H
 
+#include <thread>
 #include <memory>
 #include <vector>
 
@@ -28,14 +29,14 @@ public:
 	server_http(logger::logger &logger,
 				const server_parameters &parameters);
 	
-	void run();
-private:
 	void stop();
 	
-	// Handlers
-	void signal_handler(const boost::system::error_code &err,
-						int signal_number);
+	void join();
+	void detach();
+private:
+	void run();
 	
+	// Handlers
 	void accept_handler(socket_ptr_t socket_ptr,
 						const boost::system::error_code &err);
 	
@@ -50,10 +51,11 @@ private:
 	boost::asio::io_service io_service_;
 	boost::asio::ip::tcp::endpoint endpoint_;
 	boost::asio::ip::tcp::acceptor acceptor_;
-	boost::asio::signal_set signal_set_;
 	
 	std::vector<std::unique_ptr<worker>> workers_;
 	worker_id_t current_worker_id_;
+	
+	std::thread server_thread_;
 };	// class server_http
 
 

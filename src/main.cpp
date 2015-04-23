@@ -4,12 +4,13 @@
 #include <vector>
 #include <unordered_map>
 
+#include <boost/asio.hpp>
+
 // #include <mongo/mongoc_handler.h>
 // #include <mongo/client_pool.h>
 // #include <mongo/document.h>
 
 #include <logger/logger.h>
-
 #include <server/server_http.h>
 
 #include <templatizer/page.h>
@@ -64,14 +65,43 @@ int main(int argc, char **argv)
 	// std::cout << std::endl << "Generated page:" << std::endl
 	// 		  << page(m) << std::endl;
 	
+	try {
 	logger::logger logger(std::cerr);
 	
 	server::server_parameters parameters;
 	parameters.port = 8080;
-	parameters.workers = 3;
+	parameters.workers = 1;
 	
 	server::server_http server(logger, parameters);
-	server.run();
 	
+	boost::asio::io_service io_service;
+	boost::asio::signal_set signal_set(io_service, SIGINT, SIGTERM, SIGQUIT);
+	
+	signal_set.async_wait(
+		[&server, &logger] (const boost::system::error_code &err, int signal_number) {
+			if (err) {
+				logger.stream(logger::level::error)
+					<< "Main: Caught exception (signal: " << signal_number << "): " << err.message();
+			} else {
+				logger.stream(logger::level::info)
+					<< "Main: Stopping server (signal: " << signal_number << ")...";
+				server.stop();
+			}
+		});
+	
+	// io_service.run();
+	
+	while (std::cin) std::cin.get();
+	
+	logger.stream(logger::level::info)
+		<< "Main: Stopping server...";
+	server.stop();
+	
+	sleep(5);
+	
+	server.join();
+	} catch (...) {
+		std::cerr << "Caught! " << std::endl;
+	}
 	return 0;
 }

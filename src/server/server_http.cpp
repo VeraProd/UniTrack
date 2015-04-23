@@ -14,37 +14,91 @@ server::server_http::server_http(logger::logger &logger,
 	io_service_(),
 	endpoint_(ip::tcp::v4(), parameters_.port),
 	acceptor_(io_service_, endpoint_),
-	signal_set_(io_service_, SIGTERM, SIGINT, SIGQUIT),
 	
-	current_worker_id_(0)
+	current_worker_id_(0),
+	
+	server_thread_()
 {
 	this->logger_.stream(logger::level::info)
-		<< "Server: Creating " << this->parameters_.workers << " workers...";
+		<< "Server: Starting (port: " << this->parameters_.port
+		<< ", workers: " << this->parameters_.workers << ")...";
 	
-	auto workers_count = this->parameters_.workers;
-	this->workers_.reserve(workers_count);
+	this->server_thread_ = std::move(std::thread(std::bind(&server_http::run, this)));
 	
-	while (workers_count--) {
-		this->workers_.emplace_back(new worker(this->logger_,
-											   this->current_worker_id_++,
-											   this->io_service_));
+	
+	// Workers creation
+	try {
+		this->logger_.stream(logger::level::info)
+			<< "Server: Creating " << this->parameters_.workers << " workers...";
+		
+		auto workers_count = this->parameters_.workers;
+		this->workers_.reserve(workers_count);
+		
+		while (workers_count--) {
+			this->workers_.emplace_back(new worker(this->logger_,
+												   this->current_worker_id_++,
+												   this->io_service_));
+		}
+		
+		this->logger_.stream(logger::level::info)
+			<< "Server: Workers created.";
+	} catch (const std::exception &e) {
+		this->logger_.stream(logger::level::critical)
+			<< "Server: Exception: " << e.what() << '.';
+		
+		this->logger_.stream(logger::level::critical)
+			<< "Server: NOT started.";
+		
+		return;
 	}
 	
 	this->logger_.stream(logger::level::info)
-		<< "Server: Workers created.";
+		<< "Server: Started (port: " << this->parameters_.port
+		<< ", workers: " << this->parameters_.workers << ")...";
 }
 
 
 void
+server::server_http::stop()
+{
+	this->logger_.stream(logger::level::info)
+		<< "Server: Stopping...";
+	
+	boost::system::error_code err;
+	this->acceptor_.close(err);
+	
+	// for (auto &worker_ptr: this->workers_)
+	// 	worker_ptr->stop();
+	
+	// for (auto &worker_ptr: this->workers_)
+	// 	worker_ptr->join();
+	
+	this->io_service_.stop();	// This must stops all workers
+}
+
+
+void
+server::server_http::join()
+{
+	this->server_thread_.join();
+}
+
+
+void
+server::server_http::detach()
+{
+	this->server_thread_.detach();
+}
+
+
+// private
+void
 server::server_http::run()
 {
-	using namespace std::placeholders;
-	
-	this->signal_set_.async_wait(std::bind(&server_http::signal_handler, this, _1, _2));
-	
 	this->logger_.stream(logger::level::info)
 		<< "Server: Running...";
 	
+	this->add_accept_handler();
 	this->io_service_.run();
 	
 	this->logger_.stream(logger::level::info)
@@ -52,40 +106,23 @@ server::server_http::run()
 }
 
 
-// private
-void
-server::server_http::stop()
-{
-	this->io_service_.stop();
-}
-
-
-void
-server::server_http::signal_handler(const boost::system::error_code &err,
-									int signal_number)
-{
-	if (err) {
-		this->logger_.stream(logger::level::error)
-			<< "Server: Caught exception (signal: " << signal_number << "): " << err.message();
-	} else {
-		this->logger_.stream(logger::level::info)
-			<< "Server: Stopping (signal: " << signal_number << ")...";
-		this->stop();
-	}
-}
-
-
 void
 server::server_http::accept_handler(socket_ptr_t socket_ptr,
 									const boost::system::error_code &err)
 {
-	// Continue accepting...
-	this->add_accept_handler();
-	
 	if (err) {
-		this->logger_.stream(logger::level::critical)
-			<< "Server: Accepting socket error: " << err.message();
+		if (err == boost::system::errc::operation_canceled) {
+			this->logger_.stream(logger::level::info)
+				<< "Server: Accepting stopped.";
+		} else {
+			this->logger_.stream(logger::level::critical)
+				<< "Server: Accepting socket error: " << err.message();
+		}
 	} else {
+		// Continue accepting...
+		this->add_accept_handler();
+		
+		
 		this->current_worker_id_ = (this->current_worker_id_ + 1) % this->workers_.size();
 		
 		this->logger_.stream(logger::level::info)
