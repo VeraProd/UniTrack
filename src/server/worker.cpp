@@ -6,14 +6,15 @@
 
 
 server::worker::worker(logger::logger &logger,
-					   worker_id_t id,
+					   const server::worker_parameters &parameters,
 					   boost::asio::io_service &io_service):
 	logger_(logger),
-	id_(id),
+	parameters_(parameters),
 	
 	io_service_(io_service),
+	work_(io_service_),
 	
-	incoming_clients_(128),
+	incoming_clients_(parameters_.max_incoming_clients),
 	
 	worker_thread_(std::bind(&worker::run, this))
 {}
@@ -35,43 +36,14 @@ server::worker::add_client(socket_ptr_t socket_ptr)
 	} else {
 		this->logger_.stream(logger::level::error)
 			<< "Worker: Unable to add client to worker " << this->id()
-			<< ": Client quque is full.";
+			<< ": Client queue is full.";
 		return false;
 	}
 }
 
 
-// Joins worker's thread
-void
-server::worker::join()
-{
-	this->worker_thread_.join();
-}
-
-
-// Detaches worker's thread
-void
-server::worker::detach()
-{
-	this->worker_thread_.detach();
-}
-
-
-// private
-// Must be called in worker_thread_ thread
-void
-server::worker::run()
-{
-	this->logger_.stream(logger::level::info)
-		<< "Worker: Worker " << this->id() << " started.";
-	
-	this->io_service_.run();	// Stops when server stops this service
-	
-	this->stop();
-}
-
-
 // Stops the worker
+// NOTE: Must be called before server thread stops the io_service!
 void
 server::worker::stop()
 {
@@ -90,6 +62,22 @@ server::worker::stop()
 			socket_ptr.reset();
 		}
 	}
+	
+	this->logger_.stream(logger::level::info)
+		<< "Worker: Worker " << this->id() << ": Waiting for stoping io_service...";
+}
+
+
+// private
+// Must be called in worker_thread_ thread
+// NOTE: Constructor calls this automatically. Do NOT call it manually!
+void
+server::worker::run()
+{
+	this->logger_.stream(logger::level::info)
+		<< "Worker: Worker " << this->id() << " started.";
+	
+	this->io_service_.run();	// Stops when server stops this service
 	
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << " stopped.";

@@ -19,42 +19,46 @@ server::server_http::server_http(logger::logger &logger,
 	
 	server_thread_()
 {
-	this->logger_.stream(logger::level::info)
-		<< "Server: Starting (port: " << this->parameters_.port
-		<< ", workers: " << this->parameters_.workers << ")...";
-	
-	this->server_thread_ = std::move(std::thread(std::bind(&server_http::run, this)));
-	
-	
-	// Workers creation
 	try {
-		this->logger_.stream(logger::level::info)
-			<< "Server: Creating " << this->parameters_.workers << " workers...";
-		
-		auto workers_count = this->parameters_.workers;
-		this->workers_.reserve(workers_count);
-		
-		while (workers_count--) {
-			this->workers_.emplace_back(new worker(this->logger_,
-												   this->current_worker_id_++,
-												   this->io_service_));
+		// Workers creation
+		{
+			this->logger_.stream(logger::level::info)
+				<< "Server: Creating " << this->parameters_.workers << " workers...";
+			
+			auto workers_count = this->parameters_.workers;
+			this->workers_.reserve(workers_count);
+			
+			worker_parameters parameters;
+			parameters.max_incoming_clients	= this->parameters_.worker_max_incoming_clients;
+			parameters.max_clients			= this->parameters_.worker_max_clients;
+			
+			while (workers_count--) {
+				parameters.id = this->current_worker_id_++;
+				
+				this->workers_.emplace_back(new worker(this->logger_,
+													   parameters,
+													   this->io_service_));
+			}
+			this->current_worker_id_ = 0;
+			
+			this->logger_.stream(logger::level::info)
+				<< "Server: Workers created.";
 		}
 		
+		
+		// Server starting
 		this->logger_.stream(logger::level::info)
-			<< "Server: Workers created.";
+			<< "Server: Starting (port: " << this->parameters_.port
+			<< ", workers: " << this->parameters_.workers << ")...";
+		
+		this->server_thread_ = std::move(std::thread(std::bind(&server_http::run, this)));
 	} catch (const std::exception &e) {
 		this->logger_.stream(logger::level::critical)
 			<< "Server: Exception: " << e.what() << '.';
 		
 		this->logger_.stream(logger::level::critical)
 			<< "Server: NOT started.";
-		
-		return;
 	}
-	
-	this->logger_.stream(logger::level::info)
-		<< "Server: Started (port: " << this->parameters_.port
-		<< ", workers: " << this->parameters_.workers << ")...";
 }
 
 
@@ -67,27 +71,18 @@ server::server_http::stop()
 	boost::system::error_code err;
 	this->acceptor_.close(err);
 	
-	// for (auto &worker_ptr: this->workers_)
-	// 	worker_ptr->stop();
+	// Telling all workers to stop...
+	for (auto &worker_ptr: this->workers_)
+		worker_ptr->stop();
 	
-	// for (auto &worker_ptr: this->workers_)
-	// 	worker_ptr->join();
+	this->io_service_.stop();	// ...stopping them...
 	
-	this->io_service_.stop();	// This must stops all workers
-}
-
-
-void
-server::server_http::join()
-{
-	this->server_thread_.join();
-}
-
-
-void
-server::server_http::detach()
-{
-	this->server_thread_.detach();
+	// ...and waiting for
+	this->logger_.stream(logger::level::info)
+		<< "Server: Waiting for workers...";
+	
+	for (auto &worker_ptr: this->workers_)
+		worker_ptr->join();
 }
 
 
@@ -96,7 +91,8 @@ void
 server::server_http::run()
 {
 	this->logger_.stream(logger::level::info)
-		<< "Server: Running...";
+		<< "Server: Started (port: " << this->parameters_.port
+		<< ", workers: " << this->parameters_.workers << ").";
 	
 	this->add_accept_handler();
 	this->io_service_.run();

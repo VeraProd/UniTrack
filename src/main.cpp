@@ -4,8 +4,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include <boost/asio.hpp>
-
 // #include <mongo/mongoc_handler.h>
 // #include <mongo/client_pool.h>
 // #include <mongo/document.h>
@@ -66,42 +64,23 @@ int main(int argc, char **argv)
 	// 		  << page(m) << std::endl;
 	
 	try {
-	logger::logger logger(std::cerr);
-	
-	server::server_parameters parameters;
-	parameters.port = 8080;
-	parameters.workers = 1;
-	
-	server::server_http server(logger, parameters);
-	
-	boost::asio::io_service io_service;
-	boost::asio::signal_set signal_set(io_service, SIGINT, SIGTERM, SIGQUIT);
-	
-	signal_set.async_wait(
-		[&server, &logger] (const boost::system::error_code &err, int signal_number) {
-			if (err) {
-				logger.stream(logger::level::error)
-					<< "Main: Caught exception (signal: " << signal_number << "): " << err.message();
-			} else {
-				logger.stream(logger::level::info)
-					<< "Main: Stopping server (signal: " << signal_number << ")...";
-				server.stop();
-			}
-		});
-	
-	// io_service.run();
-	
-	while (std::cin) std::cin.get();
-	
-	logger.stream(logger::level::info)
-		<< "Main: Stopping server...";
-	server.stop();
-	
-	sleep(5);
-	
-	server.join();
+		logger::logger logger(std::cerr);
+		
+		server::server_parameters parameters;
+		parameters.port = 8080;
+		parameters.workers = 3;
+		
+		server::server_http server(logger, parameters);
+		
+		while (std::cin) std::cin.get();
+		
+		logger.stream(logger::level::info)
+			<< "Main: Stopping server...";
+		server.stop();
+		
+		server.join();
 	} catch (...) {
-		std::cerr << "Caught! " << std::endl;
+		std::cerr << "Caught!" << std::endl;
 	}
 	return 0;
 }

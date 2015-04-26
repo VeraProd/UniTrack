@@ -7,8 +7,6 @@
 #include <memory>
 #include <vector>
 
-#include <boost/asio.hpp>
-
 #include <server/worker.h>
 #include <logger/logger.h>
 
@@ -18,8 +16,12 @@ namespace server {
 
 struct server_parameters
 {
-	unsigned short	port	= 8080;
-	unsigned int	workers	= 1;
+	unsigned short	port						= 8080;
+	unsigned int	workers						= 1;
+	
+	// Workers parameters
+	unsigned int	worker_max_incoming_clients	= 128;
+	unsigned int	worker_max_clients			= 1000;
 };
 
 
@@ -31,8 +33,9 @@ public:
 	
 	void stop();
 	
-	void join();
-	void detach();
+	inline bool joinable() const;	// Checks server's thread for joinable
+	inline void join();				// Joins server's thread
+	inline void detach();			// Detaches server's thread
 private:
 	void run();
 	
@@ -60,5 +63,8 @@ private:
 
 
 };	// namespace server
+
+
+#include <server/server_http.hpp>
 
 #endif // SERVER_SERVER_HTTP_H

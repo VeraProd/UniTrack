@@ -8,16 +8,16 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Sources and headers
-HEADERS =						\
-	server_http.h				\
-	client_manager.h			\
-	worker.h					\
+HEADERS =							\
+	server_http.h server_http.hpp	\
+	client_manager.h				\
+	worker.h worker.hpp				\
 
 
-SOURCES_CPP =					\
-	server_http.cpp				\
-	client_manager.cpp			\
-	worker.cpp					\
+SOURCES_CPP =						\
+	server_http.cpp					\
+	client_manager.cpp				\
+	worker.cpp						\
 	
 
 
