@@ -138,7 +138,7 @@ GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 
 # Targets
 .PHONY: all clean install uninstall upgrade upgrade-help git-pull check dirs modules main objects run run-tests python-server
-.SILENT: clean upgrade upgrade-help dirs modules main objects run run-tests $(TARGET_FILES)
+.SILENT: clean upgrade upgrade-help git-pull dirs modules main objects run run-tests $(TARGET_FILES)
 
 
 all: dirs main
@@ -163,7 +163,7 @@ uninstall:
 	rm $(addprefix $(realpath $(PREFIX_LIBS))/,$(MODULE_LIBS))
 
 
-upgrade: upgrade-help uninstall git-pull
+upgrade: upgrade-help uninstall git-pull all
 	make install
 
 
@@ -172,7 +172,14 @@ upgrade-help:
 
 
 git-pull:
-	git pull
+	echo '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';							\
+	git pull;																				\
+	STATUS=$$?;																				\
+	if [ "X$$STATUS" = 'X0' ]; then															\
+		echo '$(COLOR_PASS)New version downloaded.$(COLOR_RESET)';							\
+	else																					\
+		echo "$(COLOR_FAIL)Download failed with status: $$STATUS.$(COLOR_RESET)";			\
+	fi
 
 
 # Tests targets
@@ -189,13 +196,13 @@ main: $(TARGET_FILES)
 
 
 objects:
-	echo "$(COLOR_RUN)Building objects...$(COLOR_RESET)";									\
+	echo '$(COLOR_RUN)Building objects...$(COLOR_RESET)';									\
 	$(MAKE) -C $(SOURCES_DIR_CURR);															\
 	STATUS=$$?;																				\
 	if [ "X$$STATUS" = 'X0' ]; then															\
-		echo "$(COLOR_PASS)Objects built successfully.$(COLOR_RESET)";						\
+		echo '$(COLOR_PASS)Objects built successfully.$(COLOR_RESET)';						\
 	else																					\
-		echo "$(COLOR_FAIL)Objects building failed.$(COLOR_RESET)";							\
+		echo '$(COLOR_FAIL)Objects building failed.$(COLOR_RESET)';							\
 	fi;
 
 
@@ -252,7 +259,7 @@ $(MODULE_FILES): modules
 
 # Main targets
 $(TARGET_FILES): $(HEADER_FILES) modules objects
-	echo "$(COLOR_RUN)Linking target...$(COLOR_RESET)";										\
+	echo '$(COLOR_RUN)Linking target...$(COLOR_RESET)';										\
 	$(call gpp_link) $(GPP_LIBS_CURR) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES);			\
 	STATUS=$$?;																				\
 	if [ "X$$STATUS" = 'X0' ]; then															\
@@ -264,7 +271,7 @@ $(TARGET_FILES): $(HEADER_FILES) modules objects
 
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
-	$(call gpp_link) -o "$@" "$<" $(OBJECT_FILES)
+	$(call gpp_link) -o '$@' '$<' $(OBJECT_FILES)
 
 
 python-server:
