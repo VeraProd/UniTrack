@@ -21,6 +21,13 @@ public:
 	record_object(record_object &&other);
 	~record_object();
 	
+	
+	// Non-copy constructable or copy/move assignable.
+	record_object(const record_object &other) = delete;
+	record_object & operator=(const record_object &other) = delete;
+	record_object & operator=(record_object &&other) = delete;
+	
+	
 	template<class T>
 	inline record_object & operator<<(const T &data)
 	{

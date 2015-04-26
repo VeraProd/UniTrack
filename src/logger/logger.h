@@ -19,6 +19,15 @@ public:
 	logger(std::ostream &log_stream);
 	~logger();
 	
+	
+	// Non-copy/-move constructable/assignable. Use ptrs.
+	logger(const logger &other) = delete;
+	logger(logger &&other) = delete;
+	
+	logger & operator=(const logger &other) = delete;
+	logger & operator=(logger &&other) = delete;
+	
+	
 	record_object stream(level level_);
 	
 	void log_raw(level level_, const std::string &data);

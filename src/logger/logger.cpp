@@ -5,11 +5,17 @@
 
 logger::logger::logger(std::ostream &log_stream):
 	log_stream_(log_stream)
-{}
+{
+	this->stream(level::info)
+		<< "Log started...";
+}
 
 
 logger::logger::~logger()
 {
+	this->stream(level::info)
+		<< "End of log.";
+	
 	std::unique_lock<std::mutex> lock(this->log_stream_mutex_);
 	this->log_stream_.flush();
 }
