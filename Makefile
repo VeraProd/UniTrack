@@ -163,7 +163,8 @@ uninstall:
 	rm $(addprefix $(realpath $(PREFIX_LIBS))/,$(MODULE_LIBS))
 
 
-upgrade: uninstall git-pull install
+upgrade: uninstall git-pull
+	make install
 
 
 git-pull:
