@@ -137,8 +137,8 @@ GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 
 
 # Targets
-.PHONY: all clean install uninstall upgrade upgrade-help git-pull check dirs modules main objects run run-tests python-server
-.SILENT: clean upgrade upgrade-help git-pull dirs modules main objects run run-tests $(TARGET_FILES)
+.PHONY: all clean install uninstall upgrade me happy me-happy-help upgrade-help git-pull check dirs modules main objects run run-tests python-server
+.SILENT: clean upgrade me happy me-happy-help upgrade-help git-pull dirs modules main objects run run-tests $(TARGET_FILES)
 
 
 all: dirs main
@@ -167,8 +167,18 @@ upgrade: upgrade-help uninstall git-pull all
 	make install
 
 
+me happy: me-happy-help git-pull all install
+	@echo 'Well done, next times you can simply do:'
+	@echo '    make upgrade'
+
+
+me-happy-help:
+	@echo 'NOTE: If you have a problem with permissions, try this:'
+	@echo '    sudo make me happy'
+
+
 upgrade-help:
-	@echo 'NOTE: upgrade command will occur an error, if program was not installed.'
+	@echo 'NOTE: `upgrade\' command will occur an error, if program was not installed.'
 
 
 git-pull:
