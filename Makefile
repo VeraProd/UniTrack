@@ -137,8 +137,8 @@ GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 
 
 # Targets
-.PHONY: all clean install uninstall upgrade git-pull check dirs modules main objects run run-tests python-server
-.SILENT: clean upgrade dirs modules main objects run run-tests $(TARGET_FILES)
+.PHONY: all clean install uninstall upgrade upgrade-help git-pull check dirs modules main objects run run-tests python-server
+.SILENT: clean upgrade upgrade-help dirs modules main objects run run-tests $(TARGET_FILES)
 
 
 all: dirs main
@@ -163,8 +163,12 @@ uninstall:
 	rm $(addprefix $(realpath $(PREFIX_LIBS))/,$(MODULE_LIBS))
 
 
-upgrade: uninstall git-pull
+upgrade: upgrade-help uninstall git-pull
 	make install
+
+
+upgrade-help:
+	@echo 'NOTE: upgrade command will occur an error, if program was not installed.'
 
 
 git-pull:
