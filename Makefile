@@ -10,19 +10,27 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 # Project directories
 # Sources only
-SOURCES_DIR	= src
+SOURCES_DIR		= src
 
 # Result of build only (executable)
-BUILD_DIR	= build
+BUILD_DIR		= build
 
 # Static libraries (for modules)
-LIBS_DIR	= libs
+LIBS_DIR		= libs
 
 # All .o files (including tests)
-OBJECTS_DIR	= obj
+OBJECTS_DIR		= obj
 
 # All test executables
-TEST_DIR	= test
+TEST_DIR		= test
+
+
+# Installation directories
+# Shared libraries
+PREFIX_LIBS		= /usr/local/lib
+
+# Executables
+PREFIX_TARGET	= /usr/local/bin
 
 
 # Modules should be linked as static libraries
@@ -120,16 +128,17 @@ TARGET_FILES				= $(call get_target_files,$(MAIN_TARGETS))
 TEST_TARGETS				= $(call get_targets,$(TEST_SOURCES_CPP))
 TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
-# Module static libraries
-MODULE_FILES				= $(call get_target_lib_files,$(addprefix lib,$(addsuffix .so,$(MODULES))))
+# Module dinamic libraries
+MODULE_LIBS					= $(addprefix lib,$(addsuffix .so,$(MODULES)))
+MODULE_FILES				= $(call get_target_lib_files,$(MODULE_LIBS))
 
 
 GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 
 
 # Targets
-.PHONY: all clean check dirs modules main objects run run-tests python-server
-.SILENT: clean dirs modules main objects run run-tests $(TARGET_FILES)
+.PHONY: all clean install uninstall upgrade git-pull check dirs modules main objects run run-tests python-server
+.SILENT: clean upgrade dirs modules main objects run run-tests $(TARGET_FILES)
 
 
 all: dirs main
@@ -142,6 +151,23 @@ clean:
 	for T in $(MODULES); do																	\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean;					\
 	done
+
+
+install:
+	install $(MODULE_FILES) $(realpath $(PREFIX_LIBS))
+	install $(TARGET_FILES) $(realpath $(PREFIX_TARGET))
+
+
+uninstall:
+	rm $(addprefix $(realpath $(PREFIX_TARGET))/,$(MAIN_TARGETS))
+	rm $(addprefix $(realpath $(PREFIX_LIBS))/,$(MODULE_LIBS))
+
+
+upgrade: uninstall git-pull install
+
+
+git-pull:
+	git pull
 
 
 # Tests targets
