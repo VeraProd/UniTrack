@@ -27,10 +27,10 @@ TEST_DIR		= test
 
 # Installation directories
 # Shared libraries
-PREFIX_LIBS		= /usr/local/lib
+PREFIX_LIBS		= /usr/lib
 
 # Executables
-PREFIX_TARGET	= /usr/local/bin
+PREFIX_TARGET	= /usr/bin
 
 
 # Modules should be linked as static libraries
