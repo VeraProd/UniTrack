@@ -6,6 +6,7 @@
 #include <thread>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 #include <server/worker.h>
 #include <logger/logger.h>
@@ -31,19 +32,36 @@ public:
 	server_http(logger::logger &logger,
 				const server_parameters &parameters);
 	
+	
+	// Non-copy/-move constructable/assignable. Use ptrs.
+	server_http(const server_http &other) = delete;
+	server_http(server_http &&other) = delete;
+	
+	server_http & operator=(const server_http &other) = delete;
+	server_http & operator=(server_http &&other) = delete;
+	
+	
 	void stop();
 	
-	inline bool joinable() const;	// Checks server's thread for joinable
-	inline void join();				// Joins server's thread
-	inline void detach();			// Detaches server's thread
+	inline bool joinable() const noexcept;	// Checks server's thread for joinable
+	inline void join();						// Joins server's thread
+	inline void detach();					// Detaches server's thread
 private:
 	void run();
 	
 	// Handlers
+	// Handles the accept event
 	void accept_handler(socket_ptr_t socket_ptr,
 						const boost::system::error_code &err);
 	
+	// Add accept_handler to the io_service event loop
 	void add_accept_handler();
+	
+	
+	// Dispatches client to one of workers
+	// WARNING: this method calls from one of workers' threads, NOT from server thread!
+	// Only accept_handler() call this.
+	void dispatch_client(socket_ptr_t socket_ptr) noexcept;
 	
 	
 	// Data
@@ -51,11 +69,13 @@ private:
 	
 	server_parameters parameters_;
 	
-	boost::asio::io_service io_service_;
+	boost::asio::io_service server_io_service_,
+							workers_io_service_;
 	boost::asio::ip::tcp::endpoint endpoint_;
 	boost::asio::ip::tcp::acceptor acceptor_;
 	
-	std::vector<std::unique_ptr<worker>> workers_;
+	std::vector<std::unique_ptr<worker>> worker_ptrs_;
+	std::unordered_map<std::thread::id, worker_id_t> workers_dispatch_table_;
 	worker_id_t current_worker_id_;
 	
 	std::thread server_thread_;

@@ -3,7 +3,7 @@
 
 // Checks server's thread for joinable
 inline bool
-server::server_http::joinable() const
+server::server_http::joinable() const noexcept
 {
 	return this->server_thread_.joinable();
 }

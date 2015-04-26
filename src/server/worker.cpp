@@ -14,7 +14,7 @@ server::worker::worker(logger::logger &logger,
 	io_service_(io_service),
 	work_(io_service_),
 	
-	incoming_clients_(parameters_.max_incoming_clients),
+	// incoming_clients_(parameters_.max_incoming_clients),
 	
 	worker_thread_(std::bind(&worker::run, this))
 {}
@@ -28,43 +28,23 @@ server::worker::add_client(socket_ptr_t socket_ptr)
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Adding client to worker " << this->id() << '.';
 	
-	// this->client_managers_.emplace_back(this->io_service_, socket_ptr);
-	if (this->incoming_clients_.push(socket_ptr)) {
-		this->logger_.stream(logger::level::info)
-			<< "Worker: Client added to worker " << this->id() << '.';
-		return true;
-	} else {
-		this->logger_.stream(logger::level::error)
-			<< "Worker: Unable to add client to worker " << this->id()
-			<< ": Client queue is full.";
-		return false;
-	}
-}
-
-
-// Stops the worker
-// NOTE: Must be called before server thread stops the io_service!
-void
-server::worker::stop()
-{
-	// this->io_service_ must be stopped from the server thread!
+	this->client_managers_.emplace_back(this->logger_, this->io_service_, socket_ptr);
 	
 	this->logger_.stream(logger::level::info)
-		<< "Worker: Worker " << this->id() << " stopping...";
+		<< "Worker: Worker " << this->id() << ": Client added.";
 	
-	{
-		socket_ptr_t socket_ptr;
-		
-		while (this->incoming_clients_.pop(socket_ptr)) {
-			boost::system::error_code err;
-			socket_ptr->shutdown(boost::asio::ip::tcp::socket::shutdown_both, err);
-			socket_ptr->close(err);
-			socket_ptr.reset();
-		}
-	}
+	return true;
 	
-	this->logger_.stream(logger::level::info)
-		<< "Worker: Worker " << this->id() << ": Waiting for stoping io_service...";
+	// if (this->incoming_clients_.push(socket_ptr)) {
+	// 	this->logger_.stream(logger::level::info)
+	// 		<< "Worker: Client added to worker " << this->id() << '.';
+	// 	return true;
+	// } else {
+	// 	this->logger_.stream(logger::level::error)
+	// 		<< "Worker: Unable to add client to worker " << this->id()
+	// 		<< ": Client queue is full.";
+	// 	return false;
+	// }
 }
 
 
@@ -78,6 +58,27 @@ server::worker::run()
 		<< "Worker: Worker " << this->id() << " started.";
 	
 	this->io_service_.run();	// Stops when server stops this service
+	this->stop();
+}
+
+
+// Stops the worker
+// NOTE: Do NOT call this manually! Worker's run() does it.
+void
+server::worker::stop()
+{
+	this->logger_.stream(logger::level::info)
+		<< "Worker: Worker " << this->id() << " stopping...";
+	
+	{
+		socket_ptr_t socket_ptr;
+		
+		// while (this->incoming_clients_.pop(socket_ptr)) {
+		// 	boost::system::error_code err;
+		// 	socket_ptr->shutdown(boost::asio::ip::tcp::socket::shutdown_both, err);
+		// 	socket_ptr->close(err);
+		// }
+	}
 	
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << " stopped.";

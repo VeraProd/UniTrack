@@ -35,26 +35,37 @@ public:
 		   boost::asio::io_service &io_service);
 	
 	
+	// Non-copy/-move constructable/assignable. Use ptrs.
+	worker(const worker &other) = delete;
+	worker(worker &&other) = delete;
+	
+	worker & operator=(const worker &other) = delete;
+	worker & operator=(worker &&other) = delete;
+	
+	
 	// Returns worker id
-	inline worker_id_t id() const
-	{ return this->parameters_.id; }
+	inline worker_id_t id() const noexcept;
+	
+	// Returns worker thread id (need for server's dispatcher)
+	inline std::thread::id thread_id() const noexcept;
 	
 	
 	// Adds new client to the worker
 	// Returns true, if added successfully
 	bool add_client(socket_ptr_t socket_ptr);
 	
-	// Stops the worker (canceling all incoming clients)
-	// NOTE: Must be called before server thread stops the io_service!
-	void stop();
 	
-	inline bool joinable() const;	// Checks worker's thread for joinable
-	inline void join();				// Joins worker's thread
-	inline void detach();			// Detaches worker's thread
+	inline bool joinable() const noexcept;	// Checks worker's thread for joinable
+	inline void join();						// Joins worker's thread
+	inline void detach();					// Detaches worker's thread
 private:
 	// Must be called in worker_thread_ thread
 	// NOTE: Constructor calls this automatically. Do NOT call it manually!
 	void run();
+	
+	// Stops the worker (canceling all incoming clients)
+	// NOTE: Do NOT call this manually! Worker's run() does it.
+	void stop();
 	
 	
 	// Data
@@ -64,8 +75,7 @@ private:
 	
 	boost::asio::io_service &io_service_;
 	boost::asio::io_service::work work_;
-
-	boost::lockfree::spsc_queue<socket_ptr_t> incoming_clients_;
+	
 	std::list<client_manager> client_managers_;	// Clients, worker are working with
 	
 	std::thread worker_thread_;
