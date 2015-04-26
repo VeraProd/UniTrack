@@ -14,8 +14,6 @@ server::worker::worker(logger::logger &logger,
 	io_service_(io_service),
 	work_(io_service_),
 	
-	// incoming_clients_(parameters_.max_incoming_clients),
-	
 	worker_thread_(std::bind(&worker::run, this))
 {}
 
@@ -34,17 +32,6 @@ server::worker::add_client(socket_ptr_t socket_ptr)
 		<< "Worker: Worker " << this->id() << ": Client added.";
 	
 	return true;
-	
-	// if (this->incoming_clients_.push(socket_ptr)) {
-	// 	this->logger_.stream(logger::level::info)
-	// 		<< "Worker: Client added to worker " << this->id() << '.';
-	// 	return true;
-	// } else {
-	// 	this->logger_.stream(logger::level::error)
-	// 		<< "Worker: Unable to add client to worker " << this->id()
-	// 		<< ": Client queue is full.";
-	// 	return false;
-	// }
 }
 
 
@@ -70,15 +57,7 @@ server::worker::stop()
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << " stopping...";
 	
-	{
-		socket_ptr_t socket_ptr;
-		
-		// while (this->incoming_clients_.pop(socket_ptr)) {
-		// 	boost::system::error_code err;
-		// 	socket_ptr->shutdown(boost::asio::ip::tcp::socket::shutdown_both, err);
-		// 	socket_ptr->close(err);
-		// }
-	}
+	
 	
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << " stopped.";
