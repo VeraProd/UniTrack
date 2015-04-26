@@ -57,8 +57,8 @@ ifeq ($(SYSTEM),Darwin)
 	# Strange, but this need for server
 	GPP_LIBS				+= -lboost_system-mt
 else
-	# Use g++-4.9 because of c++11 features
-	GPP						= g++-4.9
+	# Use g++-5 because of c++11 features
+	GPP						= g++-5
 	
 	# Strange, but this need for server
 	GPP_LIBS				+= -lboost_system

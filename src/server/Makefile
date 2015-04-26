@@ -35,7 +35,7 @@ GPP_LIBS					+= -llogger
 ifeq ($(SYSTEM),Darwin)
 	GPP_LIBS				+= -lboost_system-mt
 else
-	GPP_LIBS				+= -lboost_system
+	GPP_LIBS				+= -lboost_system -lpthread
 endif
 
 
