@@ -47,15 +47,15 @@ public:
 	inline void join();						// Joins server's thread
 	inline void detach();					// Detaches server's thread
 private:
-	void run();
+	void run() noexcept;
 	
 	// Handlers
 	// Handles the accept event
 	void accept_handler(socket_ptr_t socket_ptr,
-						const boost::system::error_code &err);
+						const boost::system::error_code &err) noexcept;
 	
 	// Add accept_handler to the io_service event loop
-	void add_accept_handler();
+	void add_accept_handler() noexcept;
 	
 	
 	// Dispatches client to one of workers
@@ -69,14 +69,13 @@ private:
 	
 	server_parameters parameters_;
 	
-	boost::asio::io_service server_io_service_,
-							workers_io_service_;
+	boost::asio::io_service server_io_service_,		// Only for server's async_accept!
+							workers_io_service_;	// For all workers
 	boost::asio::ip::tcp::endpoint endpoint_;
 	boost::asio::ip::tcp::acceptor acceptor_;
 	
 	std::vector<std::unique_ptr<worker>> worker_ptrs_;
 	std::unordered_map<std::thread::id, worker_id_t> workers_dispatch_table_;
-	worker_id_t current_worker_id_;
 	
 	std::thread server_thread_;
 };	// class server_http

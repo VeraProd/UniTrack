@@ -7,7 +7,7 @@
 #include <logger/logger.h>
 
 
-logger::record_object::record_object(level level_, logger &logger_):
+logger::record_object::record_object(level level_, logger &logger_) noexcept:
 	level_(level_),
 	logger_(logger_),
 	
@@ -25,7 +25,7 @@ logger::record_object::record_object(level level_, logger &logger_):
 }
 
 
-logger::record_object::record_object(record_object &&other):
+logger::record_object::record_object(record_object &&other) noexcept:
 	level_(other.level_),
 	logger_(other.logger_),
 	stream_(std::move(other.stream_)),

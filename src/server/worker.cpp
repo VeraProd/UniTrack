@@ -21,12 +21,21 @@ server::worker::worker(logger::logger &logger,
 // Adds new client to the worker
 // Returns true, if added successfully
 bool
-server::worker::add_client(socket_ptr_t socket_ptr)
+server::worker::add_client(socket_ptr_t socket_ptr) noexcept
 {
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Adding client to worker " << this->id() << '.';
 	
-	this->client_managers_.emplace_back(this->logger_, this->io_service_, socket_ptr);
+	
+	try {
+		this->client_managers_.emplace_back(this->logger_, this->io_service_, socket_ptr);
+	} catch (...) {
+		this->logger_.stream(logger::level::error)
+			<< "Worker: Worker " << this->id() << ": Client not added.";
+		
+		return false;
+	}
+	
 	
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << ": Client added.";
@@ -39,7 +48,7 @@ server::worker::add_client(socket_ptr_t socket_ptr)
 // Must be called in worker_thread_ thread
 // NOTE: Constructor calls this automatically. Do NOT call it manually!
 void
-server::worker::run()
+server::worker::run() noexcept
 {
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << " started.";
@@ -52,7 +61,7 @@ server::worker::run()
 // Stops the worker
 // NOTE: Do NOT call this manually! Worker's run() does it.
 void
-server::worker::stop()
+server::worker::stop() noexcept
 {
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << " stopping...";

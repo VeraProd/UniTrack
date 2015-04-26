@@ -52,7 +52,7 @@ public:
 	
 	// Adds new client to the worker
 	// Returns true, if added successfully
-	bool add_client(socket_ptr_t socket_ptr);
+	bool add_client(socket_ptr_t socket_ptr) noexcept;
 	
 	
 	inline bool joinable() const noexcept;	// Checks worker's thread for joinable
@@ -61,11 +61,11 @@ public:
 private:
 	// Must be called in worker_thread_ thread
 	// NOTE: Constructor calls this automatically. Do NOT call it manually!
-	void run();
+	void run() noexcept;
 	
 	// Stops the worker (canceling all incoming clients)
 	// NOTE: Do NOT call this manually! Worker's run() does it.
-	void stop();
+	void stop() noexcept;
 	
 	
 	// Data

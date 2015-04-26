@@ -18,7 +18,7 @@ enum class level
 };
 
 
-const std::string & level_to_str(level level_);
+const std::string & level_to_str(level level_) noexcept;
 
 
 };	// logger

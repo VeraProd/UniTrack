@@ -12,10 +12,10 @@ server::server_http::server_http(logger::logger &logger,
 	parameters_(parameters),
 	
 	server_io_service_(),
+	workers_io_service_(),
+	
 	endpoint_(ip::tcp::v4(), parameters_.port),
 	acceptor_(server_io_service_, endpoint_),
-	
-	current_worker_id_(0),
 	
 	server_thread_()
 {
@@ -32,8 +32,9 @@ server::server_http::server_http(logger::logger &logger,
 			parameters.max_incoming_clients	= this->parameters_.worker_max_incoming_clients;
 			parameters.max_clients			= this->parameters_.worker_max_clients;
 			
+			worker_id_t current_worker_id = 0;
 			while (workers_count--) {
-				parameters.id = this->current_worker_id_++;
+				parameters.id = current_worker_id++;
 				
 				std::unique_ptr<worker> worker_ptr(new worker(this->logger_,
 															  parameters,
@@ -42,7 +43,6 @@ server::server_http::server_http(logger::logger &logger,
 				this->workers_dispatch_table_.emplace(worker_ptr->thread_id(), worker_ptr->id());
 				this->worker_ptrs_.emplace_back(std::move(worker_ptr));
 			}
-			this->current_worker_id_ = 0;
 			
 			this->logger_.stream(logger::level::info)
 				<< "Server: Workers created.";
@@ -88,7 +88,7 @@ server::server_http::stop()
 
 // private
 void
-server::server_http::run()
+server::server_http::run() noexcept
 {
 	this->add_accept_handler();
 	
@@ -96,17 +96,23 @@ server::server_http::run()
 		<< "Server: Started (port: " << this->parameters_.port
 		<< ", workers: " << this->parameters_.workers << ").";
 	
-	this->server_io_service_.run();
+	boost::system::error_code err;
+	this->server_io_service_.run(err);
 	
-	this->logger_.stream(logger::level::info)
-		<< "Server: Stopped.";
+	if (err) {
+		this->logger_.stream(logger::level::error)
+			<< "Server: Stopped with error: " << err.message() << '.';
+	} else {
+		this->logger_.stream(logger::level::info)
+			<< "Server: Stopped.";
+	}
 }
 
 
 // Handles the accept event
 void
 server::server_http::accept_handler(socket_ptr_t socket_ptr,
-									const boost::system::error_code &err)
+									const boost::system::error_code &err) noexcept
 {
 	if (err) {
 		if (err == boost::system::errc::operation_canceled) {
@@ -120,13 +126,9 @@ server::server_http::accept_handler(socket_ptr_t socket_ptr,
 		// Continue accepting...
 		this->add_accept_handler();
 		
-		
-		this->current_worker_id_ = (this->current_worker_id_ + 1) % this->worker_ptrs_.size();
-		
 		this->logger_.stream(logger::level::info)
 			<< "Server: Connection accepted";
 		
-		// this->worker_ptrs_[this->current_worker_id_]->add_client(socket_ptr);
 		this->workers_io_service_.dispatch(std::bind(&server_http::dispatch_client, this, socket_ptr));
 	}
 }
@@ -134,7 +136,7 @@ server::server_http::accept_handler(socket_ptr_t socket_ptr,
 
 // Add accept_handler to the io_service event loop
 void
-server::server_http::add_accept_handler()
+server::server_http::add_accept_handler() noexcept
 {
 	using namespace std::placeholders;
 	

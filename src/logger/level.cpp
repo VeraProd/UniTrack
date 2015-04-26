@@ -17,7 +17,7 @@ const std::string
 
 
 const std::string &
-logger::level_to_str(level level_)
+logger::level_to_str(level level_) noexcept
 {
 	switch (level_) {
 		case level::info:		return level_info;

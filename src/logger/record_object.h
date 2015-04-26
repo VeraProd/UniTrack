@@ -17,8 +17,8 @@ class logger;
 class record_object
 {
 public:
-	record_object(level level_, logger &logger_);
-	record_object(record_object &&other);
+	record_object(level level_, logger &logger_) noexcept;
+	record_object(record_object &&other) noexcept;
 	~record_object();
 	
 	
@@ -37,7 +37,7 @@ public:
 private:
 	level level_;
 	logger &logger_;
-	std::stringstream stream_;
+	std::ostringstream stream_;
 	
 	bool log_on_destroy_;
 };

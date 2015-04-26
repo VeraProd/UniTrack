@@ -28,7 +28,7 @@ public:
 	logger & operator=(logger &&other) = delete;
 	
 	
-	record_object stream(level level_);
+	record_object stream(level level_) noexcept;
 	
 	void log_raw(level level_, const std::string &data);
 private:

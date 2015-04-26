@@ -22,7 +22,7 @@ logger::logger::~logger()
 
 
 logger::record_object
-logger::logger::stream(level level_)
+logger::logger::stream(level level_) noexcept
 {
 	return std::move(record_object(level_, *this));
 }
