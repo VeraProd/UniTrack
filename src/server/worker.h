@@ -58,6 +58,10 @@ public:
 	inline bool joinable() const noexcept;	// Checks worker's thread for joinable
 	inline void join();						// Joins worker's thread
 	inline void detach();					// Detaches worker's thread
+	
+	
+	// Erases client by iterator. Client manager uses this.
+	void erase_client(std::list<client_manager>::const_iterator iterator) noexcept;
 private:
 	// Must be called in worker_thread_ thread
 	// NOTE: Constructor calls this automatically. Do NOT call it manually!

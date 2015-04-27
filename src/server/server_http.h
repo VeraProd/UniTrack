@@ -41,7 +41,9 @@ public:
 	server_http & operator=(server_http &&other) = delete;
 	
 	
-	void stop();
+	// Stops the server (waiting for server thread and workers threads)
+	void stop() noexcept;
+	
 	
 	inline bool joinable() const noexcept;	// Checks server's thread for joinable
 	inline void join();						// Joins server's thread

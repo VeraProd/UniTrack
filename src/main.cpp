@@ -63,24 +63,21 @@ int main(int argc, char **argv)
 	// std::cout << std::endl << "Generated page:" << std::endl
 	// 		  << page(m) << std::endl;
 	
-	try {
-		logger::logger logger(std::cerr);
-		
-		server::server_parameters parameters;
-		parameters.port = 8080;
-		parameters.workers = 3;
-		
-		server::server_http server(logger, parameters);
-		
-		while (std::cin) std::cin.get();
-		
-		logger.stream(logger::level::info)
-			<< "Main: Stopping server...";
-		server.stop();
-		
-		server.join();
-	} catch (...) {
-		std::cerr << "Caught!" << std::endl;
-	}
+	
+	logger::logger logger(std::clog);
+	
+	server::server_parameters parameters;
+	parameters.port = 8080;
+	parameters.workers = 3;
+	
+	server::server_http server(logger, parameters);
+	
+	while (std::cin) std::cin.get();
+	
+	logger.stream(logger::level::info)
+		<< "Main: Stopping server...";
+	
+	server.stop();
+	
 	return 0;
 }

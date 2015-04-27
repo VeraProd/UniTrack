@@ -4,6 +4,7 @@
 using namespace boost::asio;
 
 #include <functional>
+#include <system_error>
 
 
 server::server_http::server_http(logger::logger &logger,
@@ -66,23 +67,40 @@ server::server_http::server_http(logger::logger &logger,
 
 
 void
-server::server_http::stop()
+server::server_http::stop() noexcept
 {
 	this->logger_.stream(logger::level::info)
 		<< "Server: Stopping...";
 	
-	this->server_io_service_.stop();
+	this->server_io_service_.stop();	// Stopping accepting
 	this->workers_io_service_.stop();	// Stopping all workers
 	
 	boost::system::error_code err;
 	this->acceptor_.close(err);
 	
+	
 	// Waiting for workers
 	this->logger_.stream(logger::level::info)
 		<< "Server: Waiting for workers...";
 	
-	for (auto &worker_ptr: this->worker_ptrs_)
-		worker_ptr->join();
+	for (auto &worker_ptr: this->worker_ptrs_) {
+		try {
+			worker_ptr->join();
+		} catch (const std::system_error &e) {
+			this->logger_.stream(logger::level::error)
+				<< "Server: Unable to join to worker " << worker_ptr->id() << " thread: "
+				<< e.what() << '.';
+		}
+	}
+	
+	
+	// Waiting for server
+	try {
+		this->join();
+	} catch (const std::system_error &e) {
+		this->logger_.stream(logger::level::error)
+			<< "Server: Unable to join to server thread: " << e.what() << '.';
+	}
 }
 
 

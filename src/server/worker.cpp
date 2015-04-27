@@ -28,7 +28,10 @@ server::worker::add_client(socket_ptr_t socket_ptr) noexcept
 	
 	
 	try {
-		this->client_managers_.emplace_back(this->logger_, this->io_service_, socket_ptr);
+		this->client_managers_.emplace_back(this->logger_,
+											*this,
+											this->client_managers_.end(),
+											socket_ptr);
 	} catch (...) {
 		this->logger_.stream(logger::level::error)
 			<< "Worker: Worker " << this->id() << ": Client not added.";
@@ -41,6 +44,14 @@ server::worker::add_client(socket_ptr_t socket_ptr) noexcept
 		<< "Worker: Worker " << this->id() << ": Client added.";
 	
 	return true;
+}
+
+
+// Erases client by iterator. Client manager uses this.
+void
+server::worker::erase_client(std::list<client_manager>::const_iterator iterator) noexcept
+{
+	this->client_managers_.erase(iterator);
 }
 
 
