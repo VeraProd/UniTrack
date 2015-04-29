@@ -34,5 +34,5 @@ logger::logger::log_raw(level level_, const std::string &data)
 	const auto &level_str = level_to_str(level_);
 	
 	std::unique_lock<std::mutex> lock(this->log_stream_mutex_);
-	std::cerr << level_str << ' ' << data << std::endl;
+	this->log_stream_ << level_str << ' ' << data << std::endl;
 }

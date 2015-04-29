@@ -8,17 +8,17 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Sources and headers
-HEADERS =						\
-	level.h						\
-	logger.h					\
-	record_object.h				\
+HEADERS =								\
+	level.h								\
+	logger.h							\
+	record_object.h record_object.hpp	\
 	
 
 
-SOURCES_CPP =					\
-	level.cpp					\
-	logger.cpp					\
-	record_object.cpp			\
+SOURCES_CPP =							\
+	level.cpp							\
+	logger.cpp							\
+	record_object.cpp					\
 	
 
 

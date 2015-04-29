@@ -7,6 +7,10 @@
 #include <logger/logger.h>
 
 
+const std::regex logger::record_object::regex_r_("\r", std::regex::optimize);
+const std::string logger::record_object::replace_r_by_("");
+
+
 logger::record_object::record_object(level level_, logger &logger_) noexcept:
 	level_(level_),
 	logger_(logger_),

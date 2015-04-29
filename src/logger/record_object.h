@@ -5,11 +5,13 @@
 
 #include <sstream>
 #include <string>
+#include <regex>
 
 #include <logger/level.h>
 
 
 namespace logger {
+
 
 class logger;
 
@@ -29,12 +31,12 @@ public:
 	
 	
 	template<class T>
-	inline record_object & operator<<(const T &data)
-	{
-		this->stream_ << data;
-		return *this;
-	}
+	inline record_object & operator<<(T data);
 private:
+	// Nedd for replacing "\r" symbols
+	static const std::regex regex_r_;
+	static const std::string replace_r_by_;
+	
 	level level_;
 	logger &logger_;
 	std::ostringstream stream_;
@@ -44,5 +46,7 @@ private:
 
 
 };	// logger
+
+#include <logger/record_object.hpp>
 
 #endif // LOGGER_RECORD_OBJECT_H
