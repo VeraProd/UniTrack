@@ -17,6 +17,7 @@ public:
 };
 
 
+// Start string
 class incorrect_start_string: public protocol_error
 {
 public:
@@ -42,6 +43,21 @@ class unsupported_protocol_version: public protocol_error
 {
 public:
 	explicit unsupported_protocol_version(const std::string &version);
+};
+
+
+// Headers
+class incorrect_header_string: public protocol_error
+{
+public:
+	explicit incorrect_header_string(const std::string &str);
+};
+
+
+class empty_header_string: public protocol_error
+{
+public:
+	explicit empty_header_string();
 };
 
 

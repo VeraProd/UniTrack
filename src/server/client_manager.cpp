@@ -71,70 +71,85 @@ void
 server::client_manager::headers_handler(const boost::system::error_code &err,
 										size_t bytes_transferred)
 {
-	std::istream headers_stream(&this->headers_buf_);
-	std::string str;
-	
-	// Processing start string
 	try {
+		std::istream headers_stream(&this->headers_buf_);
+		std::string str;
+		
+		// Processing start string
 		std::getline(headers_stream, str);
-		
-		this->logger_.stream(logger::level::info)
-			<< "Client manager (worker " << this->worker_.id()
-			<< "): Got headers.";
-		
 		this->start_data_ = std::move(server::parse_start_string(str));
 		
-		this->logger_.stream(logger::level::info)
+		// Processing headers
+		while (std::getline(headers_stream, str) && !str.empty()) {
+			try {
+				this->headers_.insert(std::move(server::parse_header_string(str)));
+			} catch (const server::empty_header_string &)
+			{}	// It's normal for the last string
+		}
+		
+		
+		// ok
+		
+		auto stream = this->logger_.stream(logger::level::info);
+		stream
 			<< "Client manager (worker " << this->worker_.id()
-			<< "): Headers parsed.";
+			<< "): " << this->client_ip_address()
+			<< ": HTTP/" << server::http::version_to_str(this->start_data_.version)
+			<< ", " << server::http::method_to_str(this->start_data_.method)
+			<< ", Requested URI: \"" << this->start_data_.uri << "\"." << '\n';
+		
+		for (const auto &p: this->headers_)
+			stream << p.first << ": " << p.second << '\n';
 	} catch (const server::unimplemented_method &e) {
+		this->logger_.stream(logger::level::error)
+			<< "Client manager (worker " << this->worker_.id()
+			<< "): " << this->client_ip_address() << ": " << e.what()
+			<< " => " << server::http::status::method_not_allowed.code() << '.';
+		
 		// method_not_allowed
+		
 		this->finish_work();
 		return;
 	} catch (const server::unsupported_protocol_version &e) {
+		this->logger_.stream(logger::level::error)
+			<< "Client manager (worker " << this->worker_.id()
+			<< "): " << this->client_ip_address() << ": " << e.what()
+			<< " => " << server::http::status::http_version_not_supported.code() << '.';
+		
 		// http_version_not_supported
-		this->logger_.stream(logger::level::error)
-			<< "Client manager (worker " << this->worker_.id()
-			<< "): " << e.what() << '.';
+		
 		this->finish_work();
 		return;
-	} catch (const server::incorrect_protocol &e) {
-		// unrecoverable_error
+	} catch (const server::incorrect_header_string &e) {
 		this->logger_.stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
-			<< "): " << e.what() << '.';
-		this->finish_work();
-		return;
-	} catch (const server::incorrect_start_string &e) {
+			<< "): " << this->client_ip_address() << ": " << e.what()
+			<< " => " << server::http::status::unrecoverable_error.code() << '.';
+		
 		// unrecoverable_error
-		this->logger_.stream(logger::level::error)
-			<< "Client manager (worker " << this->worker_.id()
-			<< "): " << e.what() << '.';
+		
 		this->finish_work();
 		return;
 	} catch (const server::protocol_error &e) {
-		// unrecoverable_error
+		// Catches incorrect_protocol and incorrect_start_string too
 		this->logger_.stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
-			<< "): " << e.what() << '.';
+			<< "): " << this->client_ip_address() << ": " << e.what()
+			<< " => " << server::http::status::unrecoverable_error.code() << '.';
+		
+		// unrecoverable_error
+		
 		this->finish_work();
 		return;
 	} catch (...) {
 		this->logger_.stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
-			<< "): Unknown error.";
+			<< "): " << this->client_ip_address() << ": Unknown error"
+			<< " => " << server::http::status::internal_server_error.code() << '.';
 		
 		// internal_server_error
 		
 		this->finish_work();
 		return;
 	}
-	
-	// ok
-	
-	this->logger_.stream(logger::level::info)
-		<< "Client manager (worker " << this->worker_.id()
-		<< "): HTTP/" << server::http::version_to_str(this->start_data_.version)
-		<< ", " << server::http::method_to_str(this->start_data_.method)
-		<< ", Requested URI: \"" << this->start_data_.uri << "\".";
 }

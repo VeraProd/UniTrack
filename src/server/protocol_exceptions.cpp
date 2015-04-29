@@ -7,6 +7,8 @@ server::protocol_error::protocol_error(const std::string &what_arg):
 	std::logic_error(what_arg)
 {}
 
+
+// Start string
 server::incorrect_start_string::incorrect_start_string(const std::string &str):
 	protocol_error("Incorrect start string: \"" + str + "\"")
 {}
@@ -21,4 +23,15 @@ server::incorrect_protocol::incorrect_protocol(const std::string &protocol_name)
 
 server::unsupported_protocol_version::unsupported_protocol_version(const std::string &version):
 	protocol_error("Unsupported protocol version: \"" + version + '\"')
+{}
+
+
+// Headers
+server::incorrect_header_string::incorrect_header_string(const std::string &str):
+	protocol_error("Incorrect header string: \"" + str + '\"')
+{}
+
+
+server::empty_header_string::empty_header_string():
+	protocol_error("Empty header string")
 {}

@@ -11,6 +11,10 @@
 namespace server {
 
 
+// Removes trailing '\r' and '\n' symbols modifying the string
+void truncate_string(std::string &str) noexcept;
+
+
 struct start_data
 {
 	server::http::method method		= server::http::method::unknown;
@@ -26,8 +30,9 @@ struct start_data
 start_data parse_start_string(const std::string &str);
 
 
-// Removes trailing '\r' and '\n' symbols modifying the string
-void truncate_string(std::string &str) noexcept;
+typedef std::pair<std::string, std::string> header_pair_t;
+
+header_pair_t parse_header_string(const std::string &str);
 
 
 };	// namespace server
