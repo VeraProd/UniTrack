@@ -5,9 +5,12 @@
 #include <regex>
 #include <cctype>
 
+#include <server/protocol_exceptions.h>
+
 
 // Parses the given string and checks all details except uri
-// Returns all data from start string or throws one of exceptions abowe
+// Returns all data from start string or throws one of exceptions
+// described in protocol_exceptions.h
 server::start_data
 server::parse_start_string(const std::string &str)
 {
@@ -16,7 +19,7 @@ server::parse_start_string(const std::string &str)
 			  "([_[:alnum:]]+)"			"[[:space:]]+"			// Method	[1]
 			  "([_/\\.%&=[:alnum:]]+)"	"[[:space:]]+"			// URI		[2]
 			  "([_[:alnum:]]+)/([[:digit:]]+\\.[[:digit:]]+)"	// Protocol	[3]/[4]
-			  "$",
+			  "\r?\n?$",
 			  std::regex::optimize);
 	
 	static const auto str_toupper =
@@ -61,4 +64,21 @@ server::parse_start_string(const std::string &str)
 	data.uri = m[2];
 	
 	return data;
+}
+
+
+// Removes trailing '\r' and '\n' symbols modifying the string
+void
+server::truncate_string(std::string &str) noexcept
+{
+	while (!str.empty()) {
+		auto c = str.back();
+		switch (c) {
+			case '\n': case '\r':
+				str.pop_back();
+				break;
+			default:
+				return;
+		}
+	}
 }

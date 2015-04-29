@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <regex>
 
 // #include <mongo/mongoc_handler.h>
 // #include <mongo/client_pool.h>
@@ -63,21 +64,29 @@ int main(int argc, char **argv)
 	// std::cout << std::endl << "Generated page:" << std::endl
 	// 		  << page(m) << std::endl;
 	
-	
-	logger::logger logger(std::clog);
-	
-	server::server_parameters parameters;
-	parameters.port = 8080;
-	parameters.workers = 3;
-	
-	server::server_http server(logger, parameters);
-	
-	while (std::cin) std::cin.get();
-	
-	logger.stream(logger::level::info)
-		<< "Main: Stopping server...";
-	
-	server.stop();
+	try {
+		logger::logger logger(std::clog);
+		
+		server::server_parameters parameters;
+		parameters.port = 8080;
+		parameters.workers = 3;
+		
+		server::server_http server(logger, parameters);
+		
+		while (std::cin) std::cin.get();
+		
+		logger.stream(logger::level::info)
+			<< "Main: Stopping server...";
+		
+		server.stop();
+		
+		// static const std::regex regex("\r\n", std::regex::optimize);
+		// static const std::string replace_by("1");
+		
+		// std::cout << std::regex_replace("some\r\ndata", regex, replace_by) << std::endl;
+	} catch (...) {
+		std::cerr << "Exception catched!" << std::endl;
+	}
 	
 	return 0;
 }

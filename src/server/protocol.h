@@ -4,7 +4,6 @@
 #define SERVER_PROTOCOL_H
 
 #include <string>
-#include <stdexcept>
 
 #include <server/protocol_http.h>
 
@@ -21,55 +20,14 @@ struct start_data
 };	// struct start_data
 
 
-// Exceptions
-class protocol_error: public std::logic_error
-{
-public:
-	explicit protocol_error(const std::string &what_arg):
-		std::logic_error(what_arg)
-	{}
-};
-
-
-class incorrect_start_string: public protocol_error
-{
-public:
-	explicit incorrect_start_string(const std::string &str):
-		protocol_error("Incorrect start string: " + str)
-	{}
-};
-
-
-class unimplemented_method: public protocol_error
-{
-public:
-	explicit unimplemented_method(const std::string &method_name):
-		protocol_error("Unimplemented method: " + method_name)
-	{}
-};
-
-
-class incorrect_protocol: public protocol_error
-{
-public:
-	explicit incorrect_protocol(const std::string &protocol_name):
-		protocol_error("Incorrect protocol: " + protocol_name)
-	{}
-};
-
-
-class unsupported_protocol_version: public protocol_error
-{
-public:
-	explicit unsupported_protocol_version(const std::string &version):
-		protocol_error("Unsupported protocol version: " + version)
-	{}
-};
-
-
 // Parses the given string and checks all details except uri
-// Returns all data from start string or throws one of exceptions abowe
+// Returns all data from start string or throws one of exceptions
+// described in protocol_exceptions.h
 start_data parse_start_string(const std::string &str);
+
+
+// Removes trailing '\r' and '\n' symbols modifying the string
+void truncate_string(std::string &str) noexcept;
 
 
 };	// namespace server

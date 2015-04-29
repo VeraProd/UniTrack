@@ -61,7 +61,7 @@ public:
 	
 	
 	// Erases client by iterator. Client manager uses this.
-	void erase_client(std::list<client_manager>::const_iterator iterator) noexcept;
+	void erase_client(client_manager_list_const_iterator_t iterator) noexcept;
 private:
 	// Must be called in worker_thread_ thread
 	// NOTE: Constructor calls this automatically. Do NOT call it manually!
@@ -80,7 +80,7 @@ private:
 	boost::asio::io_service &io_service_;
 	boost::asio::io_service::work work_;
 	
-	std::list<client_manager> client_managers_;	// Clients, worker are working with
+	client_manager_list_t client_managers_;	// Clients, worker are working with
 	
 	std::thread worker_thread_;
 };	// class worker
