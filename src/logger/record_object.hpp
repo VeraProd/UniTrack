@@ -49,3 +49,14 @@ logger::record_object::operator<<(char *data)
 	this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
 	return *this;
 }
+
+
+template<>
+inline
+logger::record_object &
+logger::record_object::operator<<(char data)
+{
+	if (data != '\r')
+		this->stream_ << data;
+	return *this;
+}
