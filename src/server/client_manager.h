@@ -51,8 +51,37 @@ public:
 	
 	
 	inline const std::string &client_ip_address() const;
+	inline bool keep_alive() const;
 protected:
+	inline void keep_alive(bool status);
+	
+	
+	void log_error(const char *what, const server::http::status &status);
+	
+	template<class Exception>
+	inline void log_error(const Exception &e, const server::http::status &status);
+	
+	
+	void handle_error(const char *what,
+					  const server::http::status &status,
+					  bool exit,
+					  bool send_phony,
+					  std::unordered_map<std::string, std::string> &&headers = {});
+	
+	template<class Exception>
+	inline void handle_error(const Exception &e,
+							 const server::http::status &status,
+							 bool exit,
+							 bool send_phony,
+							 std::unordered_map<std::string, std::string> &&headers = {});
+	
+	void add_request_handler();
+	
 	void send_response(server::host::send_buffers_t &&buffers);
+	void send_phony(const server::http::status &status,
+					std::unordered_map<std::string, std::string> &&headers = {});
+	
+	void parse_headers();
 private:
 	// Closes the socket and removes manager from worker
 	void finish_work() noexcept;
@@ -75,11 +104,23 @@ private:
 	
 	// Session data
 	server::start_data start_data_;
-	std::unordered_map<std::string, std::string> headers_;
+	struct {
+		server::http::method	method;
+		server::http::version	version;
+		std::string				uri;
+		
+		std::unordered_map<std::string, std::string> headers;
+		
+		bool					keep_alive;
+	} connection_params_;
 	
-	// Request data
-	boost::asio::streambuf headers_buf_;
-	host::cache_t host_cache_;
+	// Cached data
+	struct {
+		boost::asio::streambuf headers_buf;
+		host::cache_t host;
+		
+		std::unordered_map<std::string, std::string> headers;
+	} cache_;
 };	// class client_manager
 
 
