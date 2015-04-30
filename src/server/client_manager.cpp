@@ -121,13 +121,14 @@ server::client_manager::add_request_handler()
 
 
 void
-server::client_manager::send_response(server::host::send_buffers_t &&buffers)
+server::client_manager::send_response(server::client_manager::host_cache_iterator_t cache_iterator,
+									  server::host::send_buffers_t &&buffers)
 {
 	this->lock();
 	
 	using namespace std::placeholders;
 	this->socket_ptr_->async_send(buffers,
-								  std::bind(&client_manager::response_handler, this, _1, _2));
+								  std::bind(&client_manager::response_handler, this, cache_iterator, _1, _2));
 }
 
 
@@ -135,13 +136,24 @@ void
 server::client_manager::send_phony(const server::http::status &status,
 								   server::headers_t &&headers)
 {
+	auto host_cache_entry = this->new_host_cache_entry();
+	
+	// Getting data for the phony
 	this->cache_.headers = std::move(headers);
 	auto buffers = std::move(server::host::error_host(this->logger_).phony_page(
 		this->connection_params_.version,
 		status,
-		this->cache_.host,
+		*host_cache_entry,
 		this->cache_.headers));
-	this->send_response(std::move(buffers));
+	
+	this->send_response(host_cache_entry, std::move(buffers));
+}
+
+
+server::client_manager::host_cache_iterator_t
+server::client_manager::new_host_cache_entry()
+{
+	return this->cache_.host.emplace(this->cache_.host.end());
 }
 
 
@@ -264,13 +276,15 @@ server::client_manager::request_handler(const boost::system::error_code &err,
 
 
 void
-server::client_manager::response_handler(const boost::system::error_code &err,
+server::client_manager::response_handler(server::client_manager::host_cache_iterator_t cache_iterator,
+										 const boost::system::error_code &err,
 										 size_t bytes_transferred)
 {
 	unique_lock_t lock(*this);
 	this->unlock();
 	
-	this->cache_.host.clear();
+	// Cache entry is no longer needed
+	this->cache_.host.erase(cache_iterator);
 	
 	
 	if (err) {

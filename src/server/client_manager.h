@@ -57,6 +57,10 @@ protected:
 	inline void keep_alive(bool status);
 	
 	
+	typedef std::list<host::cache_t> host_cache_t;
+	typedef std::list<host::cache_t>::iterator host_cache_iterator_t;
+	
+	
 	// Mutex-like functions (for usage with std::unique_lock), but provides reference counting
 	friend class std::unique_lock<client_manager>;
 	typedef std::unique_lock<client_manager> unique_lock_t;
@@ -87,18 +91,26 @@ protected:
 							 bool send_phony,
 							 server::headers_t &&headers = {});
 	
+	
 	void add_request_handler();
 	
-	void send_response(server::host::send_buffers_t &&buffers);
+	void send_response(host_cache_iterator_t cache_iterator,
+					   server::host::send_buffers_t &&buffers);
 	void send_phony(const server::http::status &status,
 					server::headers_t &&headers = {});
 	
-	void parse_headers();
+	
+	host_cache_iterator_t new_host_cache_entry();
 private:
+	void parse_headers();
+	
+	
+	// Handlers
 	void request_handler(const boost::system::error_code &err,
 						 size_t bytes_transferred);
 	
-	void response_handler(const boost::system::error_code &err,
+	void response_handler(host_cache_iterator_t cache_iterator,
+						  const boost::system::error_code &err,
 						  size_t bytes_transferred);
 	
 	
@@ -127,12 +139,13 @@ private:
 		bool					keep_alive;
 	} connection_params_;
 	
+	
 	// Cached data
 	struct {
-		boost::asio::streambuf headers_buf;
-		host::cache_t host;
+		boost::asio::streambuf	headers_buf;
+		host_cache_t			host;
 		
-		server::headers_t headers;
+		server::headers_t		headers;
 	} cache_;
 };	// class client_manager
 
