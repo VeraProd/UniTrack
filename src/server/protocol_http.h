@@ -10,6 +10,18 @@ namespace server {
 namespace http {
 
 
+extern const std::string
+	space_str,
+	newline_str,
+	HTTP_str,
+	slash_str,
+	header_separator_str,
+	
+	header_content_length,
+	header_server,
+	header_allow;
+
+
 enum class method
 {
 	GET,

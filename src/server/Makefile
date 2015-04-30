@@ -18,7 +18,6 @@ HEADERS =									\
 	worker.h worker.hpp						\
 	host.h									\
 	host_exceptions.h						\
-	other.h									\
 	
 
 
@@ -31,7 +30,6 @@ SOURCES_CPP =								\
 	worker.cpp								\
 	host.cpp								\
 	host_exceptions.cpp						\
-	other.cpp								\
 	
 
 
@@ -40,11 +38,13 @@ TARGET_LIB = libserver.so
 
 
 # Tests
-TEST_SOURCES_CPP =				\
+TEST_SOURCES_CPP =							\
 	
+
 
 # Requrements
 GPP_LIBS					+= -llogger
+
 
 ifeq ($(SYSTEM),Darwin)
 	GPP_LIBS				+= -lboost_system-mt

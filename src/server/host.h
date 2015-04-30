@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 #include <list>
-#include <unordered_map>
 #include <memory>
 #include <random>
 
@@ -65,7 +64,7 @@ public:
 	phony_page(server::http::version version,
 			   const server::http::status &status,
 			   cache_t &strings_cache,
-			   const std::unordered_map<std::string, std::string> &headers = {});
+			   const headers_t &headers = {});
 	
 	
 	// Returns reference to error host object, creating it, if does not exist.

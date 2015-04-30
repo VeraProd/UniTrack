@@ -19,8 +19,12 @@ server::client_manager::client_manager(logger::logger &logger,
 	worker_(w),
 	iterator_(iterator),
 	
+	running_operations_(0),
+	
 	socket_ptr_(socket_ptr)
 {
+	unique_lock_t lock(*this);
+	
 	// Getting client ip address
 	try {
 		auto endpoint = this->socket_ptr_->remote_endpoint();
@@ -30,7 +34,6 @@ server::client_manager::client_manager(logger::logger &logger,
 		this->logger_.stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
 			<< "): Unknown error with client: " << e.what() << '.';
-		this->finish_work();
 		return;
 	}
 	
@@ -55,6 +58,26 @@ server::client_manager::~client_manager()
 
 
 // protected
+// Mutex-like functions (for usage with std::unique_lock), but provides reference counting
+// Tells current object does not destroy itself
+void
+server::client_manager::lock() noexcept
+{
+	++this->running_operations_;
+}
+
+
+// Removes manager from worker, if no works running
+void
+server::client_manager::unlock() noexcept
+{
+	--this->running_operations_;
+	
+	if (this->running_operations_ <= 0)
+		this->worker_.erase_client(this->iterator_);
+}
+
+
 void
 server::client_manager::log_error(const char *what, const server::http::status &status)
 {
@@ -70,7 +93,7 @@ server::client_manager::handle_error(const char *what,
 									 const server::http::status &status,
 									 bool exit,
 									 bool send_phony,
-									 std::unordered_map<std::string, std::string> &&headers)
+									 server::headers_t &&headers)
 {
 	this->log_error(what, status);
 	
@@ -82,8 +105,9 @@ server::client_manager::handle_error(const char *what,
 void
 server::client_manager::add_request_handler()
 {
-	using namespace std::placeholders;
+	this->lock();
 	
+	using namespace std::placeholders;
 	boost::asio::async_read_until(*this->socket_ptr_,
 								  this->cache_.headers_buf,
 								  "\r\n\r\n",
@@ -99,8 +123,9 @@ server::client_manager::add_request_handler()
 void
 server::client_manager::send_response(server::host::send_buffers_t &&buffers)
 {
-	using namespace std::placeholders;
+	this->lock();
 	
+	using namespace std::placeholders;
 	this->socket_ptr_->async_send(buffers,
 								  std::bind(&client_manager::response_handler, this, _1, _2));
 }
@@ -108,7 +133,7 @@ server::client_manager::send_response(server::host::send_buffers_t &&buffers)
 
 void
 server::client_manager::send_phony(const server::http::status &status,
-								   std::unordered_map<std::string, std::string> &&headers)
+								   server::headers_t &&headers)
 {
 	this->cache_.headers = std::move(headers);
 	auto buffers = std::move(server::host::error_host(this->logger_).phony_page(
@@ -161,25 +186,18 @@ server::client_manager::parse_headers()
 
 
 // private
-// Closes the socket and removes manager from worker
-void
-server::client_manager::finish_work() noexcept
-{
-	this->worker_.erase_client(this->iterator_);
-}
-
-
 void
 server::client_manager::request_handler(const boost::system::error_code &err,
 										size_t bytes_transferred)
 {
+	unique_lock_t lock(*this);
+	this->unlock();
+	
 	if (err) {
 		this->logger_.stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
 			<< "): " << this->client_ip_address()
 			<< ": " << err.message() << '.';
-		
-		this->finish_work();
 		return;
 	}
 	
@@ -201,6 +219,10 @@ server::client_manager::request_handler(const boost::system::error_code &err,
 				stream << " [" << p.first << ": " << p.second << ']';
 			stream << '.';
 		}
+		
+		
+		if (this->keep_alive())
+			this->add_request_handler();
 		
 		
 		// ok
@@ -245,13 +267,10 @@ void
 server::client_manager::response_handler(const boost::system::error_code &err,
 										 size_t bytes_transferred)
 {
-	this->cache_.host.clear();
+	unique_lock_t lock(*this);
+	this->unlock();
 	
-	bool need_finish = true;
-	if (this->keep_alive()) {
-		this->add_request_handler();
-		need_finish = false;
-	}
+	this->cache_.host.clear();
 	
 	
 	if (err) {
@@ -265,7 +284,4 @@ server::client_manager::response_handler(const boost::system::error_code &err,
 			<< "): " << this->client_ip_address()
 			<< ": Response sent.";
 	}
-	
-	
-	if (need_finish) this->finish_work();
 }

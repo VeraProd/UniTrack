@@ -5,6 +5,18 @@
 #include <server/protocol_http_statuses.hpp>
 
 
+const std::string
+	server::http::space_str					= " ",
+	server::http::newline_str				= "\r\n",
+	server::http::HTTP_str					= "HTTP",
+	server::http::slash_str					= "/",
+	server::http::header_separator_str		= ": ",
+	
+	server::http::header_content_length		= "Content-Length",
+	server::http::header_server				= "Server",
+	server::http::header_allow				= "Allow";
+
+
 namespace {
 
 const std::string

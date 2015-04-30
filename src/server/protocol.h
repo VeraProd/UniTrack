@@ -4,11 +4,16 @@
 #define SERVER_PROTOCOL_H
 
 #include <string>
+#include <unordered_map>
 
 #include <server/protocol_http.h>
 
 
 namespace server {
+
+
+typedef std::pair<std::string, std::string> header_pair_t;
+typedef std::unordered_map<std::string, std::string> headers_t;
 
 
 // Removes trailing '\r' and '\n' symbols modifying the string
@@ -29,8 +34,6 @@ struct start_data
 // described in protocol_exceptions.h
 start_data parse_start_string(const std::string &str);
 
-
-typedef std::pair<std::string, std::string> header_pair_t;
 
 header_pair_t parse_header_string(const std::string &str);
 

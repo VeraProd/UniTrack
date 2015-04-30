@@ -6,7 +6,6 @@
 #include <mutex>
 
 #include <server/host_exceptions.h>
-#include <server/other.h>
 
 
 namespace {
@@ -52,9 +51,9 @@ std::vector<boost::asio::const_buffer>
 server::host::phony_page(server::http::version version,
 						 const server::http::status &status,
 						 server::host::cache_t &strings_cache,
-						 const std::unordered_map<std::string, std::string> &headers)
+						 const server::headers_t &headers)
 {
-	using namespace server::other;
+	using namespace server::http;
 	using boost::asio::const_buffer;
 	using boost::asio::buffer;
 	
