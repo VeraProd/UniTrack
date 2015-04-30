@@ -1,10 +1,12 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
+namespace logger {
+
 
 template<class T>
 inline
-logger::record_object &
-logger::record_object::operator<<(T data)
+record_object &
+record_object::operator<<(T data)
 {
 	this->stream_ << data;
 	return *this;
@@ -13,8 +15,8 @@ logger::record_object::operator<<(T data)
 
 template<>
 inline
-logger::record_object &
-logger::record_object::operator<<(const std::string &data)
+record_object &
+record_object::operator<<(const std::string &data)
 {
 	this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
 	return *this;
@@ -23,8 +25,8 @@ logger::record_object::operator<<(const std::string &data)
 
 template<>
 inline
-logger::record_object &
-logger::record_object::operator<<(std::string &&data)
+record_object &
+record_object::operator<<(std::string &&data)
 {
 	this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
 	return *this;
@@ -33,8 +35,8 @@ logger::record_object::operator<<(std::string &&data)
 
 template<>
 inline
-logger::record_object &
-logger::record_object::operator<<(char const * const data)
+record_object &
+record_object::operator<<(char const * const data)
 {
 	this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
 	return *this;
@@ -43,8 +45,8 @@ logger::record_object::operator<<(char const * const data)
 
 template<>
 inline
-logger::record_object &
-logger::record_object::operator<<(char *data)
+record_object &
+record_object::operator<<(char *data)
 {
 	this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
 	return *this;
@@ -53,10 +55,13 @@ logger::record_object::operator<<(char *data)
 
 template<>
 inline
-logger::record_object &
-logger::record_object::operator<<(char data)
+record_object &
+record_object::operator<<(char data)
 {
 	if (data != '\r')
 		this->stream_ << data;
 	return *this;
 }
+
+
+};	// namespace logger
