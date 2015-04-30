@@ -8,22 +8,30 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Sources and headers
-HEADERS =										\
-	protocol_http.h protocol_http_statuses.hpp	\
-	protocol.h									\
-	protocol_exceptions.h						\
-	server_http.h server_http.hpp				\
-	client_manager.h client_manager.hpp			\
-	worker.h worker.hpp							\
+HEADERS =									\
+	protocol_http.h protocol_http.hpp		\
+	protocol_http_statuses.hpp				\
+	protocol.h								\
+	protocol_exceptions.h					\
+	server_http.h server_http.hpp			\
+	client_manager.h client_manager.hpp		\
+	worker.h worker.hpp						\
+	host.h									\
+	host_exceptions.h						\
+	other.h									\
 	
 
-SOURCES_CPP =									\
-	protocol_http.cpp							\
-	protocol.cpp								\
-	protocol_exceptions.cpp						\
-	server_http.cpp								\
-	client_manager.cpp							\
-	worker.cpp									\
+
+SOURCES_CPP =								\
+	protocol_http.cpp						\
+	protocol.cpp							\
+	protocol_exceptions.cpp					\
+	server_http.cpp							\
+	client_manager.cpp						\
+	worker.cpp								\
+	host.cpp								\
+	host_exceptions.cpp						\
+	other.cpp								\
 	
 
 

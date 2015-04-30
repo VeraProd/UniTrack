@@ -38,19 +38,16 @@ const std::string & version_to_str(version version_) noexcept;
 class status
 {
 public:
-	explicit status(unsigned int code, std::string description) noexcept:
-		code_(code), description_(std::move(description))
-	{}
+	explicit status(unsigned int code, std::string description) noexcept;
 	
 	
-	inline unsigned int code() const noexcept
-	{ return this->code_; }
-	
-	inline const std::string & description() const noexcept
-	{ return this->description_; }
+	inline unsigned int code() const noexcept;
+	inline const std::string & code_str() const noexcept;
+	inline const std::string & description() const noexcept;
 private:
 	const unsigned int code_;
-	const std::string description_;
+	const std::string code_str_,
+					  description_;
 public:
 	
 	// Declaration statuses as static class members
@@ -62,5 +59,8 @@ public:
 
 };	// namespace http
 };	// namespace server
+
+
+#include <server/protocol_http.hpp>
 
 #endif // SERVER_PROTOCOL_HTTP_H

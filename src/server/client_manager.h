@@ -12,6 +12,7 @@
 
 #include <logger/logger.h>
 #include <server/protocol.h>
+#include <server/host.h>
 
 
 namespace server {
@@ -50,12 +51,17 @@ public:
 	
 	
 	inline const std::string &client_ip_address() const;
+protected:
+	void send_response(server::host::send_buffers_t &&buffers);
 private:
 	// Closes the socket and removes manager from worker
 	void finish_work() noexcept;
 	
-	void headers_handler(const boost::system::error_code &err,
+	void request_handler(const boost::system::error_code &err,
 						 size_t bytes_transferred);
+	
+	void response_handler(const boost::system::error_code &err,
+						  size_t bytes_transferred);
 	
 	
 	// Data
@@ -67,11 +73,13 @@ private:
 	socket_ptr_t socket_ptr_;
 	std::string client_ip_address_;
 	
-	// Request data
-	boost::asio::streambuf headers_buf_;
-	
+	// Session data
 	server::start_data start_data_;
 	std::unordered_map<std::string, std::string> headers_;
+	
+	// Request data
+	boost::asio::streambuf headers_buf_;
+	host::cache_t host_cache_;
 };	// class client_manager
 
 

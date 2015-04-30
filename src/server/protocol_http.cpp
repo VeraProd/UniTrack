@@ -18,7 +18,7 @@ const std::string
 	version_1_1("1.1"),
 	version_unknown("unknown");
 
-};
+};	// namespace
 
 
 const std::string &
@@ -42,3 +42,10 @@ server::http::version_to_str(version version_) noexcept
 		case server::http::version::unknown: default:	return version_unknown;
 	}
 }
+
+
+server::http::status::status(unsigned int code, std::string description) noexcept:
+	code_(code),
+	code_str_(std::move(std::to_string(code_))),
+	description_(std::move(description))
+{}

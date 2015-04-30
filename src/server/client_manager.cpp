@@ -44,7 +44,7 @@ server::client_manager::client_manager(logger::logger &logger,
 		boost::asio::async_read_until(*this->socket_ptr_,
 									  this->headers_buf_,
 									  "\r\n\r\n",
-									  std::bind(&client_manager::headers_handler, this, _1, _2));
+									  std::bind(&client_manager::request_handler, this, _1, _2));
 	}
 }
 
@@ -58,6 +58,17 @@ server::client_manager::~client_manager()
 }
 
 
+// protected
+void
+server::client_manager::send_response(server::host::send_buffers_t &&buffers)
+{
+	using namespace std::placeholders;
+	
+	this->socket_ptr_->async_send(buffers,
+								  std::bind(&client_manager::response_handler, this, _1, _2));
+}
+
+
 // private
 // Closes the socket and removes manager from worker
 void
@@ -68,12 +79,13 @@ server::client_manager::finish_work() noexcept
 
 
 void
-server::client_manager::headers_handler(const boost::system::error_code &err,
+server::client_manager::request_handler(const boost::system::error_code &err,
 										size_t bytes_transferred)
 {
 	try {
 		std::istream headers_stream(&this->headers_buf_);
 		std::string str;
+		
 		
 		// Processing start string
 		std::getline(headers_stream, str);
@@ -88,8 +100,6 @@ server::client_manager::headers_handler(const boost::system::error_code &err,
 		}
 		
 		
-		// ok
-		
 		auto stream = this->logger_.stream(logger::level::info);
 		stream
 			<< "Client manager (worker " << this->worker_.id()
@@ -101,6 +111,14 @@ server::client_manager::headers_handler(const boost::system::error_code &err,
 		for (const auto &p: this->headers_)
 			stream << " [" << p.first << ": " << p.second << ']';
 		stream << '.';
+		
+		
+		// ok
+		auto buffers = std::move(server::host::error_host(this->logger_).phony_page(
+			this->start_data_.version,
+			server::http::status::ok,
+			this->host_cache_));
+		this->send_response(std::move(buffers));
 	} catch (const server::unimplemented_method &e) {
 		this->logger_.stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
@@ -153,4 +171,27 @@ server::client_manager::headers_handler(const boost::system::error_code &err,
 		this->finish_work();
 		return;
 	}
+}
+
+
+void
+server::client_manager::response_handler(const boost::system::error_code &err,
+										 size_t bytes_transferred)
+{
+	this->host_cache_.clear();
+	
+	if (err) {
+		this->logger_.stream(logger::level::error)
+			<< "Client manager (worker " << this->worker_.id()
+			<< "): " << this->client_ip_address()
+			<< ": Error sending response: " << err.message() << '.';
+	} else {
+		this->logger_.stream(logger::level::info)
+			<< "Client manager (worker " << this->worker_.id()
+			<< "): " << this->client_ip_address()
+			<< ": Response sent.";
+	}
+	
+	this->finish_work();
+	return;
 }
