@@ -169,7 +169,7 @@ upgrade: upgrade-help uninstall git-pull all
 
 me happy: me-happy-help git-pull all install
 	@echo 'Well done, next times you can simply do:'
-	@echo '    make upgrade'
+	@echo '    sudo make upgrade'
 
 
 me-happy-help:
