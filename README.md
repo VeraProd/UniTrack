@@ -16,7 +16,7 @@ so that's my license:
 ---
 
 ### Requirements:
-- g++-5 or best (or clang++-3.5 or best, or any other C++11 compiler supporting std::regex, move-semantics and many more, *full support is best*)
+- g++-5 or best (or clang++-3.6 or best, or any other C++11 compiler supporting std::regex, move-semantics and many more, *full support is best*)
 - Boost
 - MongoDB C Driver (now disabled)
 - Make (and a little shell) for building this
