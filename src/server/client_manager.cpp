@@ -96,10 +96,11 @@ server::client_manager::headers_handler(const boost::system::error_code &err,
 			<< "): " << this->client_ip_address()
 			<< ": HTTP/" << server::http::version_to_str(this->start_data_.version)
 			<< ", " << server::http::method_to_str(this->start_data_.method)
-			<< ", Requested URI: \"" << this->start_data_.uri << "\"." << '\n';
+			<< ", Requested URI: \"" << this->start_data_.uri << "\". Headers:";
 		
 		for (const auto &p: this->headers_)
-			stream << p.first << ": " << p.second << '\n';
+			stream << " [" << p.first << ": " << p.second << ']';
+		stream << '.';
 	} catch (const server::unimplemented_method &e) {
 		this->logger_.stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
