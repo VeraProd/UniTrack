@@ -1,5 +1,5 @@
 # UniTrack
-#### The University Activity Tracker
+##### The University Activity Tracker
 
 ### About
 Project is under active developing now. This section will be updated as soon as the project will leave the prototype stage.
