@@ -178,7 +178,7 @@ me-happy-help:
 
 
 upgrade-help:
-	@echo 'NOTE: `upgrade\' command will occur an error, if program was not installed.'
+	@echo "NOTE: \`upgrade' command will occur an error, if program was not installed."
 
 
 git-pull:
