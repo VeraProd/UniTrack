@@ -10,11 +10,19 @@ namespace logger {
 
 enum class level
 {
+	// Base levels
 	info,
 	warning,
 	error,
 	critical,
-	other
+	other,
+	
+	// Security levels
+	sec_info,
+	sec_warning,
+	sec_error,
+	sec_critical,
+	sec_other
 };
 
 
