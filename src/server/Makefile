@@ -16,8 +16,9 @@ HEADERS =									\
 	server_http.h server_http.hpp			\
 	client_manager.h client_manager.hpp		\
 	worker.h worker.hpp						\
-	host.h									\
+	host.h host.hpp							\
 	host_exceptions.h						\
+	host_manager.h							\
 	
 
 
@@ -30,6 +31,7 @@ SOURCES_CPP =								\
 	worker.cpp								\
 	host.cpp								\
 	host_exceptions.cpp						\
+	host_manager.cpp						\
 	
 
 

@@ -157,6 +157,7 @@ server::client_manager::new_host_cache_entry()
 }
 
 
+// private
 void
 server::client_manager::parse_headers()
 {
@@ -187,17 +188,17 @@ server::client_manager::parse_headers()
 	
 	// Setting up keep-alive
 	try {
-		static const std::regex keep_alive_regex(".*keep-alive.*");
+		static const std::regex keep_alive_regex(".*keep-alive.*", std::regex::optimize);
 		
 		this->keep_alive(false);
 		
-		if (regex_match(this->connection_params_.headers.at("Connection"), keep_alive_regex))
+		if (regex_match(this->connection_params_.headers.at(server::http::header_connection),
+						keep_alive_regex))
 			this->keep_alive(true);
 	} catch (...) {}
 }
 
 
-// private
 void
 server::client_manager::request_handler(const boost::system::error_code &err,
 										size_t bytes_transferred)

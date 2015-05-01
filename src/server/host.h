@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <unordered_set>
 #include <memory>
 #include <random>
 
@@ -22,10 +23,11 @@ namespace server {
 // This is default parameters for error_host.
 struct host_parameters
 {
-	std::string					name;
-	unsigned int				port;
+	std::string							name;
+	std::unordered_set<unsigned int>	ports;
 	
-	std::vector<std::string>	server_names = {
+	std::vector<std::string>			server_names =
+		{
 			"UniTrack/0.0.1",
 			"Tired of reading the headers? Look for the UniTrack project on GitHub!",
 			"ZX_Spectrum/1997 (Sinclair_BASIC)",
@@ -51,7 +53,15 @@ public:
 		 const host_parameters &parameters);
 	
 	
-	// Returns host name as string (random!)
+	// Returns host's name (name does not include port information!).
+	inline const std::string & name() const noexcept;
+	
+	
+	// Returns true, if host can process requests on specified port, or false otherwise.
+	bool port_allowed(unsigned int port) const noexcept;
+	
+	
+	// Returns host name as string (random!).
 	const std::string & server_name() const noexcept;
 	
 	
@@ -87,7 +97,12 @@ private:
 };	// class host
 
 
+typedef std::shared_ptr<host> host_ptr_t;
+
+
 };	// namespace server
 
+
+#include <server/host.hpp>
 
 #endif // SERVER_HOST_H

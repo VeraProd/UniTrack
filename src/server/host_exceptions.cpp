@@ -12,3 +12,8 @@ server::headers_has_content_length::headers_has_content_length(const std::string
 	server::host_error("Headers for phony page must NOT contain header "
 					   "\"Content-Length\" (= " + value +')')
 {}
+
+
+server::host_not_found::host_not_found(const std::string &name):
+	server::host_error("Host \"" + name + "\" not found")
+{}

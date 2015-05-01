@@ -30,6 +30,16 @@ server::host::host(logger::logger &logger,
 {}
 
 
+// Returns true, if host can process requests on specified port, or false otherwise.
+bool
+server::host::port_allowed(unsigned int port) const noexcept
+{
+	if (this->parameters_.ports.find(port) == this->parameters_.ports.end())
+		return false;
+	return true;
+}
+
+
 // Returns host name as string (random!)
 const std::string &
 server::host::server_name() const noexcept

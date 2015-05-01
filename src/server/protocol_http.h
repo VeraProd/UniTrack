@@ -19,7 +19,8 @@ extern const std::string
 	
 	header_content_length,
 	header_server,
-	header_allow;
+	header_allow,
+	header_connection;
 
 
 enum class method

@@ -24,6 +24,13 @@ public:
 };
 
 
+class host_not_found: public host_error
+{
+public:
+	explicit host_not_found(const std::string &name);
+};
+
+
 };	// namespace server
 
 #endif // SERVER_HOST_EXCEPTIONS_H

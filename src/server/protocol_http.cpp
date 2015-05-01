@@ -14,7 +14,8 @@ const std::string
 	
 	server::http::header_content_length		= "Content-Length",
 	server::http::header_server				= "Server",
-	server::http::header_allow				= "Allow";
+	server::http::header_allow				= "Allow",
+	server::http::header_connection			= "Connection";
 
 
 namespace {
