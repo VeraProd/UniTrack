@@ -14,6 +14,7 @@
 
 #include <logger/logger.h>
 #include <server/protocol.h>
+#include <server/types.h>
 
 
 namespace server {
@@ -23,10 +24,10 @@ namespace server {
 // This is default parameters for error_host.
 struct host_parameters
 {
-	std::string							name;
-	std::unordered_set<unsigned int>	ports;
+	std::string					name;
+	port_set_t					ports;
 	
-	std::vector<std::string>			server_names =
+	std::vector<std::string>	server_names =
 		{
 			"UniTrack/0.0.1",
 			"Tired of reading the headers? Look for the UniTrack project on GitHub!",
@@ -46,11 +47,14 @@ class host
 {
 public:
 	typedef std::list<std::string> cache_t;
-	typedef std::vector<boost::asio::const_buffer> send_buffers_t;
+	typedef boost::asio::const_buffer send_buffer_t;
+	typedef std::vector<send_buffer_t> send_buffers_t;
 	
 	
 	host(logger::logger &logger,
 		 const host_parameters &parameters);
+	
+	virtual ~host();
 	
 	
 	// Returns host's name (name does not include port information!).
@@ -58,23 +62,39 @@ public:
 	
 	
 	// Returns true, if host can process requests on specified port, or false otherwise.
-	bool port_allowed(unsigned int port) const noexcept;
+	bool port_allowed(port_t port) const noexcept;
 	
 	
 	// Returns host name as string (random!).
 	const std::string & server_name() const noexcept;
 	
 	
-	// Returns vector<buffer> ready to socket.async_send()
+	// Prepares a correct response to the client. By default -- phony "404 Not Found".
+	// Returns vector<buffer> ready to socket.async_send().
 	// WARNING: result of this function does NOT contain the data, only references,
-	// so rebember to save the data anywhere. status and headers must be correct
-	// during all socket.async_send()! strings_cache contains some cached data.
-	// Caller must store it as long as it need too.
+	// so rebember to save the data anywhere. uri, request_headers, strings_cache
+	// and response_headers must be correct during all socket.async_send()!
+	// strings_cache will contain some cached data.
+	virtual
 	send_buffers_t
-	phony_page(server::http::version version,
-			   const server::http::status &status,
-			   cache_t &strings_cache,
-			   const headers_t &headers = {});
+	response(
+		const std::string &uri,						// Requested URI
+		server::http::method method,				// GET, POST, ...
+		server::http::version version,				// _1_1, ...
+		const headers_t &request_headers,			// All headers given by client. Must NOT be
+													// included in response, need only for host.
+		cache_t &strings_cache,						// Will contain some cached data.
+		const headers_t &response_headers = {});	// Headers must be added to response.
+	
+	
+	// Prepares a phony response to the client.
+	// Returns vector<buffer> ready to socket.async_send().
+	// WARNING: see notes to the response() method, remember to save anywhere status too!
+	// response_headers must NOT contain "Content-Length"!
+	send_buffers_t phony_response(server::http::version version,
+								  const server::http::status &status,
+								  cache_t &strings_cache,
+								  const headers_t &response_headers = {});
 	
 	
 	// Returns reference to error host object, creating it, if does not exist.
@@ -87,11 +107,38 @@ public:
 	
 	// Creates error_host if it does not exist. You may call it once from server, if you want.
 	static void create_error_host(logger::logger &logger);
+	
+	
+	// Response forming helpers
+	// For headers
+	static void add_start_string(send_buffers_t &buffers,
+								 server::http::version version,
+								 const server::http::status &status);
+	
+	static void add_header(send_buffers_t &buffers,
+						   const std::string &header,
+						   const std::string &value);
+	
+	static void add_header(send_buffers_t &buffers,
+						   const server::header_pair_t &header);
+	
+	static void add_headers(send_buffers_t &buffers,
+							const server::headers_t &headers);
+	
+	static void finish_headers(send_buffers_t &buffers);
+	
+	// For body
+	static void add_buffer(send_buffers_t &buffers,
+						   const send_buffer_t &buffer);
+	
+	
+	inline logger::logger & logger() const noexcept;
+protected:
+	host_parameters host_parameters_;
 private:
 	static std::unique_ptr<host> error_host_;
 	
 	logger::logger &logger_;
-	host_parameters parameters_;
 	
 	mutable std::minstd_rand0 server_name_generator_;
 };	// class host

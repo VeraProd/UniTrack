@@ -14,12 +14,11 @@
 #include <logger/logger.h>
 #include <server/protocol.h>
 #include <server/host.h>
+#include <server/types.h>
 
 
 namespace server {
 
-
-typedef std::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr_t;
 
 typedef unsigned long client_id_t;
 
@@ -39,7 +38,7 @@ public:
 	client_manager(logger::logger &logger,
 				   worker &w,
 				   const_iterator_t iterator,
-				   socket_ptr_t socket_ptr);
+				   server::socket_ptr_t socket_ptr);
 	~client_manager();
 	
 	
@@ -123,7 +122,7 @@ private:
 	unsigned int running_operations_;
 	
 	
-	socket_ptr_t socket_ptr_;
+	server::socket_ptr_t socket_ptr_;
 	std::string client_ip_address_;
 	
 	

@@ -22,19 +22,24 @@ std::unique_ptr<server::host> server::host::error_host_;
 
 
 server::host::host(logger::logger &logger,
-				   const host_parameters &parameters):
+				   const server::host_parameters &parameters):
+	host_parameters_(parameters),
+	
 	logger_(logger),
-	parameters_(parameters),
 	
 	server_name_generator_(std::chrono::system_clock::now().time_since_epoch().count())
 {}
 
 
+server::host::~host()
+{}
+
+
 // Returns true, if host can process requests on specified port, or false otherwise.
 bool
-server::host::port_allowed(unsigned int port) const noexcept
+server::host::port_allowed(server::port_t port) const noexcept
 {
-	if (this->parameters_.ports.find(port) == this->parameters_.ports.end())
+	if (this->host_parameters_.ports.find(port) == this->host_parameters_.ports.end())
 		return false;
 	return true;
 }
@@ -44,41 +49,61 @@ server::host::port_allowed(unsigned int port) const noexcept
 const std::string &
 server::host::server_name() const noexcept
 {
-	if (this->parameters_.server_names.empty())
+	if (this->host_parameters_.server_names.empty())
 		return ::host_without_name;
 	
-	size_t index = this->server_name_generator_() % this->parameters_.server_names.size();
-	return this->parameters_.server_names[index];
+	size_t index = this->server_name_generator_() % this->host_parameters_.server_names.size();
+	return this->host_parameters_.server_names[index];
 }
 
 
-// Returns vector<buffer> ready to socket.async_send()
+// Prepares a correct response to the client. By default -- phony "404 Not Found".
+// Returns vector<buffer> ready to socket.async_send().
 // WARNING: result of this function does NOT contain the data, only references,
-// so rebember to save the data anywhere. status and headers must be correct
-// during all socket.async_send()! strings_cache contains some cached data.
-// Caller must store it as long as it need too.
-std::vector<boost::asio::const_buffer>
-server::host::phony_page(server::http::version version,
-						 const server::http::status &status,
-						 server::host::cache_t &strings_cache,
-						 const server::headers_t &headers)
+// so rebember to save the data anywhere. uri, request_headers, strings_cache
+// and response_headers must be correct during all socket.async_send()!
+// strings_cache will contain some cached data.
+// virtual
+server::host::send_buffers_t
+server::host::response(const std::string & /*uri*/,						// Unused
+					   server::http::method /*method*/,					// Unused
+					   server::http::version version,
+					   const server::headers_t & /*request_headers*/,	// Unused
+					   server::host::cache_t &strings_cache,
+					   const server::headers_t &response_headers)
+{
+	return std::move(this->phony_response(version,
+										  server::http::status::not_found,
+										  strings_cache,
+										  response_headers));
+}
+
+
+// Prepares a phony response to the client.
+// Returns vector<buffer> ready to socket.async_send().
+// WARNING: see notes to the response() method, remember to save anywhere status too!
+// response_headers must NOT contain "Content-Length"!
+server::host::send_buffers_t
+server::host::phony_response(server::http::version version,
+							 const server::http::status &status,
+							 server::host::cache_t &strings_cache,
+							 const server::headers_t &response_headers)
 {
 	using namespace server::http;
-	using boost::asio::const_buffer;
 	using boost::asio::buffer;
 	
 	
 	const std::string *current_server_name = nullptr;
 	bool use_new_server_name = true;
 	
-	// Headers must NOT contain "Content-Length"!
+	// response_Headers must NOT contain "Content-Length"!
 	{
-		auto it = headers.find(header_content_length);
-		if (it != headers.end())
+		auto it = response_headers.find(header_content_length);
+		if (it != response_headers.end())
 			throw server::headers_has_content_length(it->second);
 		
-		it = headers.find(header_server);
-		if (it == headers.end()) {
+		it = response_headers.find(header_server);
+		if (it == response_headers.end()) {
 			current_server_name = &this->server_name();
 			use_new_server_name = true;
 		} else {
@@ -88,35 +113,18 @@ server::host::phony_page(server::http::version version,
 	}
 	
 	
-	std::vector<boost::asio::const_buffer> res;
-	res.reserve(16 + 4 * (headers.size() + ((use_new_server_name)? 1: 0)));
+	server::host::send_buffers_t res;
+	res.reserve(15 + 4 * (response_headers.size() + ((use_new_server_name)? 1: 0)));
 	
 	
 	// Start string
-	res.emplace_back(buffer(HTTP_str));
-	res.emplace_back(buffer(slash_str));
-	res.emplace_back(buffer(server::http::version_to_str(version)));
-	res.emplace_back(buffer(space_str));
-	res.emplace_back(buffer(status.code_str()));
-	res.emplace_back(buffer(space_str));
-	res.emplace_back(buffer(status.description()));
-	res.emplace_back(buffer(newline_str));
+	server::host::add_start_string(res, version, status);
 	
 	
 	// Headers
-	if (use_new_server_name) {
-		res.emplace_back(buffer(header_server));
-		res.emplace_back(buffer(header_separator_str));
-		res.emplace_back(buffer(*current_server_name));
-		res.emplace_back(buffer(newline_str));
-	}
-	
-	for (const auto &header: headers) {
-		res.emplace_back(buffer(header.first));
-		res.emplace_back(buffer(header_separator_str));
-		res.emplace_back(buffer(header.second));
-		res.emplace_back(buffer(newline_str));
-	}
+	if (use_new_server_name)
+		server::host::add_header(res, header_server, *current_server_name);
+	server::host::add_headers(res, response_headers);
 	
 	
 	// Inserting Content-Length and page content
@@ -144,15 +152,13 @@ server::host::phony_page(server::http::version version,
 							   + current_server_name->size()
 							   + content_suffix_it->size()));
 		
-		res.emplace_back(buffer(header_content_length));
-		res.emplace_back(buffer(header_separator_str));
-		res.emplace_back(buffer(*len_it));
-		res.emplace_back(buffer(newline_str));
-		res.emplace_back(buffer(newline_str));
+		server::host::add_header(res, header_content_length, *len_it);
+		server::host::finish_headers(res);
 		
-		res.emplace_back(buffer(*content_prefix_it));
-		res.emplace_back(buffer(*current_server_name));
-		res.emplace_back(buffer(*content_suffix_it));
+		// Content
+		server::host::add_buffer(res, buffer(*content_prefix_it));
+		server::host::add_buffer(res, buffer(*current_server_name));
+		server::host::add_buffer(res, buffer(*content_suffix_it));
 	}
 	
 	return res;
@@ -164,7 +170,7 @@ server::host::phony_page(server::http::version version,
 server::host &
 server::host::error_host() const
 {
-	return server::host::error_host(this->logger_);
+	return server::host::error_host(this->logger());
 }
 
 
@@ -181,6 +187,7 @@ server::host::error_host(logger::logger &logger)
 
 
 // Creates error_host if it does not exist. You may call it once from server, if you want.
+// static
 void
 server::host::create_error_host(logger::logger &logger)
 {
@@ -189,4 +196,100 @@ server::host::create_error_host(logger::logger &logger)
 	std::unique_lock<std::mutex> lock(m);
 	if (server::host::error_host_ == nullptr)
 		server::host::error_host_.reset(new server::host(logger, server::host_parameters()));
+}
+
+
+// Response forming helpers
+// static
+void
+server::host::add_start_string(send_buffers_t &buffers,
+							   server::http::version version,
+							   const server::http::status &status)
+{
+	using boost::asio::buffer;
+	using namespace server::http;
+	
+	buffers.insert(
+		buffers.end(),
+		{
+			buffer(HTTP_str),
+			buffer(slash_str),
+			buffer(server::http::version_to_str(version)),
+			buffer(space_str),
+			buffer(status.code_str()),
+			buffer(space_str),
+			buffer(status.description()),
+			buffer(newline_str)
+		});
+}
+
+
+// static
+void
+server::host::add_header(send_buffers_t &buffers,
+						 const std::string &header,
+						 const std::string &value)
+{
+	using boost::asio::buffer;
+	using namespace server::http;
+	
+	buffers.insert(
+		buffers.end(),
+		{
+			buffer(header),
+			buffer(header_separator_str),
+			buffer(value),
+			buffer(newline_str)
+		});
+}
+
+
+// static
+void
+server::host::add_header(send_buffers_t &buffers,
+						 const server::header_pair_t &header)
+{
+	using boost::asio::buffer;
+	using namespace server::http;
+	
+	buffers.insert(
+		buffers.end(),
+		{
+			buffer(header.first),
+			buffer(header_separator_str),
+			buffer(header.second),
+			buffer(newline_str)
+		});
+}
+
+
+// static
+void
+server::host::add_headers(send_buffers_t &buffers,
+						  const server::headers_t &headers)
+{
+	buffers.reserve(buffers.size() + 4 * headers.size());
+	
+	for (const auto &header: headers)
+		server::host::add_header(buffers, header);
+}
+
+
+// static
+void
+server::host::finish_headers(send_buffers_t &buffers)
+{
+	using boost::asio::buffer;
+	using namespace server::http;
+	
+	buffers.push_back(buffer(newline_str));
+}
+
+
+// static
+void
+server::host::add_buffer(send_buffers_t &buffers,
+						 const send_buffer_t &buffer)
+{
+	buffers.push_back(buffer);
 }

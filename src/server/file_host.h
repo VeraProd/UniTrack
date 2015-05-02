@@ -1,0 +1,86 @@
+// Author: Dmitry Kukovinets (d1021976@gmail.com)
+
+#ifndef SERVER_FILE_HOST_H
+#define SERVER_FILE_HOST_H
+
+#include <string>
+#include <vector>
+#include <regex>
+
+#include <logger/logger.h>
+#include <server/host.h>
+#include <server/protocol.h>
+#include <server/types.h>
+
+
+namespace server {
+
+
+struct file_host_only_parameters
+{
+	// May be useful, if several allow_regexes specified.
+	enum class allow_match_mode
+	{
+		any,	// Uri matches any of allow_regexes (and doesn't match any of deny_regexes).
+		all		// Uri matches all of allow_regexes (and doesn't match any of deny_regexes).
+	};
+	
+	
+	std::string root;
+	
+	std::vector<std::regex>
+		deny_regexes =
+			{
+				std::regex(".*\\.\\./.*"),	// Don't allow "../" sequences!
+				std::regex(".*/\\..*")		// Don't allow hidden directories and files
+			},
+		allow_regexes =
+			{
+				// Don't allow anything by default
+			};
+	
+	allow_match_mode allow_match_mode;
+};
+
+
+struct file_host_parameters:
+	public host_parameters,
+	public file_host_only_parameters
+{};
+
+
+class file_host: public server::host
+{
+public:
+	file_host(logger::logger &logger,
+			  const file_host_parameters &parameters);
+	
+	
+	// Prepares a correct response to the client. By default -- phony "404 Not Found".
+	// Returns vector<buffer> ready to socket.async_send().
+	// WARNING: result of this function does NOT contain the data, only references,
+	// so rebember to save the data anywhere. uri, request_headers, strings_cache
+	// and response_headers must be correct during all socket.async_send()!
+	// strings_cache will contain some cached data.
+	virtual
+	send_buffers_t
+	response(const std::string &uri,
+			 server::http::method method,
+			 server::http::version version,
+			 const server::headers_t &request_headers,
+			 server::host::cache_t &strings_cache,
+			 const server::headers_t &response_headers = {}) override;
+protected:
+	bool validate_uri(const std::string &uri) const noexcept;
+	bool validate_method(server::http::method method) const noexcept;
+	
+	
+	// Data
+	file_host_only_parameters file_host_parameters_;
+};	// class file_host
+
+
+};	// namespace server
+
+
+#endif // SERVER_FILE_HOST_H

@@ -5,5 +5,13 @@ inline
 const std::string &
 server::host::name() const noexcept
 {
-	return this->parameters_.name;
+	return this->host_parameters_.name;
+}
+
+
+inline
+logger::logger &
+server::host::logger() const noexcept
+{
+	return this->logger_;
 }

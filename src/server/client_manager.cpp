@@ -13,7 +13,7 @@
 server::client_manager::client_manager(logger::logger &logger,
 									   worker &w,
 									   const_iterator_t iterator,
-									   socket_ptr_t socket_ptr):
+									   server::socket_ptr_t socket_ptr):
 	logger_(logger),
 	
 	worker_(w),
@@ -140,7 +140,7 @@ server::client_manager::send_phony(const server::http::status &status,
 	
 	// Getting data for the phony
 	this->cache_.headers = std::move(headers);
-	auto buffers = std::move(server::host::error_host(this->logger_).phony_page(
+	auto buffers = std::move(server::host::error_host(this->logger_).phony_response(
 		this->connection_params_.version,
 		status,
 		*host_cache_entry,

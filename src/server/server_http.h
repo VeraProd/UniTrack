@@ -8,8 +8,11 @@
 #include <vector>
 #include <unordered_map>
 
-#include <server/worker.h>
 #include <logger/logger.h>
+#include <server/acceptor.h>
+#include <server/worker.h>
+#include <server/hosts_manager.h>
+#include <server/types.h>
 
 
 namespace server {
@@ -17,12 +20,8 @@ namespace server {
 
 struct server_parameters
 {
-	unsigned short	port						= 8080;
-	unsigned int	workers						= 1;
-	
-	// Workers parameters
-	unsigned int	worker_max_incoming_clients	= 128;
-	unsigned int	worker_max_clients			= 1000;
+	server::port_set_t	ports					= {};
+	unsigned int		workers					= 1;
 };
 
 
@@ -48,22 +47,20 @@ public:
 	inline bool joinable() const noexcept;	// Checks server's thread for joinable
 	inline void join();						// Joins server's thread
 	inline void detach();					// Detaches server's thread
+protected:
+	friend class server::acceptor;
+	
+	// Dispatches client pointed by socket_ptr to one of worker threads
+	// Only acceptor calls this!
+	void dispatch_client(server::socket_ptr_t socket_ptr) noexcept;
 private:
-	void run() noexcept;
-	
-	// Handlers
-	// Handles the accept event
-	void accept_handler(socket_ptr_t socket_ptr,
-						const boost::system::error_code &err) noexcept;
-	
-	// Add accept_handler to the io_service event loop
-	void add_accept_handler() noexcept;
-	
-	
 	// Dispatches client to one of workers
 	// WARNING: this method calls from one of workers' threads, NOT from server thread!
-	// Only accept_handler() call this.
-	void dispatch_client(socket_ptr_t socket_ptr) noexcept;
+	// Only dispatch_client() calls this!
+	void dispatch_client_worker_thread(server::socket_ptr_t socket_ptr) noexcept;
+	
+	
+	void run() noexcept;
 	
 	
 	// Data
@@ -71,13 +68,16 @@ private:
 	
 	server_parameters parameters_;
 	
-	boost::asio::io_service server_io_service_,		// Only for server's async_accept!
-							workers_io_service_;	// For all workers
-	boost::asio::ip::tcp::endpoint endpoint_;
-	boost::asio::ip::tcp::acceptor acceptor_;
 	
-	std::vector<std::unique_ptr<worker>> worker_ptrs_;
+	boost::asio::io_service acceptors_io_service_;	// Only for acceptors (server runs it in separate thread)!
+	std::vector<std::unique_ptr<server::acceptor>> acceptor_ptrs_;
+	boost::asio::io_service::work acceptor_empty_work_;	// If no acceptors required
+	
+	
+	boost::asio::io_service workers_io_service_;	// Only for workers (each worker runs it in separate thread)!
+	std::vector<std::unique_ptr<server::worker>> worker_ptrs_;
 	std::unordered_map<std::thread::id, worker_id_t> workers_dispatch_table_;
+	
 	
 	std::thread server_thread_;
 };	// class server_http

@@ -68,8 +68,8 @@ int main(int argc, char **argv)
 		logger::logger logger(std::clog);
 		
 		server::server_parameters parameters;
-		parameters.port = 8080;
-		parameters.workers = 3;
+		parameters.ports	= { 8080, 8081 };
+		parameters.workers	= 3;
 		
 		server::server_http server(logger, parameters);
 		

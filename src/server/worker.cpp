@@ -21,7 +21,7 @@ server::worker::worker(logger::logger &logger,
 // Adds new client to the worker
 // Returns true, if added successfully
 bool
-server::worker::add_client(socket_ptr_t socket_ptr) noexcept
+server::worker::add_client(server::socket_ptr_t socket_ptr) noexcept
 {
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Adding client to worker " << this->id() << '.';

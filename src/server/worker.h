@@ -9,8 +9,9 @@
 #include <boost/asio.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
 
-#include <server/client_manager.h>
 #include <logger/logger.h>
+#include <server/client_manager.h>
+#include <server/types.h>
 
 
 namespace server {
@@ -22,8 +23,6 @@ typedef unsigned int worker_id_t;
 struct worker_parameters
 {
 	worker_id_t		id;
-	unsigned int	max_incoming_clients	= 128;
-	unsigned int	max_clients				= 1000;
 };
 
 
@@ -52,7 +51,7 @@ public:
 	
 	// Adds new client to the worker
 	// Returns true, if added successfully
-	bool add_client(socket_ptr_t socket_ptr) noexcept;
+	bool add_client(server::socket_ptr_t socket_ptr) noexcept;
 	
 	
 	inline bool joinable() const noexcept;	// Checks worker's thread for joinable

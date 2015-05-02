@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SERVER_HOST_MANAGER_H
-#define SERVER_HOST_MANAGER_H
+#ifndef SERVER_HOSTS_MANAGER_H
+#define SERVER_HOSTS_MANAGER_H
 
 #include <map>
 
@@ -12,22 +12,23 @@
 namespace server {
 
 
-class host_manager
+class hosts_manager
 {
 public:
-	host_manager(logger::logger &logger);
+	hosts_manager(logger::logger &logger);
 	
 	
-	// Adds new host with specifed logger or this host_manager's logger.
+	// Adds the new host.
 	// Returns true, if host successfully addes, or false, if host with the
-	// same name is already managed by this manager (or allocation error occured).
-	bool add_host(logger::logger &logger, const server::host_parameters &parameters) noexcept;
-	bool add_host(const server::host_parameters &parameters) noexcept;
+	// same name is already managed by this manager.
+	// Thread-safety: no (it's write function).
+	bool add_host(server::host_ptr_t host_ptr) noexcept;
 	
 	
 	// Finds the host with specified name.
 	// Returns std::shared_ptr to it or throws server::host_not_found exception.
-	server::host_ptr_t host(const std::string &name, unsigned int port);
+	// Thread-sefety: yes (it's read function).
+	server::host_ptr_t host(const std::string &name, server::port_t port);
 private:
 	logger::logger &logger_;
 	
@@ -40,10 +41,10 @@ private:
 	};
 	
 	std::map<const std::string *, server::host_ptr_t, hosts_map_cmp> hosts_;
-};	// class host_manager
+};	// class hosts_manager
 
 
 };	// namespace server
 
 
-#endif // SERVER_HOST_MANAGER_H
+#endif // SERVER_HOSTS_MANAGER_H
