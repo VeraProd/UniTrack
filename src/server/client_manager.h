@@ -20,19 +20,11 @@
 namespace server {
 
 
-// Exception
-class bad_client: public std::runtime_error
-{
-public:
-	explicit bad_client();
-};
-
-
 class worker;
 
 
-class client_manager:
-	public std::enable_shared_from_this<client_manager>
+class client_manager//:
+	// public std::enable_shared_from_this<client_manager>
 {
 public:
 	typedef std::shared_ptr<client_manager> ptr_t;

@@ -3,7 +3,8 @@
 #include <server/worker.h>
 
 #include <functional>
-#include <new>
+
+#include <server/client_manager_exceptions.h>
 
 
 server::worker::worker(logger::logger &logger,
@@ -34,17 +35,19 @@ server::worker::add_client(server::socket_ptr_t socket_ptr) noexcept
 													   *this,
 													   it,
 													   socket_ptr);
+	} catch (const server::bad_client &e) {
+		this->logger_.stream(logger::level::error)
+			<< "Worker: Worker " << this->id() << ": Client not added: " << e.what() << '.';
+		return false;
 	} catch (...) {
 		this->logger_.stream(logger::level::error)
 			<< "Worker: Worker " << this->id() << ": Client not added.";
-		
 		return false;
 	}
 	
 	
 	this->logger_.stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << ": Client added.";
-	
 	return true;
 }
 

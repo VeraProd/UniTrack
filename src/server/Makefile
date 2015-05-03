@@ -18,6 +18,7 @@ HEADERS =									\
 	acceptor.h								\
 	worker.h worker.hpp						\
 	client_manager.h client_manager.hpp		\
+	client_manager_exceptions.h				\
 	host.h host.hpp							\
 	file_host.h								\
 	host_exceptions.h						\
@@ -33,6 +34,7 @@ SOURCES_CPP =								\
 	acceptor.cpp							\
 	worker.cpp								\
 	client_manager.cpp						\
+	client_manager_exceptions.cpp			\
 	host.cpp								\
 	file_host.cpp							\
 	host_exceptions.cpp						\

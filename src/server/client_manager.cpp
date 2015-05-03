@@ -8,11 +8,7 @@
 #include <server/worker.h>
 #include <server/protocol_exceptions.h>
 #include <server/host_exceptions.h>
-
-
-server::bad_client::bad_client():
-	std::runtime_error("Bad client")
-{}
+#include <server/client_manager_exceptions.h>
 
 
 server::client_manager::client_manager(logger::logger &logger,
@@ -39,7 +35,7 @@ server::client_manager::client_manager(logger::logger &logger,
 		this->logger_.stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
 			<< "): Unknown error with client: " << e.what() << '.';
-		return;
+		throw server::bad_client();
 	}
 	
 	
@@ -205,10 +201,16 @@ server::client_manager::request_handler(server::client_manager::streambuf_ptr_t 
 	this->unlock();
 	
 	if (err) {
-		this->logger_.stream(logger::level::error)
-			<< "Client manager (worker " << this->worker_.id()
-			<< "): " << this->client_ip_address()
-			<< ": " << err.message() << '.';
+		if (err == boost::asio::error::misc_errors::eof) {
+			this->logger_.stream(logger::level::info)
+				<< "Client manager (worker " << this->worker_.id()
+				<< "): Client disconnected: " << this->client_ip_address() << '.';
+		} else {
+			this->logger_.stream(logger::level::error)
+				<< "Client manager (worker " << this->worker_.id()
+				<< "): " << this->client_ip_address()
+				<< ": " << err.value() << " " << err.message() << '.';
+		}
 		return;
 	}
 	
