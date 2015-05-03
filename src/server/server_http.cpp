@@ -7,7 +7,7 @@
 
 
 server::server_http::server_http(logger::logger &logger,
-								 const server_parameters &parameters):
+								 const server_http_parameters &parameters):
 	logger_(logger),
 	parameters_(parameters),
 	

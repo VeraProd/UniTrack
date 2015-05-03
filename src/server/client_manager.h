@@ -48,10 +48,12 @@ public:
 	client_manager & operator=(client_manager &&other) = delete;
 	
 	
-	inline const std::string &client_ip_address() const;
-	inline bool keep_alive() const;
+	inline const std::string &client_ip_address() const noexcept;
+	inline port_t server_port() const noexcept;
+	
+	inline bool keep_alive() const noexcept;
 protected:
-	inline void keep_alive(bool status);
+	inline void keep_alive(bool status) noexcept;
 	
 	
 	// Mutex-like functions (for usage with std::unique_lock), but provides reference counting
@@ -106,7 +108,10 @@ protected:
 					const server::http::status &status,
 					server::headers_t &&headers = {});
 private:
+	// Helpers
 	void parse_headers(request_data_ptr_t request_data_ptr);
+	
+	void process_request(request_data_ptr_t request_data_ptr);
 	
 	
 	// Handlers
@@ -131,9 +136,10 @@ private:
 	
 	
 	// Connection data
-	server::socket_ptr_t socket_ptr_;
-	std::string client_ip_address_;
-	bool keep_alive_;
+	server::socket_ptr_t	socket_ptr_;
+	std::string				client_ip_address_;
+	port_t					server_port_;
+	bool					keep_alive_;
 };	// class client_manager
 
 

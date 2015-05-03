@@ -2,6 +2,8 @@
 
 #include <server/file_host.h>
 
+#include <regex>
+
 #include <server/host_exceptions.h>
 
 
@@ -50,9 +52,15 @@ server::file_host::response(std::string &&uri,
 	cache_ptr->response_headers = std::move(response_headers);
 	
 	{
+		static const std::regex slash_regex("/+", std::regex::optimize);
+		
 		using namespace boost::interprocess;
 		
-		std::string file_name = this->file_host_parameters_.root + '/' + uri;
+		
+		// Fixing doubleslashes
+		std::string file_name = std::regex_replace(this->file_host_parameters_.root
+												   + '/' + cache_ptr->uri,
+												   slash_regex, "/");
 		
 		try {
 			cache_ptr->file_mapping = std::move(file_mapping(file_name.c_str(), read_only));

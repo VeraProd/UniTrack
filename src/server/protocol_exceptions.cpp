@@ -35,3 +35,18 @@ server::incorrect_header_string::incorrect_header_string(const std::string &str)
 server::empty_header_string::empty_header_string():
 	server::protocol_error("Empty header string")
 {}
+
+
+server::header_required::header_required(const std::string &header_name):
+	server::protocol_error("Header required: \"" + header_name + '\"')
+{}
+
+
+server::incorrect_host_header::incorrect_host_header(const std::string &host_str):
+	server::protocol_error("Incorrect Host header: \"" + host_str + '\"')
+{}
+
+
+server::incorrect_port::incorrect_port(const std::string &port_str):
+	server::protocol_error("Incorrect port: \"" + port_str + '\"')
+{}

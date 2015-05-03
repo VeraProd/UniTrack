@@ -61,6 +61,27 @@ public:
 };
 
 
+class header_required: public protocol_error
+{
+public:
+	explicit header_required(const std::string &header_name);
+};
+
+
+class incorrect_host_header: public protocol_error
+{
+public:
+	explicit incorrect_host_header(const std::string &host_str);
+};
+
+
+class incorrect_port: public protocol_error
+{
+public:
+	explicit incorrect_port(const std::string &port_str);
+};
+
+
 };	// namespace server
 
 #endif // SERVER_PROTOCOL_EXCEPTIONS_H

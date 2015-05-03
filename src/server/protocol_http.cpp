@@ -5,7 +5,12 @@
 #include <server/protocol_http_statuses.hpp>
 
 
+const server::port_t
+	server::http::default_port				= 80;
+
+
 const std::string
+	server::http::default_port_str			= std::to_string(server::http::default_port),
 	server::http::space_str					= " ",
 	server::http::newline_str				= "\r\n",
 	server::http::HTTP_str					= "HTTP",
@@ -15,7 +20,8 @@ const std::string
 	server::http::header_content_length		= "Content-Length",
 	server::http::header_server				= "Server",
 	server::http::header_allow				= "Allow",
-	server::http::header_connection			= "Connection";
+	server::http::header_connection			= "Connection",
+	server::http::header_host				= "Host";
 
 
 namespace {

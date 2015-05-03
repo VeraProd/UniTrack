@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <functional>
+#include <regex>
 
 #include <server/worker.h>
 #include <server/protocol_exceptions.h>
@@ -26,6 +27,7 @@ server::client_manager::client_manager(logger::logger &logger,
 	
 	socket_ptr_(socket_ptr),
 	client_ip_address_(std::move(socket_ptr_->remote_endpoint().address().to_string())),
+	server_port_(socket_ptr_->local_endpoint().port()),
 	keep_alive_(false)
 {
 	unique_lock_t lock(*this);
@@ -145,6 +147,7 @@ server::client_manager::send_phony(server::client_manager::request_data_ptr_t re
 
 
 // private
+// Helpers
 void
 server::client_manager::parse_headers(server::client_manager::request_data_ptr_t request_data_ptr)
 {
@@ -183,6 +186,52 @@ server::client_manager::parse_headers(server::client_manager::request_data_ptr_t
 						keep_alive_regex))
 			this->keep_alive(true);
 	} catch (...) {}
+}
+
+
+void
+server::client_manager::process_request(request_data_ptr_t request_data_ptr)
+{
+	static const std::regex host_regex("([^:]+)"				// Host name [1]
+									   "(:([[:digit:]]+))?",	// Port number, if specified [3]
+									   std::regex::optimize);
+	
+	auto it = request_data_ptr->headers.find(server::http::header_host);
+	if (it == request_data_ptr->headers.end())
+		throw server::header_required(server::http::header_host);
+	
+	
+	// Host checking
+	const std::string &host_str = it->second;
+	
+	std::smatch match_result;
+	if (!std::regex_match(host_str, match_result, host_regex) || match_result.size() != 4)
+		throw server::incorrect_host_header(host_str);
+	
+	
+	// Port checking
+	auto port = this->server_port();
+	{
+		std::string requested_port;
+		if (match_result.length(3) == 0) requested_port = server::http::default_port_str;	// 80 port
+		else requested_port = match_result[3];
+		
+		if (std::to_string(port) != requested_port) {
+			this->logger_.stream(logger::level::sec_warning)
+				<< "Client manager (worker " << this->worker_.id()
+				<< "): " << this->client_ip_address()
+				<< ": Incorrect port in Host header: \"" << host_str << "\".";
+			throw server::incorrect_port(requested_port);
+		}
+	}
+	
+	
+	auto host_ptr = this->hosts_manager_.host(match_result[1], port);
+	
+	this->send_response(std::move(host_ptr->response(std::move(request_data_ptr->uri),
+													 request_data_ptr->method,
+													 request_data_ptr->version,
+													 std::move(request_data_ptr->headers))));
 }
 
 
@@ -233,7 +282,8 @@ server::client_manager::request_handler(server::client_manager::request_data_ptr
 		
 		
 		// ok
-		this->send_phony(request_data_ptr, server::http::status::ok);
+		this->process_request(request_data_ptr);
+		// this->send_phony(request_data_ptr, server::http::status::ok);
 	} catch (const server::unimplemented_method &e) {
 		// not_implemented
 		this->handle_error(request_data_ptr, e,

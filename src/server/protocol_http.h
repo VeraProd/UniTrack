@@ -5,12 +5,20 @@
 
 #include <string>
 
+#include <server/types.h>
+
 
 namespace server {
 namespace http {
 
 
+extern const server::port_t
+	default_port;
+
+
 extern const std::string
+	default_port_str,
+	
 	space_str,
 	newline_str,
 	HTTP_str,
@@ -20,7 +28,8 @@ extern const std::string
 	header_content_length,
 	header_server,
 	header_allow,
-	header_connection;
+	header_connection,
+	header_host;
 
 
 enum class method

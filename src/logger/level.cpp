@@ -15,7 +15,7 @@ const std::string
 	level_other			= "other       ",
 	
 	// Security levels
-	level_sec_info		= "sec_info",
+	level_sec_info		= "sec_info    ",
 	level_sec_warning	= "sec_warning ",
 	level_sec_error		= "sec_error   ",
 	level_sec_critical	= "sec_critical",

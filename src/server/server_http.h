@@ -18,7 +18,7 @@
 namespace server {
 
 
-struct server_parameters
+struct server_http_parameters
 {
 	server::port_set_t	ports					= {};
 	unsigned int		workers					= 1;
@@ -29,7 +29,7 @@ class server_http
 {
 public:
 	server_http(logger::logger &logger,
-				const server_parameters &parameters);
+				const server_http_parameters &parameters);
 	
 	
 	// Non-copy/-move constructable/assignable. Use ptrs.
@@ -69,7 +69,7 @@ private:
 	// Data
 	logger::logger &logger_;
 	
-	server_parameters parameters_;
+	server_http_parameters parameters_;
 	
 	server::hosts_manager hosts_manager_;
 	

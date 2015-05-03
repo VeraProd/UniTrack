@@ -11,6 +11,7 @@
 
 #include <logger/logger.h>
 #include <server/server_http.h>
+#include <server/file_host.h>
 
 #include <templatizer/page.h>
 #include <templatizer/model.h>
@@ -67,23 +68,34 @@ int main(int argc, char **argv)
 	try {
 		logger::logger logger(std::clog);
 		
-		server::server_parameters parameters;
-		parameters.ports	= { 8080, 8081 };
-		parameters.workers	= 3;
+		server::file_host_parameters file_host_parameters;
+		file_host_parameters.name				= "localhost";
+		file_host_parameters.ports				= { 8080 };
+		file_host_parameters.allow_match_mode	=
+			server::file_host_parameters::allow_match_mode::any;
+		file_host_parameters.root				= "www/";
+		file_host_parameters.allow_regexes.emplace_back("/.*");
 		
-		server::server_http server(logger, parameters);
+		auto file_host_ptr = std::make_shared<server::file_host>(logger, file_host_parameters);
 		
+		
+		server::server_http_parameters server_http_parameters;
+		server_http_parameters.ports			= { 8080, 8081 };
+		server_http_parameters.workers			= 3;
+		
+		server::server_http server(logger, server_http_parameters);
+		
+		server.hosts_manager().add_host(file_host_ptr);
+		
+		
+		// Waiting for Ctrl+D
 		while (std::cin) std::cin.get();
+		
 		
 		logger.stream(logger::level::info)
 			<< "Main: Stopping server...";
 		
 		server.stop();
-		
-		// static const std::regex regex("\r\n", std::regex::optimize);
-		// static const std::string replace_by("1");
-		
-		// std::cout << std::regex_replace("some\r\ndata", regex, replace_by) << std::endl;
 	} catch (...) {
 		std::cerr << "Exception catched!" << std::endl;
 	}
