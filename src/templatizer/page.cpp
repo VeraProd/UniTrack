@@ -106,10 +106,10 @@ templatizer::page::load(const std::string &file)
 		this->region_	= std::move(region);
 		
 		this->set_state(templatizer::page_state::ok);
-	} catch (interprocess_exception &e) {
+	} catch (const interprocess_exception &e) {
 		std::cerr << "Can't map file: \"" << file << "\": " << e.what() << std::endl;
 		this->set_state(templatizer::page_state::file_error);
-	} catch (std::out_of_range &e) {
+	} catch (const std::out_of_range &e) {
 		std::cerr << "Can't parse file: \"" << file << "\": " << e.what() << std::endl;
 		this->set_state(templatizer::page_state::parse_error);
 	} catch (...) {
