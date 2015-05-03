@@ -47,6 +47,9 @@ public:
 	inline bool joinable() const noexcept;	// Checks server's thread for joinable
 	inline void join();						// Joins server's thread
 	inline void detach();					// Detaches server's thread
+	
+	// Returns the hosts manager of this server
+	inline server::hosts_manager & hosts_manager() noexcept;
 protected:
 	friend class server::acceptor;
 	
@@ -67,6 +70,8 @@ private:
 	logger::logger &logger_;
 	
 	server_parameters parameters_;
+	
+	server::hosts_manager hosts_manager_;
 	
 	
 	boost::asio::io_service acceptors_io_service_;	// Only for acceptors (server runs it in separate thread)!

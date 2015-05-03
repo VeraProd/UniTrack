@@ -14,6 +14,7 @@
 #include <logger/logger.h>
 #include <server/protocol.h>
 #include <server/host.h>
+#include <server/hosts_manager.h>
 #include <server/types.h>
 
 
@@ -23,8 +24,7 @@ namespace server {
 class worker;
 
 
-class client_manager//:
-	// public std::enable_shared_from_this<client_manager>
+class client_manager
 {
 public:
 	typedef std::shared_ptr<client_manager> ptr_t;
@@ -35,7 +35,8 @@ public:
 	client_manager(logger::logger &logger,
 				   worker &w,
 				   const_iterator_t iterator,
-				   server::socket_ptr_t socket_ptr);
+				   server::socket_ptr_t socket_ptr,
+				   server::hosts_manager &hosts_manager);
 	~client_manager();
 	
 	
@@ -64,20 +65,34 @@ protected:
 	void unlock() noexcept;
 	
 	
+	// Request data
+	struct request_data
+	{
+		boost::asio::streambuf	headers_buf;
+		
+		server::http::method	method;
+		server::http::version	version;
+		std::string				uri;
+		
+		server::headers_t		headers;
+	};	// struct request_data
+	
+	typedef std::shared_ptr<request_data> request_data_ptr_t;
+	
+	
 	void log_error(const char *what, const server::http::status &status);
 	
-	template<class Exception>
-	inline void log_error(const Exception &e, const server::http::status &status);
 	
-	
-	void handle_error(const char *what,
+	void handle_error(request_data_ptr_t request_data_ptr,
+					  const char *what,
 					  const server::http::status &status,
 					  bool exit,
 					  bool send_phony,
 					  server::headers_t &&headers = {});
 	
 	template<class Exception>
-	inline void handle_error(const Exception &e,
+	inline void handle_error(request_data_ptr_t request_data_ptr,
+							 const Exception &e,
 							 const server::http::status &status,
 							 bool exit,
 							 bool send_phony,
@@ -87,17 +102,15 @@ protected:
 	void add_request_handler();
 	
 	void send_response(server::host::response_data_t &&data);
-	void send_phony(const server::http::status &status,
+	void send_phony(request_data_ptr_t request_data_ptr,
+					const server::http::status &status,
 					server::headers_t &&headers = {});
 private:
-	typedef std::shared_ptr<boost::asio::streambuf> streambuf_ptr_t;
-	
-	
-	void parse_headers(streambuf_ptr_t streambuf_ptr);
+	void parse_headers(request_data_ptr_t request_data_ptr);
 	
 	
 	// Handlers
-	void request_handler(streambuf_ptr_t streambuf_ptr,
+	void request_handler(request_data_ptr_t request_data_ptr,
 						 const boost::system::error_code &err,
 						 size_t bytes_transferred);
 	
@@ -109,26 +122,18 @@ private:
 	// Data
 	logger::logger &logger_;
 	
+	server::hosts_manager &hosts_manager_;
+	
 	worker &worker_;
 	const_iterator_t iterator_;
 	
 	unsigned int running_operations_;
 	
 	
+	// Connection data
 	server::socket_ptr_t socket_ptr_;
 	std::string client_ip_address_;
-	
-	
-	// Session data
-	struct {
-		server::http::method	method;
-		server::http::version	version;
-		std::string				uri;
-		
-		server::headers_t		headers;
-		
-		bool					keep_alive;
-	} connection_params_;
+	bool keep_alive_;
 };	// class client_manager
 
 

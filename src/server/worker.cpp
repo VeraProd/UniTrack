@@ -4,14 +4,15 @@
 
 #include <functional>
 
-#include <server/client_manager_exceptions.h>
-
 
 server::worker::worker(logger::logger &logger,
 					   const server::worker_parameters &parameters,
-					   boost::asio::io_service &io_service):
+					   boost::asio::io_service &io_service,
+					   server::hosts_manager &hosts_manager):
 	logger_(logger),
 	parameters_(parameters),
+	
+	hosts_manager_(hosts_manager),
 	
 	io_service_(io_service),
 	work_(io_service_),
@@ -34,11 +35,8 @@ server::worker::add_client(server::socket_ptr_t socket_ptr) noexcept
 		*it = std::make_shared<server::client_manager>(this->logger_,
 													   *this,
 													   it,
-													   socket_ptr);
-	} catch (const server::bad_client &e) {
-		this->logger_.stream(logger::level::error)
-			<< "Worker: Worker " << this->id() << ": Client not added: " << e.what() << '.';
-		return false;
+													   socket_ptr,
+													   this->hosts_manager_);
 	} catch (...) {
 		this->logger_.stream(logger::level::error)
 			<< "Worker: Worker " << this->id() << ": Client not added.";

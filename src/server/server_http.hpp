@@ -23,3 +23,12 @@ server::server_http::detach()
 {
 	this->server_thread_.detach();
 }
+
+
+// Returns the hosts manager of this server
+inline
+server::hosts_manager &
+server::server_http::hosts_manager() noexcept
+{
+	return this->hosts_manager_;
+}

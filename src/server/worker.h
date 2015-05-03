@@ -11,6 +11,7 @@
 
 #include <logger/logger.h>
 #include <server/client_manager.h>
+#include <server/hosts_manager.h>
 #include <server/types.h>
 
 
@@ -28,7 +29,8 @@ class worker
 public:
 	worker(logger::logger &logger,
 		   const worker_parameters &parameters,
-		   boost::asio::io_service &io_service);
+		   boost::asio::io_service &io_service,
+		   server::hosts_manager &hosts_manager);
 	
 	
 	// Non-copy/-move constructable/assignable. Use ptrs.
@@ -72,6 +74,8 @@ private:
 	logger::logger &logger_;
 	
 	worker_parameters parameters_;
+	
+	server::hosts_manager &hosts_manager_;
 	
 	boost::asio::io_service &io_service_;
 	boost::asio::io_service::work work_;

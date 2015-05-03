@@ -8,35 +8,27 @@
 #include <server/worker.h>
 #include <server/protocol_exceptions.h>
 #include <server/host_exceptions.h>
-#include <server/client_manager_exceptions.h>
 
 
 server::client_manager::client_manager(logger::logger &logger,
 									   worker &w,
 									   const_iterator_t iterator,
-									   server::socket_ptr_t socket_ptr):
+									   server::socket_ptr_t socket_ptr,
+									   server::hosts_manager &hosts_manager):
 	logger_(logger),
+	
+	hosts_manager_(hosts_manager),
 	
 	worker_(w),
 	iterator_(iterator),
 	
 	running_operations_(0),
 	
-	socket_ptr_(socket_ptr)
+	socket_ptr_(socket_ptr),
+	client_ip_address_(std::move(socket_ptr_->remote_endpoint().address().to_string())),
+	keep_alive_(false)
 {
 	unique_lock_t lock(*this);
-	
-	// Getting client ip address
-	try {
-		auto endpoint = this->socket_ptr_->remote_endpoint();
-		auto address = endpoint.address();
-		this->client_ip_address_ = std::move(address.to_string());
-	} catch (const boost::system::system_error &e) {
-		this->logger_.stream(logger::level::error)
-			<< "Client manager (worker " << this->worker_.id()
-			<< "): Unknown error with client: " << e.what() << '.';
-		throw server::bad_client();
-	}
 	
 	
 	this->logger_.stream(logger::level::info)
@@ -90,7 +82,8 @@ server::client_manager::log_error(const char *what, const server::http::status &
 
 
 void
-server::client_manager::handle_error(const char *what,
+server::client_manager::handle_error(server::client_manager::request_data_ptr_t request_data_ptr,
+									 const char *what,
 									 const server::http::status &status,
 									 bool exit,
 									 bool send_phony,
@@ -99,7 +92,7 @@ server::client_manager::handle_error(const char *what,
 	this->log_error(what, status);
 	
 	if (exit) this->keep_alive(false);
-	if (send_phony) this->send_phony(status, std::move(headers));
+	if (send_phony) this->send_phony(request_data_ptr, status, std::move(headers));
 }
 
 
@@ -108,14 +101,14 @@ server::client_manager::add_request_handler()
 {
 	this->lock();
 	
-	auto headers_buf_ptr = std::make_shared<boost::asio::streambuf>();
+	auto request_data_ptr = std::make_shared<server::client_manager::request_data>();
 	
 	using namespace std::placeholders;
 	boost::asio::async_read_until(*this->socket_ptr_,
-								  *headers_buf_ptr,
+								  request_data_ptr->headers_buf,
 								  "\r\n\r\n",
 								  std::bind(&client_manager::request_handler, this,
-											headers_buf_ptr, _1, _2));
+											request_data_ptr, _1, _2));
 	
 	this->logger_.stream(logger::level::info)
 		<< "Client manager (worker " << this->worker_.id()
@@ -136,12 +129,13 @@ server::client_manager::send_response(server::host::response_data_t &&data)
 
 
 void
-server::client_manager::send_phony(const server::http::status &status,
+server::client_manager::send_phony(server::client_manager::request_data_ptr_t request_data_ptr,
+								   const server::http::status &status,
 								   server::headers_t &&headers)
 {
 	// Getting data for the phony...
 	auto data = std::move(server::host::error_host(this->logger_).phony_response(
-		this->connection_params_.version,
+		request_data_ptr->version,
 		status,
 		std::move(headers)));
 	
@@ -152,9 +146,9 @@ server::client_manager::send_phony(const server::http::status &status,
 
 // private
 void
-server::client_manager::parse_headers(server::client_manager::streambuf_ptr_t headers_buf_ptr)
+server::client_manager::parse_headers(server::client_manager::request_data_ptr_t request_data_ptr)
 {
-	std::istream headers_stream(headers_buf_ptr.get());
+	std::istream headers_stream(&request_data_ptr->headers_buf);
 	std::string str;
 	
 	
@@ -164,16 +158,16 @@ server::client_manager::parse_headers(server::client_manager::streambuf_ptr_t he
 	{
 		auto start_data = std::move(server::parse_start_string(str));
 		
-		this->connection_params_.method = start_data.method;
-		this->connection_params_.version = start_data.version;
-		this->connection_params_.uri = std::move(start_data.uri);
+		request_data_ptr->method = start_data.method;
+		request_data_ptr->version = start_data.version;
+		request_data_ptr->uri = std::move(start_data.uri);
 	}
 	
 	
 	// Processing headers
 	while (std::getline(headers_stream, str) && !str.empty()) {
 		try {
-			this->connection_params_.headers.insert(std::move(server::parse_header_string(str)));
+			request_data_ptr->headers.insert(std::move(server::parse_header_string(str)));
 		} catch (const server::empty_header_string &)
 		{}	// It's normal for the last string
 	}
@@ -185,7 +179,7 @@ server::client_manager::parse_headers(server::client_manager::streambuf_ptr_t he
 		
 		this->keep_alive(false);
 		
-		if (regex_match(this->connection_params_.headers.at(server::http::header_connection),
+		if (regex_match(request_data_ptr->headers.at(server::http::header_connection),
 						keep_alive_regex))
 			this->keep_alive(true);
 	} catch (...) {}
@@ -193,7 +187,7 @@ server::client_manager::parse_headers(server::client_manager::streambuf_ptr_t he
 
 
 void
-server::client_manager::request_handler(server::client_manager::streambuf_ptr_t headers_buf_ptr,
+server::client_manager::request_handler(server::client_manager::request_data_ptr_t request_data_ptr,
 										const boost::system::error_code &err,
 										size_t bytes_transferred)
 {
@@ -216,7 +210,7 @@ server::client_manager::request_handler(server::client_manager::streambuf_ptr_t 
 	
 	
 	try {
-		this->parse_headers(headers_buf_ptr);
+		this->parse_headers(request_data_ptr);
 		
 		
 		{
@@ -224,11 +218,11 @@ server::client_manager::request_handler(server::client_manager::streambuf_ptr_t 
 			stream
 				<< "Client manager (worker " << this->worker_.id()
 				<< "): " << this->client_ip_address()
-				<< ": HTTP/" << server::http::version_to_str(this->connection_params_.version)
-				<< ", " << server::http::method_to_str(this->connection_params_.method)
-				<< ", Requested URI: \"" << this->connection_params_.uri << "\". Headers:";
+				<< ": HTTP/" << server::http::version_to_str(request_data_ptr->version)
+				<< ", " << server::http::method_to_str(request_data_ptr->method)
+				<< ", Requested URI: \"" << request_data_ptr->uri << "\". Headers:";
 			
-			for (const auto &p: this->connection_params_.headers)
+			for (const auto &p: request_data_ptr->headers)
 				stream << " [" << p.first << ": " << p.second << ']';
 			stream << '.';
 		}
@@ -239,38 +233,38 @@ server::client_manager::request_handler(server::client_manager::streambuf_ptr_t 
 		
 		
 		// ok
-		this->send_phony(server::http::status::ok);
+		this->send_phony(request_data_ptr, server::http::status::ok);
 	} catch (const server::unimplemented_method &e) {
 		// not_implemented
-		this->handle_error(
-			e, server::http::status::not_implemented,
+		this->handle_error(request_data_ptr, e,
+			server::http::status::not_implemented,
 			true, true);
 	} catch (const server::unsupported_protocol_version &e) {
 		// http_version_not_supported
-		this->handle_error(
-			e, server::http::status::http_version_not_supported,
+		this->handle_error(request_data_ptr, e,
+			server::http::status::http_version_not_supported,
 			true, true);
 	} catch (const server::incorrect_header_string &e) {
 		// unrecoverable_error
-		this->handle_error(
-			e, server::http::status::unrecoverable_error,
+		this->handle_error(request_data_ptr, e,
+			server::http::status::unrecoverable_error,
 			true, true);
 	} catch (const server::protocol_error &e) {
 		// Catches incorrect_protocol and incorrect_start_string too
 		
 		// unrecoverable_error
-		this->handle_error(
-			e, server::http::status::unrecoverable_error,
+		this->handle_error(request_data_ptr, e,
+			server::http::status::unrecoverable_error,
 			true, true);
 	} catch (const server::host_error &e) {
 		// internal_server_error
-		this->handle_error(
-			e, server::http::status::internal_server_error,
+		this->handle_error(request_data_ptr, e,
+			server::http::status::internal_server_error,
 			true, true);
 	} catch (...) {
 		// internal_server_error
-		this->handle_error(
-			"Unknown error", server::http::status::internal_server_error,
+		this->handle_error(request_data_ptr, "Unknown error",
+			server::http::status::internal_server_error,
 			true, true);
 	}
 }
