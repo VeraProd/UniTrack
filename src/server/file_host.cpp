@@ -23,7 +23,12 @@ server::file_host::response(std::string &&uri,
 							server::headers_t &&request_headers,
 							server::headers_t &&response_headers)
 {
-	if (!this->validate_method(method))
+	if (!this->validate_method(method)) {
+		this->logger().stream(logger::level::sec_warning)
+			<< "File host: Host \"" << this->name()
+			<< "\": Requested unallowed method: \"" << server::http::method_to_str(method)
+			<< "\" => " << server::http::status::method_not_allowed.code_str() << '.';
+		
 		return std::move(this->phony_response(
 			version,
 			server::http::status::method_not_allowed,
@@ -34,14 +39,21 @@ server::file_host::response(std::string &&uri,
 					server::http::method_to_str(server::http::method::GET)
 				}
 			}));
+	}
 	
-	if (!this->validate_uri(uri))
+	if (!this->validate_uri(uri)) {
+		this->logger().stream(logger::level::sec_warning)
+			<< "File host: Host \"" << this->name()
+			<< "\": Requested unallowed URI: \"" << uri
+			<< "\" => " << server::http::status::forbidden.code_str() << '.';
+		
 		return std::move(this->phony_response(version,
-											  server::http::status::bad_request,
+											  server::http::status::forbidden,
 											  std::move(response_headers)));
+	}
 	
 	
-	// Headers must NOT contain "Content-Length"!
+	// Headers must NOT contain "Content-Length"! (Let it throw! :) )
 	server::host::validate_headers(response_headers);
 	
 	
@@ -53,6 +65,7 @@ server::file_host::response(std::string &&uri,
 	
 	{
 		static const std::regex slash_regex("/+", std::regex::optimize);
+		static const std::string single_slash = "/";
 		
 		using namespace boost::interprocess;
 		
@@ -60,11 +73,13 @@ server::file_host::response(std::string &&uri,
 		// Fixing doubleslashes
 		std::string file_name = std::regex_replace(this->file_host_parameters_.root
 												   + '/' + cache_ptr->uri,
-												   slash_regex, "/");
+												   slash_regex, single_slash);
 		
 		try {
-			cache_ptr->file_mapping = std::move(file_mapping(file_name.c_str(), read_only));
-			cache_ptr->mapped_region = std::move(mapped_region(cache_ptr->file_mapping, read_only));
+			cache_ptr->file_mapping = std::move(file_mapping(file_name.c_str(),
+															 read_only));
+			cache_ptr->mapped_region = std::move(mapped_region(cache_ptr->file_mapping,
+															   read_only));
 		} catch (const interprocess_exception &e) {
 			this->logger().stream(logger::level::error)
 				<< "File host: Can't map file \"" << file_name << "\": " << e.what() << '.';

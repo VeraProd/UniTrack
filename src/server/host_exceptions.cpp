@@ -21,3 +21,13 @@ server::duplicate_header::duplicate_header(const std::string &name):
 server::host_not_found::host_not_found(const std::string &name):
 	server::host_error("Host \"" + name + "\" not found")
 {}
+
+
+server::denied_uri::denied_uri(const std::string &uri):
+	server::host_error("Requested denied URI: \"" + uri + '\"')
+{}
+
+
+server::method_not_allowed::method_not_allowed(const std::string &method_name):
+	server::host_error("Method not allowed: \"" + method_name + '\"')
+{}

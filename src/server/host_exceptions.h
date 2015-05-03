@@ -38,6 +38,20 @@ public:
 };
 
 
+class denied_uri: public host_error
+{
+public:
+	explicit denied_uri(const std::string &uri);
+};
+
+
+class method_not_allowed: public host_error
+{
+public:
+	explicit method_not_allowed(const std::string &method_name);
+};
+
+
 };	// namespace server
 
 #endif // SERVER_HOST_EXCEPTIONS_H

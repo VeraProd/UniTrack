@@ -283,39 +283,35 @@ server::client_manager::request_handler(server::client_manager::request_data_ptr
 		
 		// ok
 		this->process_request(request_data_ptr);
-		// this->send_phony(request_data_ptr, server::http::status::ok);
-	} catch (const server::unimplemented_method &e) {
-		// not_implemented
+	} catch (const server::unimplemented_method &e) {					// Protocol errors
 		this->handle_error(request_data_ptr, e,
-			server::http::status::not_implemented,
-			true, true);
+						   server::http::status::not_implemented,
+						   true, true);
 	} catch (const server::unsupported_protocol_version &e) {
-		// http_version_not_supported
 		this->handle_error(request_data_ptr, e,
-			server::http::status::http_version_not_supported,
-			true, true);
-	} catch (const server::incorrect_header_string &e) {
-		// unrecoverable_error
-		this->handle_error(request_data_ptr, e,
-			server::http::status::unrecoverable_error,
-			true, true);
+						   server::http::status::http_version_not_supported,
+						   true, true);
 	} catch (const server::protocol_error &e) {
-		// Catches incorrect_protocol and incorrect_start_string too
+		// Also catches incorrect_protocol, incorrect_start_string, incorrect_header_string,
+		// header_required, incorrect_host_header, incorrect_port
 		
-		// unrecoverable_error
 		this->handle_error(request_data_ptr, e,
-			server::http::status::unrecoverable_error,
-			true, true);
+						   server::http::status::bad_request,
+						   true, true);
+	} catch (const server::host_not_found &e) {							// Host errors
+		this->handle_error(request_data_ptr, e,
+						   server::http::status::not_found,
+						   true, true);
 	} catch (const server::host_error &e) {
-		// internal_server_error
+		// Also catches headers_has_content_length, duplicate_header
+		
 		this->handle_error(request_data_ptr, e,
-			server::http::status::internal_server_error,
-			true, true);
-	} catch (...) {
-		// internal_server_error
+						   server::http::status::internal_server_error,
+						   true, true);
+	} catch (...) {														// Other errors
 		this->handle_error(request_data_ptr, "Unknown error",
-			server::http::status::internal_server_error,
-			true, true);
+						   server::http::status::internal_server_error,
+						   true, true);
 	}
 }
 
