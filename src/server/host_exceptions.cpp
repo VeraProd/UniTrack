@@ -8,9 +8,13 @@ server::host_error::host_error(const std::string &what_arg):
 {}
 
 
-server::headers_has_content_length::headers_has_content_length(const std::string &value):
-	server::host_error("Headers for phony page must NOT contain header "
-					   "\"Content-Length\" (= " + value +')')
+server::headers_has_content_length::headers_has_content_length():
+	server::host_error("Headers for phony page must NOT contain header \"Content-Length\"")
+{}
+
+
+server::duplicate_header::duplicate_header(const std::string &name):
+	server::host_error("Duplicate header: \"" + name + '\"')
 {}
 
 

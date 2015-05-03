@@ -20,7 +20,12 @@
 namespace server {
 
 
-typedef unsigned long client_id_t;
+// Exception
+class bad_client: public std::runtime_error
+{
+public:
+	explicit bad_client();
+};
 
 
 class worker;
@@ -56,10 +61,6 @@ protected:
 	inline void keep_alive(bool status);
 	
 	
-	typedef std::list<host::cache_t> host_cache_t;
-	typedef std::list<host::cache_t>::iterator host_cache_iterator_t;
-	
-	
 	// Mutex-like functions (for usage with std::unique_lock), but provides reference counting
 	friend class std::unique_lock<client_manager>;
 	typedef std::unique_lock<client_manager> unique_lock_t;
@@ -93,22 +94,22 @@ protected:
 	
 	void add_request_handler();
 	
-	void send_response(host_cache_iterator_t cache_iterator,
-					   server::host::send_buffers_t &&buffers);
+	void send_response(server::host::response_data_t &&data);
 	void send_phony(const server::http::status &status,
 					server::headers_t &&headers = {});
-	
-	
-	host_cache_iterator_t new_host_cache_entry();
 private:
-	void parse_headers();
+	typedef std::shared_ptr<boost::asio::streambuf> streambuf_ptr_t;
+	
+	
+	void parse_headers(streambuf_ptr_t streambuf_ptr);
 	
 	
 	// Handlers
-	void request_handler(const boost::system::error_code &err,
+	void request_handler(streambuf_ptr_t streambuf_ptr,
+						 const boost::system::error_code &err,
 						 size_t bytes_transferred);
 	
-	void response_handler(host_cache_iterator_t cache_iterator,
+	void response_handler(server::host::cache_ptr_t cache_ptr,
 						  const boost::system::error_code &err,
 						  size_t bytes_transferred);
 	
@@ -127,7 +128,6 @@ private:
 	
 	
 	// Session data
-	server::start_data start_data_;
 	struct {
 		server::http::method	method;
 		server::http::version	version;
@@ -137,15 +137,6 @@ private:
 		
 		bool					keep_alive;
 	} connection_params_;
-	
-	
-	// Cached data
-	struct {
-		boost::asio::streambuf	headers_buf;
-		host_cache_t			host;
-		
-		server::headers_t		headers;
-	} cache_;
 };	// class client_manager
 
 

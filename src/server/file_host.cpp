@@ -14,17 +14,101 @@ server::file_host::file_host(logger::logger &logger,
 
 
 // virtual
-server::host::send_buffers_t
-server::file_host::response(const std::string &uri,
+std::pair<server::host::send_buffers_t, server::host::cache_ptr_t>
+server::file_host::response(std::string &&uri,
 							server::http::method method,
 							server::http::version version,
-							const server::headers_t &request_headers,
-							server::host::cache_t &strings_cache,
-							const server::headers_t &response_headers)
+							server::headers_t &&request_headers,
+							server::headers_t &&response_headers)
 {
-	server::host::send_buffers_t res;
+	if (!this->validate_method(method))
+		return std::move(this->phony_response(
+			version,
+			server::http::status::method_not_allowed,
+			std::move(response_headers),
+			{
+				{
+					server::http::header_allow,
+					server::http::method_to_str(server::http::method::GET)
+				}
+			}));
 	
-	return res;
+	if (!this->validate_uri(uri))
+		return std::move(this->phony_response(version,
+											  server::http::status::bad_request,
+											  std::move(response_headers)));
+	
+	
+	// Headers must NOT contain "Content-Length"!
+	server::host::validate_headers(response_headers);
+	
+	
+	// Processing
+	server::file_host::cache_ptr_t cache_ptr;
+	cache_ptr = std::make_shared<server::file_host::cache>();
+	cache_ptr->uri = std::move(uri);
+	cache_ptr->response_headers = std::move(response_headers);
+	
+	{
+		using namespace boost::interprocess;
+		
+		std::string file_name = this->file_host_parameters_.root + '/' + uri;
+		
+		try {
+			cache_ptr->file_mapping = std::move(file_mapping(file_name.c_str(), read_only));
+			cache_ptr->mapped_region = std::move(mapped_region(cache_ptr->file_mapping, read_only));
+		} catch (const interprocess_exception &e) {
+			this->logger().stream(logger::level::error)
+				<< "File host: Can't map file \"" << file_name << "\": " << e.what() << '.';
+			
+			const server::http::status *status = nullptr;
+			switch (e.get_error_code()) {
+				case not_such_file_or_directory: case not_found_error:
+					status = &server::http::status::not_found;
+					break;
+				default:
+					status = &server::http::status::forbidden;
+					break;
+			}
+			
+			return std::move(this->phony_response(version,
+												  *status,
+												  std::move(cache_ptr->response_headers)));
+		}
+	}
+	
+	
+	auto server_name = this->server_name(cache_ptr->response_headers, {});
+	
+	
+	server::host::send_buffers_t res;
+	res.reserve(4 + 4 * (cache_ptr->response_headers.size()
+						 + ((server_name.second)? 1: 0)));
+	
+	server::host::add_start_string(res, version, server::http::status::ok);
+	
+	if (server_name.second)
+		server::host::add_header(res, server::http::header_server, *server_name.first);
+	server::host::add_headers(res, cache_ptr->response_headers);
+	
+	
+	// Content-Length and content
+	{
+		using boost::asio::buffer;
+		
+		const void *file_content = cache_ptr->mapped_region.get_address();
+		size_t file_size = cache_ptr->mapped_region.get_size();
+		
+		auto len_it = cache_ptr->strings.emplace(cache_ptr->strings.end(), std::to_string(file_size));
+		server::host::add_header(res, server::http::header_content_length, *len_it);
+		server::host::finish_headers(res);
+		
+		// Content
+		server::host::add_buffer(res, buffer(file_content, file_size));
+	}
+	
+	
+	return { std::move(res), std::move(cache_ptr) };
 }
 
 

@@ -20,7 +20,14 @@ public:
 class headers_has_content_length: public host_error
 {
 public:
-	explicit headers_has_content_length(const std::string &value);
+	explicit headers_has_content_length();
+};
+
+
+class duplicate_header: public host_error
+{
+public:
+	explicit duplicate_header(const std::string &name);
 };
 
 

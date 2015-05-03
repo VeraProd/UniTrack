@@ -57,25 +57,48 @@ server::host::server_name() const noexcept
 }
 
 
+std::pair<const std::string *, bool>
+server::host::server_name(const server::headers_t &response_headers,
+						  const server::headers_t &additional_headers) const
+{
+	using namespace server::http;
+	
+	// Second indicates, is first the new generated server name or not
+	std::pair<const std::string *, bool> res = { nullptr, true };
+	
+	auto it = response_headers.find(header_server);
+	if (it != response_headers.end())
+		res = { &it->second, false };
+	
+	it = additional_headers.find(header_server);
+	if (it != additional_headers.end()) {
+		if (res.second) res = { &it->second, false };
+		else throw server::duplicate_header(header_server);
+	}
+	
+	if (res.second) res.first = &this->server_name();
+	
+	return res;
+}
+
+
 // Prepares a correct response to the client. By default -- phony "404 Not Found".
 // Returns vector<buffer> ready to socket.async_send().
 // WARNING: result of this function does NOT contain the data, only references,
-// so rebember to save the data anywhere. uri, request_headers, strings_cache
+// so rebember to save the data anywhere. uri, request_headers, cache.strings
 // and response_headers must be correct during all socket.async_send()!
-// strings_cache will contain some cached data.
+// cache.strings will contain some cached data.
 // virtual
-server::host::send_buffers_t
-server::host::response(const std::string & /*uri*/,						// Unused
+server::host::response_data_t
+server::host::response(std::string && /*uri*/,							// Unused
 					   server::http::method /*method*/,					// Unused
 					   server::http::version version,
-					   const server::headers_t & /*request_headers*/,	// Unused
-					   server::host::cache_t &strings_cache,
-					   const server::headers_t &response_headers)
+					   server::headers_t && /*request_headers*/,		// Unused
+					   server::headers_t &&response_headers)
 {
 	return std::move(this->phony_response(version,
 										  server::http::status::not_found,
-										  strings_cache,
-										  response_headers));
+										  std::move(response_headers)));
 }
 
 
@@ -83,38 +106,33 @@ server::host::response(const std::string & /*uri*/,						// Unused
 // Returns vector<buffer> ready to socket.async_send().
 // WARNING: see notes to the response() method, remember to save anywhere status too!
 // response_headers must NOT contain "Content-Length"!
-server::host::send_buffers_t
+server::host::response_data_t
 server::host::phony_response(server::http::version version,
 							 const server::http::status &status,
-							 server::host::cache_t &strings_cache,
-							 const server::headers_t &response_headers)
+							 server::headers_t &&response_headers,
+							 server::headers_t &&additional_headers)
 {
 	using namespace server::http;
 	using boost::asio::buffer;
 	
 	
-	const std::string *current_server_name = nullptr;
-	bool use_new_server_name = true;
+	// Headers must NOT contain "Content-Length"!
+	server::host::validate_headers(response_headers);
+	server::host::validate_headers(additional_headers);
 	
-	// response_Headers must NOT contain "Content-Length"!
-	{
-		auto it = response_headers.find(header_content_length);
-		if (it != response_headers.end())
-			throw server::headers_has_content_length(it->second);
-		
-		it = response_headers.find(header_server);
-		if (it == response_headers.end()) {
-			current_server_name = &this->server_name();
-			use_new_server_name = true;
-		} else {
-			current_server_name = &it->second;
-			use_new_server_name = false;
-		}
-	}
+	
+	auto cache_ptr = std::make_shared<server::host::cache>();
+	cache_ptr->response_headers = std::move(response_headers);
+	cache_ptr->additional_headers = std::move(additional_headers);
+	
+	
+	auto server_name = this->server_name(cache_ptr->response_headers, cache_ptr->additional_headers);
 	
 	
 	server::host::send_buffers_t res;
-	res.reserve(15 + 4 * (response_headers.size() + ((use_new_server_name)? 1: 0)));
+	res.reserve(16 + 4 * (cache_ptr->response_headers.size()
+						  + cache_ptr->additional_headers.size()
+						  + ((server_name.second)? 1: 0)));
 	
 	
 	// Start string
@@ -122,15 +140,16 @@ server::host::phony_response(server::http::version version,
 	
 	
 	// Headers
-	if (use_new_server_name)
-		server::host::add_header(res, header_server, *current_server_name);
-	server::host::add_headers(res, response_headers);
+	if (server_name.second)
+		server::host::add_header(res, header_server, *server_name.first);
+	server::host::add_headers(res, cache_ptr->response_headers);
+	server::host::add_headers(res, cache_ptr->additional_headers);
 	
 	
 	// Inserting Content-Length and page content
 	{
 		auto
-			content_prefix_it = strings_cache.emplace(strings_cache.end(),
+			content_prefix_it = cache_ptr->strings.emplace(cache_ptr->strings.end(),
 				"<html>"
 				"<head>"
 					"<meta charset=\"utf-8\">"
@@ -141,15 +160,15 @@ server::host::phony_response(server::http::version version,
 					"<hr width=\"100%\">"
 					"<p>"),
 			
-			content_suffix_it = strings_cache.emplace(strings_cache.end(),
+			content_suffix_it = cache_ptr->strings.emplace(cache_ptr->strings.end(),
 					"</p>"
 				"</body>"
 				"</html>"
 			),
 			
-			len_it = strings_cache.emplace(strings_cache.end(),
+			len_it = cache_ptr->strings.emplace(cache_ptr->strings.end(),
 				std::to_string(content_prefix_it->size()
-							   + current_server_name->size()
+							   + server_name.first->size()
 							   + content_suffix_it->size()));
 		
 		server::host::add_header(res, header_content_length, *len_it);
@@ -157,11 +176,11 @@ server::host::phony_response(server::http::version version,
 		
 		// Content
 		server::host::add_buffer(res, buffer(*content_prefix_it));
-		server::host::add_buffer(res, buffer(*current_server_name));
+		server::host::add_buffer(res, buffer(*server_name.first));
 		server::host::add_buffer(res, buffer(*content_suffix_it));
 	}
 	
-	return res;
+	return { std::move(res), std::move(cache_ptr) };
 }
 
 
@@ -265,7 +284,7 @@ server::host::add_header(send_buffers_t &buffers,
 
 // static
 void
-server::host::add_headers(send_buffers_t &buffers,
+server::host::add_headers(server::host::send_buffers_t &buffers,
 						  const server::headers_t &headers)
 {
 	buffers.reserve(buffers.size() + 4 * headers.size());
@@ -277,7 +296,7 @@ server::host::add_headers(send_buffers_t &buffers,
 
 // static
 void
-server::host::finish_headers(send_buffers_t &buffers)
+server::host::finish_headers(server::host::send_buffers_t &buffers)
 {
 	using boost::asio::buffer;
 	using namespace server::http;
@@ -288,8 +307,19 @@ server::host::finish_headers(send_buffers_t &buffers)
 
 // static
 void
-server::host::add_buffer(send_buffers_t &buffers,
-						 const send_buffer_t &buffer)
+server::host::add_buffer(server::host::send_buffers_t &buffers,
+						 const server::host::send_buffer_t &buffer)
 {
 	buffers.push_back(buffer);
+}
+
+
+// static
+void
+server::host::validate_headers(const server::headers_t &headers)
+{
+	using namespace server::http;
+	
+	if (headers.find(header_content_length) != headers.end())
+		throw server::headers_has_content_length();
 }

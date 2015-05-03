@@ -15,9 +15,14 @@ namespace server {
 // Sockets
 typedef std::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr_t;
 
+
 // Ports
 typedef unsigned short				port_t;
 typedef std::unordered_set<port_t>	port_set_t;
+
+
+// Workers
+typedef unsigned int worker_id_t;
 
 
 };	// namespace server

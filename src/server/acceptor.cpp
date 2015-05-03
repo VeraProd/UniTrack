@@ -47,6 +47,8 @@ server::acceptor::accept_handler(server::socket_ptr_t socket_ptr,
 			<< "Acceptor: Accepting on port: " << this->parameters_.port
 			<< ": " << err.message() << '.';
 	} else {
+		this->add_accept_handler();	// Continue accepting
+		
 		this->logger_.stream(logger::level::info)
 			<< "Acceptor: New connection on port: " << this->parameters_.port
 			<< ": Accepted.";

@@ -10,6 +10,11 @@
 #include <server/host_exceptions.h>
 
 
+server::bad_client::bad_client():
+	std::runtime_error("Bad client")
+{}
+
+
 server::client_manager::client_manager(logger::logger &logger,
 									   worker &w,
 									   const_iterator_t iterator,
@@ -107,11 +112,14 @@ server::client_manager::add_request_handler()
 {
 	this->lock();
 	
+	auto headers_buf_ptr = std::make_shared<boost::asio::streambuf>();
+	
 	using namespace std::placeholders;
 	boost::asio::async_read_until(*this->socket_ptr_,
-								  this->cache_.headers_buf,
+								  *headers_buf_ptr,
 								  "\r\n\r\n",
-								  std::bind(&client_manager::request_handler, this, _1, _2));
+								  std::bind(&client_manager::request_handler, this,
+											headers_buf_ptr, _1, _2));
 	
 	this->logger_.stream(logger::level::info)
 		<< "Client manager (worker " << this->worker_.id()
@@ -121,14 +129,13 @@ server::client_manager::add_request_handler()
 
 
 void
-server::client_manager::send_response(server::client_manager::host_cache_iterator_t cache_iterator,
-									  server::host::send_buffers_t &&buffers)
+server::client_manager::send_response(server::host::response_data_t &&data)
 {
 	this->lock();
 	
 	using namespace std::placeholders;
-	this->socket_ptr_->async_send(buffers,
-								  std::bind(&client_manager::response_handler, this, cache_iterator, _1, _2));
+	this->socket_ptr_->async_send(data.first,
+								  std::bind(&client_manager::response_handler, this, data.second, _1, _2));
 }
 
 
@@ -136,32 +143,22 @@ void
 server::client_manager::send_phony(const server::http::status &status,
 								   server::headers_t &&headers)
 {
-	auto host_cache_entry = this->new_host_cache_entry();
-	
-	// Getting data for the phony
-	this->cache_.headers = std::move(headers);
-	auto buffers = std::move(server::host::error_host(this->logger_).phony_response(
+	// Getting data for the phony...
+	auto data = std::move(server::host::error_host(this->logger_).phony_response(
 		this->connection_params_.version,
 		status,
-		*host_cache_entry,
-		this->cache_.headers));
+		std::move(headers)));
 	
-	this->send_response(host_cache_entry, std::move(buffers));
-}
-
-
-server::client_manager::host_cache_iterator_t
-server::client_manager::new_host_cache_entry()
-{
-	return this->cache_.host.emplace(this->cache_.host.end());
+	// ...and sending it
+	this->send_response(std::move(data));
 }
 
 
 // private
 void
-server::client_manager::parse_headers()
+server::client_manager::parse_headers(server::client_manager::streambuf_ptr_t headers_buf_ptr)
 {
-	std::istream headers_stream(&this->cache_.headers_buf);
+	std::istream headers_stream(headers_buf_ptr.get());
 	std::string str;
 	
 	
@@ -200,7 +197,8 @@ server::client_manager::parse_headers()
 
 
 void
-server::client_manager::request_handler(const boost::system::error_code &err,
+server::client_manager::request_handler(server::client_manager::streambuf_ptr_t headers_buf_ptr,
+										const boost::system::error_code &err,
 										size_t bytes_transferred)
 {
 	unique_lock_t lock(*this);
@@ -216,7 +214,7 @@ server::client_manager::request_handler(const boost::system::error_code &err,
 	
 	
 	try {
-		this->parse_headers();
+		this->parse_headers(headers_buf_ptr);
 		
 		
 		{
@@ -277,16 +275,12 @@ server::client_manager::request_handler(const boost::system::error_code &err,
 
 
 void
-server::client_manager::response_handler(server::client_manager::host_cache_iterator_t cache_iterator,
+server::client_manager::response_handler(server::host::cache_ptr_t cache_ptr,
 										 const boost::system::error_code &err,
 										 size_t bytes_transferred)
 {
 	unique_lock_t lock(*this);
 	this->unlock();
-	
-	// Cache entry is no longer needed
-	this->cache_.host.erase(cache_iterator);
-	
 	
 	if (err) {
 		this->logger_.stream(logger::level::error)

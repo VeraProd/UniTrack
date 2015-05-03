@@ -3,6 +3,7 @@
 #include <server/worker.h>
 
 #include <functional>
+#include <new>
 
 
 server::worker::worker(logger::logger &logger,

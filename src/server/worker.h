@@ -17,9 +17,6 @@
 namespace server {
 
 
-typedef unsigned int worker_id_t;
-
-
 struct worker_parameters
 {
 	worker_id_t		id;
@@ -79,7 +76,7 @@ private:
 	boost::asio::io_service &io_service_;
 	boost::asio::io_service::work work_;
 	
-	client_manager_list_t client_managers_;	// Clients, worker are working with
+	server::client_manager_list_t client_managers_;	// Clients, worker are working with
 	
 	std::thread worker_thread_;
 };	// class worker

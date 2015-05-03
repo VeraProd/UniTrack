@@ -7,6 +7,9 @@
 #include <vector>
 #include <regex>
 
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+
 #include <logger/logger.h>
 #include <server/host.h>
 #include <server/protocol.h>
@@ -52,6 +55,17 @@ struct file_host_parameters:
 class file_host: public server::host
 {
 public:
+	class cache: public server::host::cache
+	{
+	public:
+		// Data
+		boost::interprocess::file_mapping	file_mapping;
+		boost::interprocess::mapped_region	mapped_region;
+	};
+	
+	typedef std::shared_ptr<cache> cache_ptr_t;
+	
+	
 	file_host(logger::logger &logger,
 			  const file_host_parameters &parameters);
 	
@@ -63,13 +77,12 @@ public:
 	// and response_headers must be correct during all socket.async_send()!
 	// strings_cache will contain some cached data.
 	virtual
-	send_buffers_t
-	response(const std::string &uri,
+	std::pair<server::host::send_buffers_t, server::host::cache_ptr_t>
+	response(std::string &&uri,
 			 server::http::method method,
 			 server::http::version version,
-			 const server::headers_t &request_headers,
-			 server::host::cache_t &strings_cache,
-			 const server::headers_t &response_headers = {}) override;
+			 server::headers_t &&request_headers,
+			 server::headers_t &&response_headers = {}) override;
 protected:
 	bool validate_uri(const std::string &uri) const noexcept;
 	bool validate_method(server::http::method method) const noexcept;

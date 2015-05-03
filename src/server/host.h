@@ -46,9 +46,28 @@ struct host_parameters
 class host
 {
 public:
-	typedef std::list<std::string> cache_t;
+	class cache
+	{
+	public:
+		virtual ~cache() {}
+		
+		
+		// Data
+		std::string				uri;
+		
+		server::headers_t		request_headers,
+								response_headers,
+								additional_headers;
+		
+		std::list<std::string>	strings;
+	};	// class cache
+	
+	typedef std::shared_ptr<cache> cache_ptr_t;
+	
 	typedef boost::asio::const_buffer send_buffer_t;
 	typedef std::vector<send_buffer_t> send_buffers_t;
+	
+	typedef std::pair<send_buffers_t, cache_ptr_t> response_data_t;
 	
 	
 	host(logger::logger &logger,
@@ -69,6 +88,11 @@ public:
 	const std::string & server_name() const noexcept;
 	
 	
+	std::pair<const std::string *, bool>
+	server_name(const server::headers_t &response_headers,
+				const server::headers_t &additional_headers) const;
+	
+	
 	// Prepares a correct response to the client. By default -- phony "404 Not Found".
 	// Returns vector<buffer> ready to socket.async_send().
 	// WARNING: result of this function does NOT contain the data, only references,
@@ -76,25 +100,25 @@ public:
 	// and response_headers must be correct during all socket.async_send()!
 	// strings_cache will contain some cached data.
 	virtual
-	send_buffers_t
+	response_data_t
 	response(
-		const std::string &uri,						// Requested URI
-		server::http::method method,				// GET, POST, ...
-		server::http::version version,				// _1_1, ...
-		const headers_t &request_headers,			// All headers given by client. Must NOT be
-													// included in response, need only for host.
-		cache_t &strings_cache,						// Will contain some cached data.
-		const headers_t &response_headers = {});	// Headers must be added to response.
+		std::string &&uri,						// Requested URI
+		server::http::method method,			// GET, POST, ...
+		server::http::version version,			// _1_1, ...
+		headers_t &&request_headers,			// All headers given by client. Must NOT be
+												// included in response, need only for host.
+		headers_t &&response_headers = {});		// Headers must be added to response.
 	
 	
 	// Prepares a phony response to the client.
 	// Returns vector<buffer> ready to socket.async_send().
 	// WARNING: see notes to the response() method, remember to save anywhere status too!
 	// response_headers must NOT contain "Content-Length"!
-	send_buffers_t phony_response(server::http::version version,
-								  const server::http::status &status,
-								  cache_t &strings_cache,
-								  const headers_t &response_headers = {});
+	response_data_t
+	phony_response(server::http::version version,
+				   const server::http::status &status,
+				   headers_t &&response_headers = {},
+				   headers_t &&additional_headers = {});
 	
 	
 	// Returns reference to error host object, creating it, if does not exist.
@@ -130,6 +154,8 @@ public:
 	// For body
 	static void add_buffer(send_buffers_t &buffers,
 						   const send_buffer_t &buffer);
+	
+	static void validate_headers(const headers_t &headers);
 	
 	
 	inline logger::logger & logger() const noexcept;
