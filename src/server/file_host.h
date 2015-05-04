@@ -21,8 +21,6 @@
 namespace server {
 
 
-namespace {
-
 struct file_host_only_parameters
 {
 	// May be useful, if several allow_regexes specified.
@@ -46,10 +44,8 @@ struct file_host_only_parameters
 				// Don't allow anything by default
 			};
 	
-	allow_match_mode allow_match_mode;
+	allow_match_mode mode;
 };	// struct file_host_only_parameters
-
-};	// namespace
 
 
 struct file_host_parameters:

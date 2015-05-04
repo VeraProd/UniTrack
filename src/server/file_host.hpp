@@ -163,7 +163,7 @@ server::file_host<HostType, CacheType>::validate_uri(const std::string &uri) con
 	
 	if (this->file_host_parameters_.allow_regexes.empty()) {
 		verification_status = false;
-	} else if (this->file_host_parameters_.allow_match_mode
+	} else if (this->file_host_parameters_.mode
 		== file_host_only_parameters::allow_match_mode::any) {	// Any
 		verification_status = false;
 		for (const auto &allow_regex: this->file_host_parameters_.allow_regexes)

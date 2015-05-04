@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 		server::file_host_parameters file_host_parameters;
 		file_host_parameters.name				= "localhost";
 		file_host_parameters.ports				= { 8080 };
-		file_host_parameters.allow_match_mode	=
+		file_host_parameters.mode				=
 			server::file_host_parameters::allow_match_mode::any;
 		file_host_parameters.root				= "www/";
 		file_host_parameters.allow_regexes.emplace_back("/.*");
