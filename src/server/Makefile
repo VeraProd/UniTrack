@@ -19,7 +19,8 @@ HEADERS =									\
 	worker.h worker.hpp						\
 	client_manager.h client_manager.hpp		\
 	host.h host.hpp							\
-	file_host.h								\
+	file_host.h file_host.hpp				\
+	file_host_files_only.h					\
 	host_exceptions.h						\
 	hosts_manager.h							\
 	
@@ -34,7 +35,7 @@ SOURCES_CPP =								\
 	worker.cpp								\
 	client_manager.cpp						\
 	host.cpp								\
-	file_host.cpp							\
+	file_host_files_only.cpp				\
 	host_exceptions.cpp						\
 	hosts_manager.cpp						\
 	

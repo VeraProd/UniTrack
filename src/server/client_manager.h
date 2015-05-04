@@ -103,7 +103,7 @@ protected:
 	
 	void add_request_handler();
 	
-	void send_response(server::host::response_data_t &&data);
+	void send_response(server::response_data_t &&data);
 	void send_phony(request_data_ptr_t request_data_ptr,
 					const server::http::status &status,
 					server::headers_t &&headers = {});
@@ -119,7 +119,7 @@ private:
 						 const boost::system::error_code &err,
 						 size_t bytes_transferred);
 	
-	void response_handler(server::host::cache_ptr_t cache_ptr,
+	void response_handler(server::host_cache::ptr_t cache_ptr,
 						  const boost::system::error_code &err,
 						  size_t bytes_transferred);
 	

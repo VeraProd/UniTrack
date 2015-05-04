@@ -52,6 +52,20 @@ public:
 };
 
 
+class path_forbidden: public host_error
+{
+public:
+	explicit path_forbidden(const std::string &path);
+};
+
+
+class path_not_found: public host_error
+{
+public:
+	explicit path_not_found(const std::string &path);
+};
+
+
 };	// namespace server
 
 #endif // SERVER_HOST_EXCEPTIONS_H

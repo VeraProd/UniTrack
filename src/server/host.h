@@ -46,30 +46,6 @@ struct host_parameters
 class host
 {
 public:
-	class cache
-	{
-	public:
-		virtual ~cache() {}
-		
-		
-		// Data
-		std::string				uri;
-		
-		server::headers_t		request_headers,
-								response_headers,
-								additional_headers;
-		
-		std::list<std::string>	strings;
-	};	// class cache
-	
-	typedef std::shared_ptr<cache> cache_ptr_t;
-	
-	typedef boost::asio::const_buffer send_buffer_t;
-	typedef std::vector<send_buffer_t> send_buffers_t;
-	
-	typedef std::pair<send_buffers_t, cache_ptr_t> response_data_t;
-	
-	
 	host(logger::logger &logger,
 		 const host_parameters &parameters);
 	
@@ -94,11 +70,9 @@ public:
 	
 	
 	// Prepares a correct response to the client. By default -- phony "404 Not Found".
-	// Returns vector<buffer> ready to socket.async_send().
-	// WARNING: result of this function does NOT contain the data, only references,
-	// so rebember to save the data anywhere. uri, request_headers, strings_cache
-	// and response_headers must be correct during all socket.async_send()!
-	// strings_cache will contain some cached data.
+	// Returns pair<vector<buffer>, shared_ptr<cache>> ready to socket.async_send().
+	// WARNING: first field of result does NOT contain data, only references. Second field
+	// contains data need to be sent, so save the given shared_ptr anywhere during all sending!
 	virtual
 	response_data_t
 	response(
@@ -112,8 +86,8 @@ public:
 	
 	// Prepares a phony response to the client.
 	// Returns vector<buffer> ready to socket.async_send().
-	// WARNING: see notes to the response() method, remember to save anywhere status too!
-	// response_headers must NOT contain "Content-Length"!
+	// WARNING: see notes to the response() method, remember to save anywhere status too
+	// (standard statuses are already saved)! response_headers must NOT contain "Content-Length"!
 	response_data_t
 	phony_response(server::http::version version,
 				   const server::http::status &status,

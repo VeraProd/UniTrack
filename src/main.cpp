@@ -76,7 +76,8 @@ int main(int argc, char **argv)
 		file_host_parameters.root				= "www/";
 		file_host_parameters.allow_regexes.emplace_back("/.*");
 		
-		auto file_host_ptr = std::make_shared<server::file_host>(logger, file_host_parameters);
+		auto file_host_ptr =
+			std::make_shared<server::file_host<server::files_only>>(logger, file_host_parameters);
 		
 		
 		server::server_http_parameters server_http_parameters;

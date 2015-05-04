@@ -7,13 +7,10 @@
 #include <unordered_map>
 
 #include <server/protocol_http.h>
+#include <server/types.h>
 
 
 namespace server {
-
-
-typedef std::pair<std::string, std::string> header_pair_t;
-typedef std::unordered_map<std::string, std::string> headers_t;
 
 
 // Removes trailing '\r' and '\n' symbols modifying the string

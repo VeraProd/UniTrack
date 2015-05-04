@@ -31,3 +31,13 @@ server::denied_uri::denied_uri(const std::string &uri):
 server::method_not_allowed::method_not_allowed(const std::string &method_name):
 	server::host_error("Method not allowed: \"" + method_name + '\"')
 {}
+
+
+server::path_forbidden::path_forbidden(const std::string &path):
+	server::host_error("Path forbidden: \"" + path + '\"')
+{}
+
+
+server::path_not_found::path_not_found(const std::string &path):
+	server::host_error("Path not found: \"" + path + '\"')
+{}

@@ -1,23 +1,38 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <server/file_host.h>
-
 #include <regex>
 
 #include <server/host_exceptions.h>
 
 
-server::file_host::file_host(logger::logger &logger,
-							 const file_host_parameters &parameters):
+template<class HostType, class CacheType>
+server::file_host<HostType, CacheType>::file_host(logger::logger &logger,
+							 const server::file_host_parameters &parameters,
+							 HostType &&file_handler):
 	server::host(logger, static_cast<const server::host_parameters &>(parameters)),
 	
-	file_host_parameters_(static_cast<const server::file_host_only_parameters &>(parameters))
+	file_host_parameters_(static_cast<const server::file_host_only_parameters &>(parameters)),
+	
+	file_handler_(std::move(file_handler))
 {}
 
 
+template<class HostType, class CacheType>
+server::file_host<HostType, CacheType>::file_host(logger::logger &logger,
+							 const server::file_host_parameters &parameters,
+							 const HostType &file_handler):
+	server::host(logger, static_cast<const server::host_parameters &>(parameters)),
+	
+	file_host_parameters_(static_cast<const server::file_host_only_parameters &>(parameters)),
+	
+	file_handler_(file_handler)
+{}
+
+
+template<class HostType, class CacheType>
 // virtual
-std::pair<server::host::send_buffers_t, server::host::cache_ptr_t>
-server::file_host::response(std::string &&uri,
+std::pair<server::send_buffers_t, server::host_cache::ptr_t>
+server::file_host<HostType, CacheType>::response(std::string &&uri,
 							server::http::method method,
 							server::http::version version,
 							server::headers_t &&request_headers,
@@ -58,44 +73,48 @@ server::file_host::response(std::string &&uri,
 	
 	
 	// Processing
-	server::file_host::cache_ptr_t cache_ptr;
-	cache_ptr = std::make_shared<server::file_host::cache>();
+	server::file_host<HostType, CacheType>::cache_ptr_t cache_ptr;
+	cache_ptr = std::make_shared<server::file_host<HostType, CacheType>::cache_t>();
 	cache_ptr->uri = std::move(uri);
 	cache_ptr->response_headers = std::move(response_headers);
 	
+	
+	std::pair<server::send_buffers_t, server::send_buffers_t> file_data;
 	{
 		static const std::regex slash_regex("/+", std::regex::optimize);
 		static const std::string single_slash = "/";
 		
-		using namespace boost::interprocess;
-		
 		
 		// Fixing doubleslashes
-		std::string file_name = std::regex_replace(this->file_host_parameters_.root
-												   + '/' + cache_ptr->uri,
-												   slash_regex, single_slash);
+		std::string path = std::regex_replace(this->file_host_parameters_.root
+											  + '/' + cache_ptr->uri,
+											  slash_regex, single_slash);
 		
 		try {
-			cache_ptr->file_mapping = std::move(file_mapping(file_name.c_str(),
-															 read_only));
-			cache_ptr->mapped_region = std::move(mapped_region(cache_ptr->file_mapping,
-															   read_only));
-		} catch (const interprocess_exception &e) {
+			file_data = std::move(this->file_handler_(path, cache_ptr));
+		} catch (const server::path_forbidden &e) {
 			this->logger().stream(logger::level::error)
-				<< "File host: Can't map file \"" << file_name << "\": " << e.what() << '.';
-			
-			const server::http::status *status = nullptr;
-			switch (e.get_error_code()) {
-				case not_such_file_or_directory: case not_found_error:
-					status = &server::http::status::not_found;
-					break;
-				default:
-					status = &server::http::status::forbidden;
-					break;
-			}
+				<< "File host: Can't send path: \"" << path << "\": " << e.what()
+				<< " => " << server::http::status::forbidden.code_str() << '.';
 			
 			return std::move(this->phony_response(version,
-												  *status,
+												  server::http::status::forbidden,
+												  std::move(cache_ptr->response_headers)));
+		} catch (const server::path_not_found &e) {
+			this->logger().stream(logger::level::error)
+				<< "File host: Can't send path: \"" << path << "\": " << e.what()
+				<< " => " << server::http::status::not_found.code_str() << '.';
+			
+			return std::move(this->phony_response(version,
+												  server::http::status::not_found,
+												  std::move(cache_ptr->response_headers)));
+		} catch (...) {
+			this->logger().stream(logger::level::error)
+				<< "File host: Can't send path: \"" << path << "\": Unknown error"
+				<< " => " << server::http::status::internal_server_error.code_str() << '.';
+			
+			return std::move(this->phony_response(version,
+												  server::http::status::internal_server_error,
 												  std::move(cache_ptr->response_headers)));
 		}
 	}
@@ -104,8 +123,9 @@ server::file_host::response(std::string &&uri,
 	auto server_name = this->server_name(cache_ptr->response_headers, {});
 	
 	
-	server::host::send_buffers_t res;
+	server::send_buffers_t res;
 	res.reserve(4 + 4 * (cache_ptr->response_headers.size()
+						 + file_data.first.size() + file_data.second.size()
 						 + ((server_name.second)? 1: 0)));
 	
 	server::host::add_start_string(res, version, server::http::status::ok);
@@ -115,28 +135,18 @@ server::file_host::response(std::string &&uri,
 	server::host::add_headers(res, cache_ptr->response_headers);
 	
 	
-	// Content-Length and content
-	{
-		using boost::asio::buffer;
-		
-		const void *file_content = cache_ptr->mapped_region.get_address();
-		size_t file_size = cache_ptr->mapped_region.get_size();
-		
-		auto len_it = cache_ptr->strings.emplace(cache_ptr->strings.end(), std::to_string(file_size));
-		server::host::add_header(res, server::http::header_content_length, *len_it);
-		server::host::finish_headers(res);
-		
-		// Content
-		server::host::add_buffer(res, buffer(file_content, file_size));
-	}
+	res.insert(res.end(), file_data.first.begin(), file_data.first.end());
+	server::host::finish_headers(res);
 	
+	res.insert(res.end(), file_data.second.begin(), file_data.second.end());
 	
 	return { std::move(res), std::move(cache_ptr) };
 }
 
 
+template<class HostType, class CacheType>
 bool
-server::file_host::validate_uri(const std::string &uri) const noexcept
+server::file_host<HostType, CacheType>::validate_uri(const std::string &uri) const noexcept
 {
 	// Checks for denied regexes
 	for (const auto &deny_regex: this->file_host_parameters_.deny_regexes)
@@ -185,8 +195,9 @@ server::file_host::validate_uri(const std::string &uri) const noexcept
 }
 
 
+template<class HostType, class CacheType>
 bool
-server::file_host::validate_method(server::http::method method) const noexcept
+server::file_host<HostType, CacheType>::validate_method(server::http::method method) const noexcept
 {
 	// This host only supports GET method.
 	if (method == server::http::method::GET)

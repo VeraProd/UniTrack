@@ -83,13 +83,11 @@ server::host::server_name(const server::headers_t &response_headers,
 
 
 // Prepares a correct response to the client. By default -- phony "404 Not Found".
-// Returns vector<buffer> ready to socket.async_send().
-// WARNING: result of this function does NOT contain the data, only references,
-// so rebember to save the data anywhere. uri, request_headers, cache.strings
-// and response_headers must be correct during all socket.async_send()!
-// cache.strings will contain some cached data.
+// Returns pair<vector<buffer>, shared_ptr<cache>> ready to socket.async_send().
+// WARNING: first field of result does NOT contain data, only references. Second field
+// contains data need to be sent, so save the given shared_ptr anywhere during all sending!
 // virtual
-server::host::response_data_t
+server::response_data_t
 server::host::response(std::string && /*uri*/,							// Unused
 					   server::http::method /*method*/,					// Unused
 					   server::http::version version,
@@ -104,9 +102,9 @@ server::host::response(std::string && /*uri*/,							// Unused
 
 // Prepares a phony response to the client.
 // Returns vector<buffer> ready to socket.async_send().
-// WARNING: see notes to the response() method, remember to save anywhere status too!
-// response_headers must NOT contain "Content-Length"!
-server::host::response_data_t
+// WARNING: see notes to the response() method, remember to save anywhere status too
+// (standard statuses are already saved)! response_headers must NOT contain "Content-Length"!
+server::response_data_t
 server::host::phony_response(server::http::version version,
 							 const server::http::status &status,
 							 server::headers_t &&response_headers,
@@ -121,7 +119,7 @@ server::host::phony_response(server::http::version version,
 	server::host::validate_headers(additional_headers);
 	
 	
-	auto cache_ptr = std::make_shared<server::host::cache>();
+	auto cache_ptr = std::make_shared<server::host_cache>();
 	cache_ptr->response_headers = std::move(response_headers);
 	cache_ptr->additional_headers = std::move(additional_headers);
 	
@@ -129,7 +127,7 @@ server::host::phony_response(server::http::version version,
 	auto server_name = this->server_name(cache_ptr->response_headers, cache_ptr->additional_headers);
 	
 	
-	server::host::send_buffers_t res;
+	server::send_buffers_t res;
 	res.reserve(16 + 4 * (cache_ptr->response_headers.size()
 						  + cache_ptr->additional_headers.size()
 						  + ((server_name.second)? 1: 0)));
@@ -221,7 +219,7 @@ server::host::create_error_host(logger::logger &logger)
 // Response forming helpers
 // static
 void
-server::host::add_start_string(send_buffers_t &buffers,
+server::host::add_start_string(server::send_buffers_t &buffers,
 							   server::http::version version,
 							   const server::http::status &status)
 {
@@ -245,7 +243,7 @@ server::host::add_start_string(send_buffers_t &buffers,
 
 // static
 void
-server::host::add_header(send_buffers_t &buffers,
+server::host::add_header(server::send_buffers_t &buffers,
 						 const std::string &header,
 						 const std::string &value)
 {
@@ -265,7 +263,7 @@ server::host::add_header(send_buffers_t &buffers,
 
 // static
 void
-server::host::add_header(send_buffers_t &buffers,
+server::host::add_header(server::send_buffers_t &buffers,
 						 const server::header_pair_t &header)
 {
 	using boost::asio::buffer;
@@ -284,7 +282,7 @@ server::host::add_header(send_buffers_t &buffers,
 
 // static
 void
-server::host::add_headers(server::host::send_buffers_t &buffers,
+server::host::add_headers(server::send_buffers_t &buffers,
 						  const server::headers_t &headers)
 {
 	buffers.reserve(buffers.size() + 4 * headers.size());
@@ -296,7 +294,7 @@ server::host::add_headers(server::host::send_buffers_t &buffers,
 
 // static
 void
-server::host::finish_headers(server::host::send_buffers_t &buffers)
+server::host::finish_headers(server::send_buffers_t &buffers)
 {
 	using boost::asio::buffer;
 	using namespace server::http;
@@ -307,8 +305,8 @@ server::host::finish_headers(server::host::send_buffers_t &buffers)
 
 // static
 void
-server::host::add_buffer(server::host::send_buffers_t &buffers,
-						 const server::host::send_buffer_t &buffer)
+server::host::add_buffer(server::send_buffers_t &buffers,
+						 const server::send_buffer_t &buffer)
 {
 	buffers.push_back(buffer);
 }

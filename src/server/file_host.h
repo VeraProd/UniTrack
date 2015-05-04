@@ -15,9 +15,13 @@
 #include <server/protocol.h>
 #include <server/types.h>
 
+#include <server/file_host_files_only.h>
+
 
 namespace server {
 
+
+namespace {
 
 struct file_host_only_parameters
 {
@@ -43,41 +47,96 @@ struct file_host_only_parameters
 			};
 	
 	allow_match_mode allow_match_mode;
-};
+};	// struct file_host_only_parameters
+
+};	// namespace
 
 
 struct file_host_parameters:
 	public host_parameters,
 	public file_host_only_parameters
-{};
+{
+	using file_host_only_parameters::allow_match_mode;
+};
 
 
+
+// Requirements to the class HostType:
+// 	- may have class inside:
+// 		class cache (even it is empty), that have a default constructor
+// 		
+// 		Then you can leave CacheType template parameter as is. If not (for example, HostType
+// 		is pointer to function or lambda), try to set CacheType to server::host_cache. But then
+// 		HostType object will be unable to use own cache.
+// 	- must have non-static method:
+// 		
+// 		std::pair<server::send_buffers_t, server::send_buffers_t>
+// 		operator()(const std::string &path,			// File name the handler should process
+// 				   CacheType::ptr_t cache_ptr);		// Cache that the handler can use
+// 		
+// 		Return value: first if headers buffers, second is content buffers.
+// 		Headers buffers must contain Content-Length, if need.
+// 		This method can throws: server::path_forbidden or server::path_not_found.
+// 		In this case status will be 403 Forbidden and 404 Not Found.
+// 		Other exceptions will be processed with status 500 Internal Server Error.
+// 		
+// 		This method can use cache pointed by cache_ptr and must return buffers
+// 		ready to socket.async_send(). All data is in that cache.
+// 
+// See also:
+// - server/types.h for server::send_buffers_t and server::file_host_cache<>::ptr_t
+
+// Requirements to class CacheType:
+// 	- must be inheritor of server::host_cache
+// 	- must have typedef inside: ptr_t
+
+
+// NOTE: If you don't know what is these, and what should you do, simple files-only host example:
+// 		server::file_host_parameters params;
+// 		// Set parameters with: params.smth = smth_val;
+// 		server::file_host<server::files_only> host(logger, params);
+
+
+template<class HostType,
+		 class CacheType = server::file_host_cache<HostType>>
 class file_host: public server::host
 {
 public:
-	class cache: public server::host::cache
-	{
-	public:
-		// Data
-		boost::interprocess::file_mapping	file_mapping;
-		boost::interprocess::mapped_region	mapped_region;
-	};
-	
-	typedef std::shared_ptr<cache> cache_ptr_t;
+	typedef CacheType cache_t;
+	typedef typename cache_t::ptr_t cache_ptr_t;
 	
 	
 	file_host(logger::logger &logger,
-			  const file_host_parameters &parameters);
+			  const file_host_parameters &parameters,
+			  HostType &&file_handler = std::move(HostType()));
+	
+	file_host(logger::logger &logger,
+			  const file_host_parameters &parameters,
+			  const HostType &file_handler);
 	
 	
-	// Prepares a correct response to the client. By default -- phony "404 Not Found".
-	// Returns vector<buffer> ready to socket.async_send().
-	// WARNING: result of this function does NOT contain the data, only references,
-	// so rebember to save the data anywhere. uri, request_headers, strings_cache
-	// and response_headers must be correct during all socket.async_send()!
-	// strings_cache will contain some cached data.
+	// Non-copy/-move constructable/assignable. Use ptrs.
+	template<class HostType1, class CacheType1>
+	file_host(const file_host<HostType1, CacheType1> &other) = delete;
+	
+	template<class HostType1, class CacheType1>
+	file_host(file_host<HostType1, CacheType1> &&other) = delete;
+	
+	template<class HostType1, class CacheType1>
+	file_host<HostType, CacheType> &
+	operator=(const file_host<HostType1, CacheType1> &other) = delete;
+	
+	template<class HostType1, class CacheType1>
+	file_host<HostType, CacheType> &
+	operator=(file_host<HostType1, CacheType1> &&other) = delete;
+	
+	
+	// Prepares a correct response to the client.
+	// Returns pair<vector<buffer>, shared_ptr<cache>> ready to socket.async_send().
+	// WARNING: first field of result does NOT contain data, only references. Second field
+	// contains data need to be sent, so save the given shared_ptr anywhere during all sending!
 	virtual
-	std::pair<server::host::send_buffers_t, server::host::cache_ptr_t>
+	std::pair<server::send_buffers_t, server::host_cache::ptr_t>
 	response(std::string &&uri,
 			 server::http::method method,
 			 server::http::version version,
@@ -90,10 +149,14 @@ protected:
 	
 	// Data
 	file_host_only_parameters file_host_parameters_;
+	
+	HostType file_handler_;
 };	// class file_host
 
 
 };	// namespace server
 
+
+#include <server/file_host.hpp>
 
 #endif // SERVER_FILE_HOST_H

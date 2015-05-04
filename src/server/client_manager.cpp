@@ -120,7 +120,7 @@ server::client_manager::add_request_handler()
 
 
 void
-server::client_manager::send_response(server::host::response_data_t &&data)
+server::client_manager::send_response(server::response_data_t &&data)
 {
 	this->lock();
 	
@@ -317,7 +317,7 @@ server::client_manager::request_handler(server::client_manager::request_data_ptr
 
 
 void
-server::client_manager::response_handler(server::host::cache_ptr_t cache_ptr,
+server::client_manager::response_handler(server::host_cache::ptr_t cache_ptr,
 										 const boost::system::error_code &err,
 										 size_t bytes_transferred)
 {
