@@ -2,40 +2,59 @@
 
 #include <templatizer/page.h>
 
-#include <fstream>
 #include <regex>
 
 #include <templatizer/module_registrar.h>
 #include <templatizer/modules/var_chunk.h>
 
-
-// State
-const int templatizer::page_state::ok			=  0,
-		  templatizer::page_state::file_error	= 10,
-		  templatizer::page_state::parse_error	= 20;
+#include <templatizer/page_exceptions.h>
+#include <templatizer/module_registrar_exceptions.h>
 
 
 // Default constructor
-templatizer::page::page():
-	state_(templatizer::page_state::ok)
+templatizer::page::page() noexcept:
+	state_(templatizer::page::state::ok)
 {}
 
+
 // Move constructor
-templatizer::page::page(templatizer::page &&other):
-	state_(std::move(other.state_)),
-	chunks_(std::move(other.chunks_)),
-	mapping_(std::move(other.mapping_)),
-	region_(std::move(other.region_))
-{}
+templatizer::page::page(templatizer::page &&other) noexcept:
+	state_(other.state_),
+	chunk_ptrs_(std::move(other.chunk_ptrs_)),
+	file_mapping_(std::move(other.file_mapping_)),
+	mapped_region_(std::move(other.mapped_region_))
+{
+	other.state_ = templatizer::page::state::ok;
+}
+
 
 // Constructs and loads template data
 templatizer::page::page(const std::string &file):
-	state_(templatizer::page_state::ok)
-{ this->load(file); }
+	state_(templatizer::page::state::ok)
+{
+	this->load(file);	// This can throw
+}
 
 
-// Loads template from file
-bool
+// Move assignment
+templatizer::page &
+templatizer::page::operator=(templatizer::page &&other) noexcept
+{
+	this->state_			= other.state_;
+	this->chunk_ptrs_		= std::move(other.chunk_ptrs_);
+	this->file_mapping_		= std::move(other.file_mapping_);
+	this->mapped_region_	= std::move(other.mapped_region_);
+	
+	other.state_ = templatizer::page::state::ok;
+	
+	return *this;
+}
+
+
+// Loads template from file.
+// If an error occured, throws templatizer::file_mapping_error
+// or templatizer::file_parsing_error.
+void
 templatizer::page::load(const std::string &file)
 {
 	using namespace boost::interprocess;
@@ -43,7 +62,8 @@ templatizer::page::load(const std::string &file)
 	try {
 		file_mapping mapping(file.c_str(), read_only);
 		mapped_region region(mapping, read_only);
-		chunk_list_t chunks;
+		chunk_ptrs_list_t chunk_ptrs;
+		
 		
 		// Parsing
 		{
@@ -76,7 +96,7 @@ templatizer::page::load(const std::string &file)
 				// Adding previous raw chunk
 				size_t current_pos = it->position();
 				if (current_pos > old_pos) {	// Indexing previous raw chunk...
-					chunks.emplace_back(new raw_chunk(region_data + old_pos, current_pos - old_pos));
+					chunk_ptrs.emplace_back(new raw_chunk(region_data + old_pos, current_pos - old_pos));
 					old_pos = current_pos + it->length();
 				}
 				
@@ -89,36 +109,40 @@ templatizer::page::load(const std::string &file)
 					argument = std::move(it->str(3));
 				}
 				
-				auto chunk_generator = std::move(templatizer::default_module_registrar.at(command));
-				chunks.emplace_back(std::move(chunk_generator(std::move(argument))));
+				
+				// These can throw
+				auto chunk_generator =
+					templatizer::module_registrar::default_module_registrar.at(command);
+				chunk_ptrs.emplace_back(std::move(chunk_generator(std::move(argument))));
 				
 				++it;
 			}
 			
 			// Remember to index the last raw chunk
 			if (old_pos < region_size)
-				chunks.emplace_back(new raw_chunk(region_data + old_pos, region_size - old_pos));
+				chunk_ptrs.emplace_back(new templatizer::raw_chunk(region_data + old_pos,
+																   region_size - old_pos));
 		}	// End of parsing
 		
 		// Move data to *this, if success (if not success, see catch blocks below)
-		this->chunks_	= std::move(chunks);
-		this->mapping_	= std::move(mapping);
-		this->region_	= std::move(region);
+		this->chunk_ptrs_		= std::move(chunk_ptrs);
+		this->file_mapping_		= std::move(mapping);
+		this->mapped_region_	= std::move(region);
 		
-		this->set_state(templatizer::page_state::ok);
-	} catch (const interprocess_exception &e) {
-		std::cerr << "Can't map file: \"" << file << "\": " << e.what() << std::endl;
-		this->set_state(templatizer::page_state::file_error);
-	} catch (const std::out_of_range &e) {
-		std::cerr << "Can't parse file: \"" << file << "\": " << e.what() << std::endl;
-		this->set_state(templatizer::page_state::parse_error);
-	} catch (...) {
-		std::cerr << "Can't parse file: \"" << file << "\": " << std::endl;
-		this->set_state(templatizer::page_state::parse_error);
+		this->set_state(templatizer::page::state::ok);
+	} catch (const interprocess_exception &e) {	// Thrown by mapped_region, when the file is empty
+		if (e.get_error_code() == invalid_argument) {
+			this->clear();
+		} else {
+			this->set_state(templatizer::page::state::file_error);
+			throw templatizer::file_mapping_error(file, e.what());
+		}
+	} catch (const templatizer::module_not_found &e) {
+		this->set_state(templatizer::page::state::parse_error);
+		throw templatizer::file_parsing_error(file, e.what());
 	}
-	
-	return this->good();
 }
+
 
 // Simply deletes all loaded template data
 void
@@ -126,19 +150,34 @@ templatizer::page::clear() noexcept
 {
 	using namespace boost::interprocess;
 	
-	this->chunks_.clear();
-	this->mapping_ = std::move(file_mapping());
-	this->region_ = std::move(mapped_region());
-	this->set_state(templatizer::page_state::ok);
+	this->chunk_ptrs_.clear();
+	this->file_mapping_ = std::move(file_mapping());
+	this->mapped_region_ = std::move(mapped_region());
+	this->set_state(templatizer::page::state::ok);
 }
 
 
-// Generates result page from template using data model
-void
+// Generates result page from template using data model sending all data to the stream.
+// Returns number of sent bytes.
+size_t
 templatizer::page::generate(std::ostream &stream, const templatizer::model &model) const
 {
-	for (const auto &chunk: this->chunks_)
-		chunk->generate(stream, model);
+	size_t content_len = 0;
+	for (const auto &chunk_ptr: this->chunk_ptrs_)
+		content_len += chunk_ptr->generate(stream, model);
+	return content_len;
+}
+
+
+// Generates result page from template using data model adding all data to the buffers.
+// Returns summary size of all added buffers.
+size_t
+templatizer::page::generate(server::send_buffers_t &buffers, const templatizer::model &model) const
+{
+	size_t content_len = 0;
+	for (const auto &chunk_ptr: this->chunk_ptrs_)
+		content_len += chunk_ptr->generate(buffers, model);
+	return content_len;
 }
 
 
@@ -156,12 +195,6 @@ templatizer::page::symbols() const
 void
 templatizer::page::export_symbols(templatizer::page::symbol_set &symbols) const
 {
-	for (const auto &chunk: this->chunks_)
-		chunk->export_symbols(symbols);
+	for (const auto &chunk_ptr: this->chunk_ptrs_)
+		chunk_ptr->export_symbols(symbols);
 }
-
-
-// State
-void
-templatizer::page::set_state(int new_state)
-{ this->state_ = new_state; }

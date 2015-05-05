@@ -10,26 +10,30 @@
 
 #include <templatizer/chunk.h>
 
+
 namespace templatizer {
 
+
 typedef std::function<std::unique_ptr<templatizer::chunk> (const std::string &)> chunk_generator_t;
+
 
 class module_registrar:
 	private std::unordered_map<std::string, chunk_generator_t>
 {
 public:
-	module_registrar();
-	~module_registrar();
+	static module_registrar default_module_registrar;
 	
-	void add(const std::string &command, templatizer::chunk_generator_t &&generator) noexcept;
+	
+	void add(const std::string &command, templatizer::chunk_generator_t &&generator);
 	void erase(const std::string &command) noexcept;
 	
+	
+	// Returns the chunk generator or throws templatizer::module_not_found exception.
 	templatizer::chunk_generator_t at(const std::string &command) const;
 };
 
 
-extern module_registrar default_module_registrar;
-
 };	// namespace templatizer
+
 
 #endif // TEMPLATIZER_MODULE_REGISTRAR_H

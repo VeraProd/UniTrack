@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef TEMPLETIZER_MODULE_H
-#define TEMPLETIZER_MODULE_H
+#ifndef TEMPLATIZER_MODULE_H
+#define TEMPLATIZER_MODULE_H
 
 #include <string>
 
@@ -10,17 +10,20 @@
 
 namespace templatizer {
 
+
 template<class ModuleRepr>
 class module
 {
 public:
 	module(const std::string &command,
-		   templatizer::module_registrar &registrar = templatizer::default_module_registrar);
-};
+		   templatizer::module_registrar &registrar =
+		   	templatizer::module_registrar::default_module_registrar);
+};	// class module
+
 
 };	// namespace templatizer
 
 
 #include <templatizer/module.hpp>
 
-#endif // TEMPLETIZER_MODULE_H
+#endif // TEMPLATIZER_MODULE_H

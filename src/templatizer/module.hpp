@@ -5,7 +5,8 @@
 
 
 template<class ModuleRepr>
-templatizer::module<ModuleRepr>::module(const std::string &command, templatizer::module_registrar &registrar)
+templatizer::module<ModuleRepr>::module(const std::string &command,
+										templatizer::module_registrar &registrar)
 {
 	registrar.add(command,
 		[](const std::string &argument) -> std::unique_ptr<templatizer::chunk> {

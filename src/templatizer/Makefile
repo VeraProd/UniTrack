@@ -13,21 +13,29 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Sources and headers
-HEADERS =						\
-	chunk.h						\
-	page.h page.hpp				\
-	model.h						\
-	module_registrar.h			\
-	module.h module.hpp			\
+HEADERS =							\
+	chunk.h							\
+	chunk_exceptions.h				\
+	page.h page.hpp					\
+	page_exceptions.h				\
+	model.h							\
+	model_exceptions.h				\
+	module_registrar.h				\
+	module_registrar_exceptions.h	\
+	module.h module.hpp				\
 	modules/var_chunk.h
 	
 
 
-SOURCES_CPP =					\
-	chunk.cpp					\
-	page.cpp					\
-	model.cpp					\
-	module_registrar.cpp		\
+SOURCES_CPP =						\
+	chunk.cpp						\
+	chunk_exceptions.cpp			\
+	page.cpp						\
+	page_exceptions.cpp				\
+	model.cpp						\
+	model_exceptions.cpp			\
+	module_registrar.cpp			\
+	module_registrar_exceptions.cpp	\
 	modules/var_chunk.cpp
 	
 
@@ -37,7 +45,7 @@ TARGET_LIB = libtemplatizer.so
 
 
 # Tests
-TEST_SOURCES_CPP =				\
+TEST_SOURCES_CPP =					\
 	
 
 

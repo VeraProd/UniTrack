@@ -8,15 +8,21 @@
 
 namespace templatizer {
 
+
 class model
 {
 public:
-	model();
 	virtual ~model() = 0;
 	
-	virtual const std::string & at(const std::string &var_name) const = 0;
+	
+	// Returns value, that variable var_name contains.
+	// NOTE: this value must be correct during all sending response to client,
+	// so model must cache it.
+	virtual const std::string & variable(const std::string &var_name) const = 0;
 };	// class model
 
+
 };	// namespace templatizer
+
 
 #endif // TEMPLATIZER_MODEL_H
