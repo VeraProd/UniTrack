@@ -53,8 +53,8 @@ int main(int argc, char **argv)
 	profile_model.emplace("DEPARTMENT", "Inteh");
 	profile_model.emplace("TAGS", "Student");
 	
-	std::cout << std::endl << "Generated page:" << std::endl
-			  << profile_page(profile_model) << std::endl;
+	// std::cout << std::endl << "Generated page:" << std::endl
+	// 		  << profile_page(profile_model) << std::endl;
 	
 	
 	// Template page host

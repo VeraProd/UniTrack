@@ -29,7 +29,7 @@ public:
 	
 	
 	// Returns the chunk generator or throws templatizer::module_not_found exception.
-	templatizer::chunk_generator_t at(const std::string &command) const;
+	templatizer::chunk_generator_t module(const std::string &command) const;
 };
 
 

@@ -25,7 +25,7 @@ templatizer::module_registrar::erase(const std::string &command) noexcept
 
 
 templatizer::chunk_generator_t
-templatizer::module_registrar::at(const std::string &command) const
+templatizer::module_registrar::module(const std::string &command) const
 {
 	auto it = this->find(command);
 	if (it == this->end())

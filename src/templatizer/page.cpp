@@ -50,7 +50,7 @@ templatizer::page::operator=(templatizer::page &&other) noexcept
 	return *this;
 }
 
-
+#include <iostream>
 // Loads template from file.
 // If an error occured, throws templatizer::file_mapping_error
 // or templatizer::file_parsing_error.
@@ -78,13 +78,15 @@ templatizer::page::load(const std::string &file)
 			// NOTE: Some space symbols around VAR_NAME is allowed (but not a newline).
 			// VAR_NAME is a first group of the regex.
 			static const std::regex regex(
+				"("
 					// Full form: ${ COMMAND ... }
-					"\\${[[:blank:]]*\\([[:alpha:]_][[:alnum:]_]*\\)"	// Group 1: COMMAND
-						"[[:blank:]]*\\([^}]*\\)}"						// Group 2: ARG
-				"\n"	// 'Or' in grep mode
+					"\\$\\{[[:space:]]*([[:alpha:]_][[:alnum:]_]*)"		// COMMAND [2]
+						"[[:space:]]*([^\\}]*)\\}"						// ARG [3]
+				"|"	// 'Or'
 					// Short form: $VAR_NAME
-					"\\$\\([[:alpha:]_][[:alnum:]_]*\\)",				// Group 3: VAR_NAME (in short form)
-				std::regex::grep | std::regex::optimize);
+					"\\$([[:alpha:]_][[:alnum:]_]*)"					// VAR_NAME (in short form) [4]
+				")",
+				std::regex::optimize);
 			
 			
 			std::regex_iterator<const char *>
@@ -102,17 +104,17 @@ templatizer::page::load(const std::string &file)
 				
 				
 				// Adding current extra chunk
-				std::string command  = std::move(it->str(1)),
-							argument = std::move(it->str(2));
-				if (it->length(1) == 0) {	// Short form (because of command is empty)
+				std::string command  = std::move(it->str(2)),
+							argument = std::move(it->str(3));
+				if (it->length(2) == 0) {	// Short form (because of command is empty)
 					command  = templatizer::var_chunk::var_chunk_cmd;
-					argument = std::move(it->str(3));
+					argument = std::move(it->str(4));
 				}
 				
 				
 				// These can throw
 				auto chunk_generator =
-					templatizer::module_registrar::default_module_registrar.at(command);
+					templatizer::module_registrar::default_module_registrar.module(command);
 				chunk_ptrs.emplace_back(std::move(chunk_generator(std::move(argument))));
 				
 				++it;
