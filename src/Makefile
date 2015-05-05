@@ -14,11 +14,15 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Sources and headers
-HEADERS =						\
+HEADERS =								\
+	page_model.h						\
+	file_host_template_pages_only.h		\
 	
 
 
-SOURCES_CPP =					\
+SOURCES_CPP =							\
+	page_model.cpp						\
+	file_host_template_pages_only.cpp	\
 	
 
 
