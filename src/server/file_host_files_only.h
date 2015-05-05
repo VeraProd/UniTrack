@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SERVER_FILES_HOST_FILE_ONLY_H
-#define SERVER_FILES_HOST_FILE_ONLY_H
+#ifndef SERVER_FILE_HOST_FILES_ONLY_H
+#define SERVER_FILE_HOST_FILES_ONLY_H
 
 #include <string>
 
@@ -35,4 +35,4 @@ public:
 };	// namespace server
 
 
-#endif // SERVER_FILES_HOST_FILE_ONLY_H
+#endif // SERVER_FILE_HOST_FILES_ONLY_H
