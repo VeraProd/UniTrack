@@ -38,6 +38,7 @@ typedef unsigned int worker_id_t;
 class host_cache
 {
 public:
+	typedef host_cache * raw_ptr_t;
 	typedef std::shared_ptr<host_cache> ptr_t;
 	
 	
@@ -68,6 +69,7 @@ class file_host_cache:
 	public HostType::cache
 {
 public:
+	typedef file_host_cache * raw_ptr_t;
 	typedef std::shared_ptr<file_host_cache> ptr_t;
 };	// class file_host_cache
 

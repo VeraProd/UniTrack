@@ -67,8 +67,8 @@ struct file_host_parameters:
 // 	- must have non-static method:
 // 		
 // 		std::pair<server::send_buffers_t, server::send_buffers_t>
-// 		operator()(const std::string &path,			// File name the handler should process
-// 				   CacheType::ptr_t cache_ptr);		// Cache that the handler can use
+// 		operator()(const std::string &path,				// File name the handler should process
+// 				   CacheType::raw_ptr_t cache_ptr);		// Cache that the handler can use
 // 		
 // 		Return value: first if headers buffers, second is content buffers.
 // 		Headers buffers must contain Content-Length, if need.

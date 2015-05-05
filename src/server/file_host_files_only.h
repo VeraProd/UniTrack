@@ -28,7 +28,7 @@ public:
 	
 	std::pair<server::send_buffers_t, server::send_buffers_t>
 	operator()(const std::string &path,
-			   server::file_host_cache<files_only>::ptr_t cache_ptr);
+			   server::file_host_cache<files_only>::raw_ptr_t cache_ptr);
 };	// class files_only
 
 

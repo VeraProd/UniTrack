@@ -17,6 +17,7 @@
 
 #include <page_model.h>
 #include <file_host_template_pages_only.h>
+#include <file_host_files_and_template_pages.h>
 
 
 int main(int argc, char **argv)
@@ -65,9 +66,16 @@ int main(int argc, char **argv)
 	file_host_parameters.root				= "www/";
 	file_host_parameters.allow_regexes.emplace_back("/.*");
 	
+	
 	auto file_host_ptr =
 		// std::make_shared<server::file_host<server::files_only>>(logger, file_host_parameters);
-		std::make_shared<server::file_host<template_pages_only>>(logger, file_host_parameters, profile_model);
+		// std::make_shared<server::file_host<template_pages_only>>(logger, file_host_parameters, profile_model);
+		std::make_shared<server::file_host<files_and_template_pages>>(
+			logger,
+			file_host_parameters,
+			files_and_template_pages(
+				profile_model,
+				files_and_template_pages_parameters()));
 	
 	
 	// Server

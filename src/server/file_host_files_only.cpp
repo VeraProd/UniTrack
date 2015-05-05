@@ -15,7 +15,7 @@ const std::string zero_content_length_str = "0";
 
 std::pair<server::send_buffers_t, server::send_buffers_t>
 server::files_only::operator()(const std::string &path,
-							   server::file_host_cache<server::files_only>::ptr_t cache_ptr)
+							   server::file_host_cache<server::files_only>::raw_ptr_t cache_ptr)
 {
 	using namespace boost::interprocess;
 	using boost::asio::buffer;

@@ -91,7 +91,7 @@ server::file_host<HostType, CacheType>::response(std::string &&uri,
 											  slash_regex, single_slash);
 		
 		try {
-			file_data = std::move(this->file_handler_(path, cache_ptr));
+			file_data = std::move(this->file_handler_(path, cache_ptr.get()));
 		} catch (const server::path_forbidden &e) {
 			this->logger().stream(logger::level::error)
 				<< "File host: Can't send path: \"" << path << "\": " << e.what()
