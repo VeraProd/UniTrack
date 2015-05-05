@@ -3,8 +3,8 @@
 
 // State
 inline
-enum templatizer::page::state
-templatizer::page::state() const noexcept
+templatizer::page::state
+templatizer::page::get_state() const noexcept
 {
 	return this->state_;
 }
@@ -28,7 +28,7 @@ templatizer::page::bad() const noexcept
 
 inline
 void
-templatizer::page::set_state(enum templatizer::page::state new_state) noexcept
+templatizer::page::set_state(templatizer::page::state new_state) noexcept
 {
 	this->state_ = new_state;
 }

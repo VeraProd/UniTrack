@@ -81,7 +81,7 @@ public:
 	
 	
 	// State
-	inline enum state state() const noexcept;
+	inline enum state get_state() const noexcept;
 	inline bool good() const noexcept;
 	inline bool bad() const noexcept;
 protected:
@@ -93,7 +93,7 @@ protected:
 	typedef std::list<chunk_ptr_t> chunk_ptrs_list_t;
 private:
 	// State
-	enum state state_;
+	state state_;
 	
 	
 	// Data
