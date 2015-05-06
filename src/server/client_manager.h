@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <list>
+#include <queue>
 #include <unordered_map>
 #include <mutex>
 
@@ -119,6 +120,9 @@ private:
 						 const boost::system::error_code &err,
 						 size_t bytes_transferred);
 	
+	
+	void add_response_handler();
+	
 	void response_handler(server::host_cache::ptr_t cache_ptr,
 						  const boost::system::error_code &err,
 						  size_t bytes_transferred);
@@ -140,6 +144,10 @@ private:
 	std::string				client_ip_address_;
 	port_t					server_port_;
 	bool					keep_alive_;
+	
+	
+	std::queue<server::response_data_t> data_to_send_;
+	bool sending_;
 };	// class client_manager
 
 

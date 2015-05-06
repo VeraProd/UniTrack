@@ -28,7 +28,9 @@ server::client_manager::client_manager(logger::logger &logger,
 	socket_ptr_(socket_ptr),
 	client_ip_address_(std::move(socket_ptr_->remote_endpoint().address().to_string())),
 	server_port_(socket_ptr_->local_endpoint().port()),
-	keep_alive_(false)
+	keep_alive_(false),
+	
+	sending_(false)
 {
 	unique_lock_t lock(*this);
 	
@@ -122,11 +124,8 @@ server::client_manager::add_request_handler()
 void
 server::client_manager::send_response(server::response_data_t &&data)
 {
-	this->lock();
-	
-	using namespace std::placeholders;
-	this->socket_ptr_->async_send(data.first,
-								  std::bind(&client_manager::response_handler, this, data.second, _1, _2));
+	this->data_to_send_.push(std::move(data));
+	this->add_response_handler();
 }
 
 
@@ -317,12 +316,36 @@ server::client_manager::request_handler(server::client_manager::request_data_ptr
 
 
 void
+server::client_manager::add_response_handler()
+{
+	if (this->data_to_send_.empty()) return;
+	
+	if (!this->sending_) {
+		this->sending_ = true;
+		this->lock();
+		
+		auto data = std::move(this->data_to_send_.front());
+		this->data_to_send_.pop();
+		
+		using namespace std::placeholders;
+		this->socket_ptr_->async_send(data.first,
+									  std::bind(&client_manager::response_handler, this,
+												data.second, _1, _2));
+	}
+}
+
+
+void
 server::client_manager::response_handler(server::host_cache::ptr_t cache_ptr,
 										 const boost::system::error_code &err,
 										 size_t bytes_transferred)
 {
 	unique_lock_t lock(*this);
 	this->unlock();
+	this->sending_ = false;
+	
+	this->add_response_handler();
+	
 	
 	if (err) {
 		this->logger_.stream(logger::level::error)
