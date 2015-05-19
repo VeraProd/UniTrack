@@ -5,7 +5,7 @@
 Project is under active developing now. This section will be updated as soon as the project will leave the prototype stage.
 
 ### I don't speak Russian
-See [README-en.md]:(https://github.com/DmitryKuk/UniTrack/blob/master/README-en.md)
+See [README-en.md](https://github.com/DmitryKuk/UniTrack/blob/master/README-en.md)
 
 ### Lisence
 Until the project is not under any specific license,
