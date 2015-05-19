@@ -1,45 +1,63 @@
 # UniTrack
 #### Трекер активности в университете (The University Activity Tracker)
 
-### О проекте
-Project is under active developing now. This section will be updated as soon as the project will leave the prototype stage.
 
-### I don't speak Russian
+### О проекте
+Проект находится в стадии активной разработки. Этот раздел будет обновлён, когда проект выйдет из стадии прототипа.
+
+
+### If you don't speak Russian
 See [README-en.md](https://github.com/DmitryKuk/UniTrack/blob/master/README-en.md)
 
-### Lisence
-Until the project is not under any specific license,
-so that's my license:
 
-- You can use the project for free for any non-commercial purposes
-- You can also change the source code, if you want, for non-commercial purposes
-- For use in any commercial purposes, please, contact me: `d1021976@gmail.com`
-- You can not distribute changed version of this program (as source code or binary or etc.) without reference to original version and it's author
+### Лицензия
+Этот проект распространяется под моей собственной лицензией:
+
+- Вы можете использовать проект в любых некоммерческих целях;
+- Вы можете изменять исходный код проекта в некоммерческих целях, если захотите;
+- Для использования в коммерческих целях, пожалуйста, свяжитесь со мной: `d1021976@gmail.com`;
+- Вы не можете распространять изменённую версию проекта (в виде исходного кода, двоичных файлов или любом другом) без ссылки на оригинальную версию и её автора. Это означает также, что вы не должны удалять из исходного кода комментарии с упоминанием автора(ов) и лицензии.
 
 ---
 
-### Requirements:
-- g++-5 or best (or clang++-3.6 or best, or any other C++11 compiler supporting std::regex, move-semantics and many more, *full support is best*)
-- Boost
-- MongoDB C Driver (now disabled)
-- GNU Make (and a piece of shell) for building this
 
-### Building and Installation
-1. Get the sources:
+### Требования:
+- g++-5 или лучше (или clang++-3.6 или лучше, или любой другой компилятор C++11 с поддержкой std::regex, move-семантики и много чего ещё, *лучше всего -- полная поддержка 11-го стандарта*);
+- Boost (протестирована версия: 1.58);
+- MongoDB C Driver (сейчас не используется);
+- GNU Make (и немного shell) для сборки проекта.
+
+
+### Сборка и установка
+1. Загрузка исходного кода:
     - `git clone --recursive https://github.com/DmitryKuk/UniTrack`
-    - and `cd UniTrack`
-2. Build and install:
-    - just do `make me happy` (uses `sudo` for installing)
-    - or `make` and `sudo make install`
-3. Running:
-    - `unitrack` (by default, `/usr/bin/unitrack`)
-4. Upgrading:
-    - `sudo make upgrade` for automatic uninstalling the old version, dowloading updates, building and installing the new one
-5. Uninstalling:
-    - `sudo make uninstall` for completely uninstalling all libs and executables from your system
+    - и `cd UniTrack`
+2. Сборка и установка:
+    - просто `make me happy` (использует `sudo` для установки)
+    - или `make` и `sudo make install`
+3. Запуск:
+    - `unitrack` (по умолчанию, `/usr/bin/unitrack`)
+4. Обновление:
+    - `sudo make upgrade` для автоматического удаления старой версии, загрузки обновлений, сборки и установки новой версии
+5. Удаление:
+    - `sudo make uninstall` для полного удаления всех библиотек и исполняемых файлов из вашей системы
 
-### Developing
-- The project consists of sub-modules with own Makefiles and (in future) own tests. You can find each of them is `src/module-name` directory.
-- Please, build the project only from root directory of the project: root Makefile and Makefile.advanced contains project settings sub-Makefiles don't know about.
-- You can try to run the program without installation: `make run` in the root of the project. But this might not work on some systems. If it is so, try `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path-to-project/libs`. Installed version runs normally.
-- Some modules has weak dependencies on others. It means that changes in one module *may* have no effect on other module until `make clean` and `make` all project again. Dependencies between files in one module are strong: all module will be rebuilt if you change any header (.h or .hpp), or partially rebuilt if you change .cpp-file.
+
+### Зависимости
+- [Boost](http://www.boost.org/) *(протестирована версия: 1.58)*
+- [JSON for Modern C++](https://github.com/nlohmann/json) *Niels Lohmann*
+    + Автоматически управляемая зависимость (через git submodules).
+
+
+### Разработка
+- Этот проект состоит из модулей со своими собственными Makefile'ами и (в будущем) тестами. Вы можете найти их в каталогах `src/module-name`.
+- Собирайте проект только из корневого каталога: корневой Makefile и Makefile.advanced содержат настройки проекта, необходимые для остальных Makefile'ов.
+- Вы можете попробовать запустить программу без установки: `make run` в корневом каталоге проекта. Это может не работать на некоторых системах. Если это так, попробуйте `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path-to-project/libs`. Установленная версия запускается нормально.
+- Некоторые модули имеют *слабые* зависимости от других. Это означает, что изменения в одном модуле *могут* не отразиться на другом модуле, пока вы не выполните `make clean` и не соберёте весь проект заново с помощью `make`. Зависимости между файлами внутри одного модуля *сильные*: весь модуль будет пересобран, если вы измените любой заголовочный файл (.h или .hpp), или частично пересобран, если вы измение .cpp-файл.
+
+
+### Авторы
+- [Дмитрий Куковинец](https://github.com/DmitryKuk): [d1021976@gmail.com](mailto:d1021976@gmail.com)
+    + Автор серверной части проекта.
+- [Максим Иванов](https://github.com/splincode): [http://vk.com/splincode](http://vk.com/splincode)
+    + Автор веб-части проекта.

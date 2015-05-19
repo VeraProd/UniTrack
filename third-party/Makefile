@@ -12,4 +12,4 @@ all:
 
 
 update:
-	cd json && git submodule update && cd ..
+	cd json && git submodule update --init && cd ..
