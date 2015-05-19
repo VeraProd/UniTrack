@@ -8,11 +8,11 @@
 server::worker::worker(logger::logger &logger,
 					   const server::worker_parameters &parameters,
 					   boost::asio::io_service &io_service,
-					   server::hosts_manager &hosts_manager):
+					   server::host_manager &host_manager):
 	logger_(logger),
 	parameters_(parameters),
 	
-	hosts_manager_(hosts_manager),
+	host_manager_(host_manager),
 	
 	io_service_(io_service),
 	work_(io_service_),
@@ -36,7 +36,7 @@ server::worker::add_client(server::socket_ptr_t socket_ptr) noexcept
 													   *this,
 													   it,
 													   socket_ptr,
-													   this->hosts_manager_);
+													   this->host_manager_);
 	} catch (...) {
 		this->logger_.stream(logger::level::error)
 			<< "Worker: Worker " << this->id() << ": Client not added.";

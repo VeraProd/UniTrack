@@ -9,23 +9,8 @@
 #include <server/types.h>
 #include <server/file_host_files_only.h>
 #include <file_host_template_pages_only.h>
+#include <file_host_files_and_template_pages_parameters.h>
 #include <page_model.h>
-
-
-struct files_and_template_pages_parameters
-{
-	enum class behavior {
-		template_pages,
-		files
-	};
-	
-	
-	// By default: interpret all files as plain files...
-	behavior default_behavior = behavior::files;
-	
-	// ...but change behavior for .html files.
-	std::regex change_behavior_regex = std::regex(".*\\.html");
-};	// struct files_and_template_pages_parameters
 
 
 class files_and_template_pages:

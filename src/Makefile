@@ -14,17 +14,30 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Sources and headers
-HEADERS =									\
-	page_model.h							\
-	file_host_template_pages_only.h			\
-	file_host_files_and_template_pages.h	\
+HEADERS =												\
+	page_model.h										\
+														\
+	file_host_template_pages_only.h						\
+	file_host_files_and_template_pages.h				\
+	file_host_files_and_template_pages_parameters.h		\
+														\
+	interface_manager.h									\
+														\
+	json.hpp											\
+	json_utils.h										\
 	
 
 
-SOURCES_CPP =								\
-	page_model.cpp							\
-	file_host_template_pages_only.cpp		\
-	file_host_files_and_template_pages.cpp	\
+SOURCES_CPP =											\
+	page_model.cpp										\
+														\
+	file_host_template_pages_only.cpp					\
+	file_host_files_and_template_pages.cpp				\
+	file_host_files_and_template_pages_parameters.cpp	\
+														\
+	interface_manager.cpp								\
+														\
+	json_utils.cpp										\
 	
 
 

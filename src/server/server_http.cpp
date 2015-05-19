@@ -11,7 +11,7 @@ server::server_http::server_http(logger::logger &logger,
 	logger_(logger),
 	parameters_(parameters),
 	
-	hosts_manager_(logger_),
+	host_manager_(logger_),
 	
 	acceptors_io_service_(),
 	acceptor_empty_work_(acceptors_io_service_),
@@ -58,7 +58,7 @@ server::server_http::server_http(logger::logger &logger,
 					new server::worker(this->logger_,
 									   parameters,
 									   this->workers_io_service_,
-									   this->hosts_manager()));
+									   this->host_manager()));
 				
 				this->workers_dispatch_table_.emplace(worker_ptr->thread_id(), worker_ptr->id());
 				this->worker_ptrs_.emplace_back(std::move(worker_ptr));

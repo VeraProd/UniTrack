@@ -11,7 +11,7 @@
 #include <logger/logger.h>
 #include <server/acceptor.h>
 #include <server/worker.h>
-#include <server/hosts_manager.h>
+#include <server/host_manager.h>
 #include <server/types.h>
 
 
@@ -49,7 +49,7 @@ public:
 	inline void detach();					// Detaches server's thread
 	
 	// Returns the hosts manager of this server
-	inline server::hosts_manager & hosts_manager() noexcept;
+	inline server::host_manager & host_manager() noexcept;
 protected:
 	friend class server::acceptor;
 	
@@ -71,7 +71,7 @@ private:
 	
 	server_http_parameters parameters_;
 	
-	server::hosts_manager hosts_manager_;
+	server::host_manager host_manager_;
 	
 	
 	boost::asio::io_service acceptors_io_service_;	// Only for acceptors (server runs it in separate thread)!

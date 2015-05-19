@@ -15,7 +15,7 @@
 #include <logger/logger.h>
 #include <server/protocol.h>
 #include <server/host.h>
-#include <server/hosts_manager.h>
+#include <server/host_manager.h>
 #include <server/types.h>
 
 
@@ -37,7 +37,7 @@ public:
 				   worker &w,
 				   const_iterator_t iterator,
 				   server::socket_ptr_t socket_ptr,
-				   server::hosts_manager &hosts_manager);
+				   server::host_manager &host_manager);
 	~client_manager();
 	
 	
@@ -131,7 +131,7 @@ private:
 	// Data
 	logger::logger &logger_;
 	
-	server::hosts_manager &hosts_manager_;
+	server::host_manager &host_manager_;
 	
 	worker &worker_;
 	const_iterator_t iterator_;

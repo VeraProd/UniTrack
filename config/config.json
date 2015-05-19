@@ -1,0 +1,23 @@
+{
+	"file_hosts": [
+		{
+			"name": "localhost",
+			"ports": [ 8080 ],
+			
+			"type": "files_and_template_pages",
+			"root": "../www/unitrack",
+			
+			"allow_match_mode": "any",
+			"allow_regexes": [ "/.*" ],
+			
+			"default_behavior": "files",
+			"change_behavior_regex": ".*\\.html"
+		}
+	],
+	
+	
+	"server_http": {
+		"ports": [ 8080, 8081 ],
+		"workers": 3
+	}
+}

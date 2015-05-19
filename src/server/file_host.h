@@ -3,58 +3,16 @@
 #ifndef SERVER_FILE_HOST_H
 #define SERVER_FILE_HOST_H
 
-#include <string>
-#include <vector>
-#include <regex>
-
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-
 #include <logger/logger.h>
 #include <server/host.h>
 #include <server/protocol.h>
 #include <server/types.h>
 
+#include <server/file_host_parameters.h>
 #include <server/file_host_files_only.h>
 
 
 namespace server {
-
-
-struct file_host_only_parameters
-{
-	// May be useful, if several allow_regexes specified.
-	enum class allow_match_mode
-	{
-		any,	// Uri matches any of allow_regexes (and doesn't match any of deny_regexes).
-		all		// Uri matches all of allow_regexes (and doesn't match any of deny_regexes).
-	};
-	
-	
-	std::string root;
-	
-	std::vector<std::regex>
-		deny_regexes =
-			{
-				std::regex(".*\\.\\./.*"),	// Don't allow "../" sequences!
-				std::regex(".*/\\..*")		// Don't allow hidden directories and files
-			},
-		allow_regexes =
-			{
-				// Don't allow anything by default
-			};
-	
-	allow_match_mode mode;
-};	// struct file_host_only_parameters
-
-
-struct file_host_parameters:
-	public host_parameters,
-	public file_host_only_parameters
-{
-	using file_host_only_parameters::allow_match_mode;
-};
-
 
 
 // Requirements to the class HostType:

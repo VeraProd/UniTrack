@@ -27,8 +27,8 @@ server::server_http::detach()
 
 // Returns the hosts manager of this server
 inline
-server::hosts_manager &
-server::server_http::hosts_manager() noexcept
+server::host_manager &
+server::server_http::host_manager() noexcept
 {
-	return this->hosts_manager_;
+	return this->host_manager_;
 }

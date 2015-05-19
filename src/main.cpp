@@ -9,15 +9,11 @@
 // #include <mongo/client_pool.h>
 // #include <mongo/document.h>
 
+// #include <templatizer/page.h>
+
 #include <logger/logger.h>
-#include <server/server_http.h>
-#include <server/file_host.h>
-
-#include <templatizer/page.h>
-
 #include <page_model.h>
-#include <file_host_template_pages_only.h>
-#include <file_host_files_and_template_pages.h>
+#include <interface_manager.h>
 
 
 int main(int argc, char **argv)
@@ -45,7 +41,7 @@ int main(int argc, char **argv)
 	
 	
 	// Profile page
-	templatizer::page profile_page("www/profile.html");
+	// templatizer::page profile_page("www/profile.html");
 	
 	page_model profile_model(logger);
 	profile_model.emplace("USERNAME", "Dmitry Kukovinets");
@@ -57,45 +53,12 @@ int main(int argc, char **argv)
 	// 		  << profile_page(profile_model) << std::endl;
 	
 	
-	// Template page host
-	server::file_host_parameters file_host_parameters;
-	file_host_parameters.name				= "localhost";
-	file_host_parameters.ports				= { 8080 };
-	file_host_parameters.mode				=
-		server::file_host_parameters::allow_match_mode::any;
-	file_host_parameters.root				= "www/";
-	file_host_parameters.allow_regexes.emplace_back("/.*");
-	
-	
-	auto file_host_ptr =
-		// std::make_shared<server::file_host<server::files_only>>(logger, file_host_parameters);
-		// std::make_shared<server::file_host<template_pages_only>>(logger, file_host_parameters, profile_model);
-		std::make_shared<server::file_host<files_and_template_pages>>(
-			logger,
-			file_host_parameters,
-			files_and_template_pages(
-				profile_model,
-				files_and_template_pages_parameters()));
-	
-	
-	// Server
-	server::server_http_parameters server_http_parameters;
-	server_http_parameters.ports			= { 8080, 8081 };
-	server_http_parameters.workers			= 3;
-	
-	server::server_http server(logger, server_http_parameters);
-	
-	server.hosts_manager().add_host(file_host_ptr);
-	
+	interface_manager interface_manager(logger, "config/config.json", profile_model);
 	
 	// Waiting for Ctrl+D
 	while (std::cin) std::cin.get();
 	
-	
-	logger.stream(logger::level::info)
-		<< "Main: Stopping server...";
-	
-	server.stop();
+	interface_manager.stop();
 	
 	return 0;
 }

@@ -15,30 +15,10 @@
 #include <logger/logger.h>
 #include <server/protocol.h>
 #include <server/types.h>
+#include <server/host_parameters.h>
 
 
 namespace server {
-
-
-// Host parameters. Need for every host.
-// This is default parameters for error_host.
-struct host_parameters
-{
-	std::string					name;
-	port_set_t					ports;
-	
-	std::vector<std::string>	server_names =
-		{
-			"UniTrack/0.0.1",
-			"Tired of reading the headers? Look for the UniTrack project on GitHub!",
-			"ZX_Spectrum/1997 (Sinclair_BASIC)",
-			"c64/1986 (**** COMMODORE 64 BASIC V2 **** 64K RAM SYSTEM ****)",
-			"thttpd/1.02 (Minix 2.0.2 i186)",
-			"pear/6.2 (iOS 5.0.1)",
-			"segasrv/1.0 (SEGA MEGA DRIVE HTTP SERVER ROM 1.0)",
-			"Tea with milk (Full cup, with sugar)"
-		};
-};
 
 
 // Server knows about all existing hosts. If client needs host, that does exist,
@@ -47,7 +27,7 @@ class host
 {
 public:
 	host(logger::logger &logger,
-		 const host_parameters &parameters);
+		 const server::host_parameters &parameters);
 	
 	virtual ~host();
 	
@@ -57,7 +37,7 @@ public:
 	
 	
 	// Returns true, if host can process requests on specified port, or false otherwise.
-	bool port_allowed(port_t port) const noexcept;
+	bool port_allowed(server::port_t port) const noexcept;
 	
 	
 	// Returns host name as string (random!).
@@ -134,7 +114,7 @@ public:
 	
 	inline logger::logger & logger() const noexcept;
 protected:
-	host_parameters host_parameters_;
+	server::host_parameters host_parameters_;
 private:
 	static std::unique_ptr<host> error_host_;
 	

@@ -1,13 +1,13 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <server/hosts_manager.h>
+#include <server/host_manager.h>
 
 #include <new>
 
 #include <server/host_exceptions.h>
 
 
-server::hosts_manager::hosts_manager(logger::logger &logger):
+server::host_manager::host_manager(logger::logger &logger):
 	logger_(logger)
 {}
 
@@ -17,7 +17,7 @@ server::hosts_manager::hosts_manager(logger::logger &logger):
 // same name is already managed by this manager.
 // Thread-safety: no (it's write function).
 bool
-server::hosts_manager::add_host(server::host_ptr_t host_ptr) noexcept
+server::host_manager::add_host(server::host_ptr_t host_ptr) noexcept
 {
 	if (host_ptr == nullptr) {
 		this->logger_.stream(logger::level::error)
@@ -44,7 +44,7 @@ server::hosts_manager::add_host(server::host_ptr_t host_ptr) noexcept
 // Returns std::shared_ptr to it or throws server::host_not_found exception.
 // Thread-sefety: yes (it's read function).
 server::host_ptr_t
-server::hosts_manager::host(const std::string &name, server::port_t port)
+server::host_manager::host(const std::string &name, server::port_t port)
 {
 	auto it = this->hosts_.find(&name);
 	if (it == this->hosts_.end()) {

@@ -10,19 +10,24 @@ include $(MAKEFILE_ADVANCED_ABS)
 # Sources and headers
 HEADERS =									\
 	types.h									\
+											\
 	protocol_http.h protocol_http.hpp		\
 	protocol_http_statuses.hpp				\
 	protocol.h								\
 	protocol_exceptions.h					\
+											\
 	server_http.h server_http.hpp			\
 	acceptor.h								\
 	worker.h worker.hpp						\
 	client_manager.h client_manager.hpp		\
+											\
 	host.h host.hpp							\
+	host_parameters.h						\
 	file_host.h file_host.hpp				\
+	file_host_parameters.h					\
 	file_host_files_only.h					\
 	host_exceptions.h						\
-	hosts_manager.h							\
+	host_manager.h							\
 	
 
 
@@ -30,14 +35,18 @@ SOURCES_CPP =								\
 	protocol_http.cpp						\
 	protocol.cpp							\
 	protocol_exceptions.cpp					\
+											\
 	server_http.cpp							\
 	acceptor.cpp							\
 	worker.cpp								\
 	client_manager.cpp						\
+											\
 	host.cpp								\
+	host_parameters.cpp						\
+	file_host_parameters.cpp				\
 	file_host_files_only.cpp				\
 	host_exceptions.cpp						\
-	hosts_manager.cpp						\
+	host_manager.cpp						\
 	
 
 

@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SERVER_HOSTS_MANAGER_H
-#define SERVER_HOSTS_MANAGER_H
+#ifndef SERVER_HOST_MANAGER_H
+#define SERVER_HOST_MANAGER_H
 
 #include <map>
 
@@ -12,10 +12,10 @@
 namespace server {
 
 
-class hosts_manager
+class host_manager
 {
 public:
-	hosts_manager(logger::logger &logger);
+	host_manager(logger::logger &logger);
 	
 	
 	// Adds the new host.
@@ -41,10 +41,10 @@ private:
 	};
 	
 	std::map<const std::string *, server::host_ptr_t, hosts_map_cmp> hosts_;
-};	// class hosts_manager
+};	// class host_manager
 
 
 };	// namespace server
 
 
-#endif // SERVER_HOSTS_MANAGER_H
+#endif // SERVER_HOST_MANAGER_H

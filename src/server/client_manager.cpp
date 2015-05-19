@@ -15,10 +15,10 @@ server::client_manager::client_manager(logger::logger &logger,
 									   worker &w,
 									   const_iterator_t iterator,
 									   server::socket_ptr_t socket_ptr,
-									   server::hosts_manager &hosts_manager):
+									   server::host_manager &host_manager):
 	logger_(logger),
 	
-	hosts_manager_(hosts_manager),
+	host_manager_(host_manager),
 	
 	worker_(w),
 	iterator_(iterator),
@@ -225,7 +225,7 @@ server::client_manager::process_request(request_data_ptr_t request_data_ptr)
 	}
 	
 	
-	auto host_ptr = this->hosts_manager_.host(match_result[1], port);
+	auto host_ptr = this->host_manager_.host(match_result[1], port);
 	
 	this->send_response(std::move(host_ptr->response(std::move(request_data_ptr->uri),
 													 request_data_ptr->method,
