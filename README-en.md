@@ -6,21 +6,25 @@
 Project is under active developing now. This section will be updated as soon as the project will leave the prototype stage.
 
 
+### Если вы говорите по-русски (If you speak Russian)
+Пожалуйста, читайте [README-ru.md](https://github.com/DmitryKuk/UniTrack/blob/master/README-ru.md).
+
+
 ### Lisence
 The project is under my own license:
 
-- You can use the project for free for any non-commercial purposes;
-- You can also change the source code, if you want, for non-commercial purposes;
-- For use in any commercial purposes, please, contact me: `d1021976@gmail.com`;
+- You can use the project for free for any non-commercial purposes.
+- You can also change the source code, if you want, for non-commercial purposes.
+- For use in any commercial purposes, please, contact me: [d1021976@gmail.com](d1021976@gmail.com).
 - You can not distribute changed version of this program (as source code or binary or etc.) without reference to original version and it's author. It means also, that you should not remove comments with information about the author(s) and/or the lisence from the source code.
 
 ---
 
 
 ### Requirements:
-- g++-5 or best (or clang++-3.6 or best, or any other C++11 compiler supporting std::regex, move-semantics and many more, *full support is best*);
-- Boost (tested version: 1.58);
-- MongoDB C Driver (now disabled);
+- g++-5 or best (or clang++-3.6 or best, or any other C++11 compiler supporting std::regex, move-semantics and many more, *full support is best*).
+- Boost (tested version: 1.58).
+- MongoDB C Driver (now disabled).
 - GNU Make (and a piece of shell) for building this.
 
 
