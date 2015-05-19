@@ -15,7 +15,7 @@ The project is under my own license:
 
 - You can use the project for free for any non-commercial purposes.
 - You can also change the source code, if you want, for non-commercial purposes.
-- For use in any commercial purposes, please, contact me: [d1021976@gmail.com](d1021976@gmail.com).
+- For use in any commercial purposes, please, contact me: <d1021976@gmail.com>.
 - You can not distribute changed version of this program (as source code or binary or etc.) without reference to original version and it's author. It means also, that you should not remove comments with information about the author(s) and/or the lisence from the source code.
 
 ---
@@ -57,7 +57,7 @@ The project is under my own license:
 
 
 ### Авторы
-- [Dmitry Kukovinets](https://github.com/DmitryKuk): [d1021976@gmail.com](mailto:d1021976@gmail.com)
+- [Dmitry Kukovinets](https://github.com/DmitryKuk): <d1021976@gmail.com>
     + Author of the server-side part of the project.
-- [Maxim Ivanov](https://github.com/splincode): [http://vk.com/splincode](http://vk.com/splincode)
+- [Maxim Ivanov](https://github.com/splincode): <http://vk.com/splincode>
     + Author of the web-part of the project
