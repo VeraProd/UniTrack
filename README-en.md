@@ -38,7 +38,7 @@ The project is under my own license:
 3. Running:
 	- `unitrack` (by default, `/usr/bin/unitrack`)
 4. Upgrading:
-	- `sudo make upgrade` for automatic uninstalling the old version, dowloading updates, building and installing the new one
+	- `make upgrade` for automatic uninstalling the old version, dowloading updates, building and installing the new one
 5. Uninstalling:
 	- `sudo make uninstall` for completely uninstalling all libs and executables from your system
 
