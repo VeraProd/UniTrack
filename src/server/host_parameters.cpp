@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <host_parameters.h>
+#include <server/host_parameters.h>
 
 
 server::host_parameters::host_parameters(const nlohmann::json &config):
