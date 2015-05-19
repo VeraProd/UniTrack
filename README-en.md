@@ -56,7 +56,7 @@ The project is under my own license:
 - Some modules has weak dependencies on others. It means that changes in one module *may* have no effect on other module until `make clean` and `make` all project again. Dependencies between files in one module are *strong*: all module will be rebuilt if you change any header (.h or .hpp), or partially rebuilt if you change .cpp-file.
 
 
-### Авторы
+### Authors
 - [Dmitry Kukovinets](https://github.com/DmitryKuk): <d1021976@gmail.com>
     + Author of the server-side part of the project.
 - [Maxim Ivanov](https://github.com/splincode): <http://vk.com/splincode>
