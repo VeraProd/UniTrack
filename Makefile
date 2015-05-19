@@ -39,10 +39,10 @@ PREFIX_LIBS		= /usr/lib
 PREFIX_TARGET	= /usr/bin
 
 # Config
-PREFIX_CONFIG	= /etc/unitrack
+PREFIX_CONFIG	= /etc
 
 # WWW data
-PREFIX_WWW		= /var/unitrack
+PREFIX_WWW		= /var
 
 
 # Modules should be linked as static libraries
@@ -90,10 +90,16 @@ GPP_HEADER_PATHS			+= -I"$(abspath $(SOURCES_DIR))"
 GPP_LIB_PATHS				+= -L"$(abspath $(LIBS_DIR))"
 
 # Installation prefixes
-GPP_PREFIXES				+= -DPREFIX_LIBS="\"$(PREFIX_LIBS)\""		\
-							   -DPREFIX_TARGET="\"$(PREFIX_TARGET)\""	\
-							   -DPREFIX_CONFIG="\"$(PREFIX_CONFIG)\""	\
-							   -DPREFIX_WWW="\"$(PREFIX_WWW)\""
+# Config
+PREFIX_CONFIG_FULL	= $(PREFIX_CONFIG)/unitrack
+
+# WWW data
+PREFIX_WWW_FULL		= $(PREFIX_WWW)/unitrack
+
+GPP_PREFIXES				+= -DPREFIX_LIBS="\"$(PREFIX_LIBS)\""			\
+							   -DPREFIX_TARGET="\"$(PREFIX_TARGET)\""		\
+							   -DPREFIX_CONFIG="\"$(PREFIX_CONFIG_FULL)\""	\
+							   -DPREFIX_WWW="\"$(PREFIX_WWW_FULL)\""
 
 # Compiler flags
 GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++11 -c $(GPP_PREFIXES) $(EXTRA_CPP_FLAGS)
@@ -182,27 +188,35 @@ clean:
 
 
 install:
-	install $(MODULE_FILES) $(realpath $(PREFIX_LIBS))
-	install $(TARGET_FILES) $(realpath $(PREFIX_TARGET))
+	install $(MODULE_FILES) $(PREFIX_LIBS)
+	install $(TARGET_FILES) $(PREFIX_TARGET)
 
 install-config:
-	install $(CONFIG) $(realpath $(PREFIX_CONFIG))
+	@echo "Creating directories in \"$(PREFIX_CONFIG_FULL)\"..."
+	find $(CONFIG) -type d -not -name '.*' -print | while read DIR; do install -d "$(PREFIX_CONFIG_FULL)/$$DIR"; done
+	
+	@echo "Installing files to \"$(PREFIX_CONFIG_FULL)\"..."
+	find $(CONFIG) -type f -not -name '.*' -print | while read FILE; do install "$$FILE" "$(PREFIX_CONFIG_FULL)/$$FILE"; done
 
 install-www:
-	install $(WWW) $(realpath $(PREFIX_WWW))
+	@echo "Creating directories in \"$(PREFIX_WWW_FULL)\"..."
+	find $(WWW) -type d -not -name '.*' -print | while read DIR; do install -d "$(PREFIX_WWW_FULL)/$$DIR"; done
+	
+	@echo "Installing files to \"$(PREFIX_WWW_FULL)\"..."
+	find $(WWW) -type f -not -name '.*' -print | while read FILE; do install "$$FILE" "$(PREFIX_WWW_FULL)/$$FILE"; done
 
 install-all: install install-config install-www
 
 
 uninstall:
-	rm $(addprefix $(realpath $(PREFIX_TARGET))/,$(MAIN_TARGETS))
-	rm $(addprefix $(realpath $(PREFIX_LIBS))/,$(MODULE_LIBS))
+	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS))
+	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_LIBS))
 
 uninstall-config:
-	rm -r $(addprefix $(realpath $(PREFIX_CONFIG))/,$(CONFIG))
+	rm -r $(addprefix $(PREFIX_CONFIG_FULL)/,$(CONFIG))
 
 uninstall-www:
-	rm -r $(addprefix $(realpath $(PREFIX_WWW))/,$(WWW))
+	rm -r $(addprefix $(PREFIX_WWW_FULL)/,$(WWW))
 
 uninstall-all: uninstall uninstall-config uninstall-www
 
