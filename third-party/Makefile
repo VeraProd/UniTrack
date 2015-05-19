@@ -3,17 +3,13 @@
 # Makefile for third-party parts of this program.
 
 
-.PHONY: all download update
-.SILENT: all download update
+.PHONY: all update
+.SILENT: all update
 
 
 all:
 	# json: nothing to do
 
 
-download:
-	git clone https://github.com/nlohmann/json
-
-
 update:
-	cd json && git pull && cd ..
+	cd json && git submodule update && cd ..
