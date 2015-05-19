@@ -24,6 +24,12 @@ OBJECTS_DIR		= obj
 # All test executables
 TEST_DIR		= test
 
+# Config
+CONFIG			= config
+
+# WWW data
+WWW				= www
+
 
 # Installation directories
 # Shared libraries
@@ -31,6 +37,12 @@ PREFIX_LIBS		= /usr/lib
 
 # Executables
 PREFIX_TARGET	= /usr/bin
+
+# Config
+PREFIX_CONFIG	= /etc/unitrack
+
+# WWW data
+PREFIX_WWW		= /var/unitrack
 
 
 # Modules should be linked as static libraries
@@ -77,9 +89,14 @@ endif
 GPP_HEADER_PATHS			+= -I"$(abspath $(SOURCES_DIR))"
 GPP_LIB_PATHS				+= -L"$(abspath $(LIBS_DIR))"
 
+# Installation prefixes
+GPP_PREFIXES				+= -DPREFIX_LIBS="\"$(PREFIX_LIBS)\""		\
+							   -DPREFIX_TARGET="\"$(PREFIX_TARGET)\""	\
+							   -DPREFIX_CONFIG="\"$(PREFIX_CONFIG)\""	\
+							   -DPREFIX_WWW="\"$(PREFIX_WWW)\""
 
 # Compiler flags
-GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++11 -c $(EXTRA_CPP_FLAGS) 
+GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++11 -c $(GPP_PREFIXES) $(EXTRA_CPP_FLAGS)
 GPP_LINK_FLAGS				+= -pipe -fPIC -O2 -Wall $(EXTRA_LINK_FLEGS)
 GPP_SHARED_LIB_FLAGS		+= -pipe -fPIC -O2 -Wall --shared $(EXTRA_SHARED_LIB_FLAGS)
 
@@ -137,8 +154,19 @@ GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 
 
 # Targets
-.PHONY: all clean install uninstall upgrade me happy me-happy-help upgrade-help git-pull check dirs modules main objects run run-tests python-server
-.SILENT: clean upgrade me happy me-happy-help upgrade-help git-pull dirs modules main objects run run-tests $(TARGET_FILES)
+.PHONY:														\
+	all clean												\
+	install install-config install-www install-all			\
+	uninstall uninstall-config uninstall-www uninstall-all	\
+	upgrade upgrade-help me happy git-pull					\
+	check dirs modules main objects run run-tests
+
+
+.SILENT:													\
+	clean													\
+	upgrade upgrade-help git-pull							\
+	dirs modules main objects run run-tests					\
+	$(TARGET_FILES)
 
 
 all: dirs main
@@ -157,28 +185,48 @@ install:
 	install $(MODULE_FILES) $(realpath $(PREFIX_LIBS))
 	install $(TARGET_FILES) $(realpath $(PREFIX_TARGET))
 
+install-config:
+	install $(CONFIG) $(realpath $(PREFIX_CONFIG))
+
+install-www:
+	install $(WWW) $(realpath $(PREFIX_WWW))
+
+install-all: install install-config install-www
+
 
 uninstall:
 	rm $(addprefix $(realpath $(PREFIX_TARGET))/,$(MAIN_TARGETS))
 	rm $(addprefix $(realpath $(PREFIX_LIBS))/,$(MODULE_LIBS))
 
+uninstall-config:
+	rm -r $(addprefix $(realpath $(PREFIX_CONFIG))/,$(CONFIG))
 
-upgrade: upgrade-help uninstall git-pull all
-	make install
+uninstall-www:
+	rm -r $(addprefix $(realpath $(PREFIX_WWW))/,$(WWW))
 
-
-me happy: me-happy-help git-pull all install
-	@echo 'Well done, next times you can simply do:'
-	@echo '    sudo make upgrade'
-
-
-me-happy-help:
-	@echo 'NOTE: If you have a problem with permissions, try this:'
-	@echo '    sudo make me happy'
+uninstall-all: uninstall uninstall-config uninstall-www
 
 
-upgrade-help:
+upgrade:
 	@echo "NOTE: \`upgrade' command will occur an error, if program was not installed."
+	$(MAKE) uninstall
+	
+	$(MAKE) git-pull
+	$(MAKE)
+	
+	@echo 'Please, enter the password for installation or press Ctrl+C...'
+	sudo $(MAKE) install
+
+
+me happy: git-pull all install
+	$(MAKE) git-pull
+	$(MAKE)
+	
+	@echo 'Please, enter the password for installation or press Ctrl+C...'
+	sudo $(MAKE) install-all
+	
+	@echo 'Well done, next times you can simply do:'
+	@echo '    make upgrade'
 
 
 git-pull:
@@ -282,7 +330,3 @@ $(TARGET_FILES): $(HEADER_FILES) modules objects
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
 	$(call gpp_link) -o '$@' '$<' $(OBJECT_FILES)
-
-
-python-server:
-	cd ./www && python3 -m http.server 8080; cd ../
