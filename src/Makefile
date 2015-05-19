@@ -15,6 +15,8 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 # Sources and headers
 HEADERS =												\
+	prefix.h											\
+														\
 	page_model.h										\
 														\
 	file_host_template_pages_only.h						\
@@ -29,6 +31,8 @@ HEADERS =												\
 
 
 SOURCES_CPP =											\
+	prefix.cpp											\
+														\
 	page_model.cpp										\
 														\
 	file_host_template_pages_only.cpp					\
