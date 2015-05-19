@@ -13,16 +13,13 @@ obj/*
 *.so
 *.dylib
 *.dll
-
-# Fortran module files
-*.mod
+libs/*
 
 # Compiled Static libraries
 *.lai
 *.la
 *.a
 *.lib
-libs/*
 
 # Executables
 *.exe
