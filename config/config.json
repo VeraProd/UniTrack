@@ -5,7 +5,7 @@
 			"ports": [ 8080 ],
 			
 			"type": "files_and_template_pages",
-			"root": "../www/unitrack",
+			"root": "/var/unitrack/www",
 			
 			"allow_match_mode": "any",
 			"allow_regexes": [ "/.*" ],

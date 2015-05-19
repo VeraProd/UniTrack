@@ -15,6 +15,8 @@
 #include <page_model.h>
 #include <interface_manager.h>
 
+#include <prefix.h>
+
 
 int main(int argc, char **argv)
 {
@@ -52,8 +54,7 @@ int main(int argc, char **argv)
 	// std::cout << std::endl << "Generated page:" << std::endl
 	// 		  << profile_page(profile_model) << std::endl;
 	
-	
-	interface_manager interface_manager(logger, "config/config.json", profile_model);
+	interface_manager interface_manager(logger, prefix::config + "/config/config.json", profile_model);
 	
 	// Waiting for Ctrl+D
 	while (std::cin) std::cin.get();

@@ -191,19 +191,22 @@ install:
 	install $(MODULE_FILES) $(PREFIX_LIBS)
 	install $(TARGET_FILES) $(PREFIX_TARGET)
 
+
 install-config:
-	@echo "Creating directories in \"$(PREFIX_CONFIG_FULL)\"..."
+	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_CONFIG_FULL)\"...$(COLOR_RESET)"
 	find $(CONFIG) -type d -not -name '.*' -print | while read DIR; do install -d "$(PREFIX_CONFIG_FULL)/$$DIR"; done
 	
-	@echo "Installing files to \"$(PREFIX_CONFIG_FULL)\"..."
+	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_CONFIG_FULL)\"...$(COLOR_RESET)"
 	find $(CONFIG) -type f -not -name '.*' -print | while read FILE; do install "$$FILE" "$(PREFIX_CONFIG_FULL)/$$FILE"; done
 
+
 install-www:
-	@echo "Creating directories in \"$(PREFIX_WWW_FULL)\"..."
+	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_WWW_FULL)\"...$(COLOR_RESET)"
 	find $(WWW) -type d -not -name '.*' -print | while read DIR; do install -d "$(PREFIX_WWW_FULL)/$$DIR"; done
 	
-	@echo "Installing files to \"$(PREFIX_WWW_FULL)\"..."
+	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_WWW_FULL)\"...$(COLOR_RESET)"
 	find $(WWW) -type f -not -name '.*' -print | while read FILE; do install "$$FILE" "$(PREFIX_WWW_FULL)/$$FILE"; done
+
 
 install-all: install install-config install-www
 
@@ -212,11 +215,14 @@ uninstall:
 	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS))
 	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_LIBS))
 
+
 uninstall-config:
 	rm -r $(addprefix $(PREFIX_CONFIG_FULL)/,$(CONFIG))
 
+
 uninstall-www:
 	rm -r $(addprefix $(PREFIX_WWW_FULL)/,$(WWW))
+
 
 uninstall-all: uninstall uninstall-config uninstall-www
 
