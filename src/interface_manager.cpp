@@ -86,9 +86,6 @@ interface_manager::interface_manager(logger::logger &logger,
 				}
 			}
 		}
-		
-		this->logger_.stream(logger::level::info)
-			<< "Interface manager: Config: " << config << '.';
 	} catch (const std::exception &e) {
 		this->logger_.stream(logger::level::error)
 			<< "Interface manager: " << e.what() << '.';
