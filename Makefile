@@ -45,7 +45,7 @@ PREFIX_CONFIG	= /etc
 PREFIX_WWW		= /var
 
 
-# Modules should be linked as static libraries
+# Modules should be linked as dynamic libraries (not third-party!)
 MODULES =						\
 	logger						\
 	server						\
@@ -162,8 +162,8 @@ GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 # Targets
 .PHONY:														\
 	all clean												\
-	install install-config install-www install-all			\
-	uninstall uninstall-config uninstall-www uninstall-all	\
+	install-bin install-config install-www install			\
+	uninstall-bin uninstall-config uninstall-www uninstall	\
 	upgrade upgrade-help me happy git-pull					\
 	check dirs modules main objects run run-tests
 
@@ -178,7 +178,7 @@ GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 all: dirs main
 
 
-# Cleaning submodules too
+# Cleaning project submodules (not third-party!) too
 clean:
 	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
 	$(MAKE) -C $(SOURCES_DIR_CURR) clean;
@@ -187,7 +187,7 @@ clean:
 	done
 
 
-install:
+install-bin:
 	install $(MODULE_FILES) $(PREFIX_LIBS)
 	install $(TARGET_FILES) $(PREFIX_TARGET)
 
@@ -208,10 +208,10 @@ install-www:
 	find $(WWW) -type f -not -name '.*' -print | while read FILE; do install "$$FILE" "$(PREFIX_WWW_FULL)/$$FILE"; done
 
 
-install-all: install install-config install-www
+install: install-bin install-config install-www
 
 
-uninstall:
+uninstall-bin:
 	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS))
 	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_LIBS))
 
@@ -224,7 +224,7 @@ uninstall-www:
 	rm -r $(addprefix $(PREFIX_WWW_FULL)/,$(WWW))
 
 
-uninstall-all: uninstall uninstall-config uninstall-www
+uninstall: uninstall-bin uninstall-config uninstall-www
 
 
 upgrade:
@@ -243,7 +243,7 @@ me happy: git-pull all install
 	$(MAKE)
 	
 	@echo 'Please, enter the password for installation or press Ctrl+C...'
-	sudo $(MAKE) install-all
+	sudo $(MAKE) install
 	
 	@echo 'Well done, next times you can simply do:'
 	@echo '    make upgrade'
