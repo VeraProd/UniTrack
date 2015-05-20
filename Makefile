@@ -164,13 +164,13 @@ GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 	all clean												\
 	install-bin install-config install-www install			\
 	uninstall-bin uninstall-config uninstall-www uninstall	\
-	upgrade upgrade-help me happy git-pull					\
+	upgrade me happy git-pull								\
 	check dirs modules main objects run run-tests
 
 
 .SILENT:													\
 	clean													\
-	upgrade upgrade-help git-pull							\
+	upgrade git-pull										\
 	dirs modules main objects run run-tests					\
 	$(TARGET_FILES)
 
@@ -229,20 +229,19 @@ uninstall: uninstall-bin uninstall-config uninstall-www
 
 upgrade:
 	@echo "NOTE: \`upgrade' command will occur an error, if program was not installed."
-	$(MAKE) uninstall
+	sudo $(MAKE) uninstall-bin uninstall-www
 	
 	$(MAKE) git-pull
 	$(MAKE)
 	
 	@echo 'Please, enter the password for installation or press Ctrl+C...'
-	sudo $(MAKE) install
+	sudo $(MAKE) install-bin install-www
 
 
-me happy: git-pull all install
+me happy:
 	$(MAKE) git-pull
 	$(MAKE)
-	
-	@echo 'Please, enter the password for installation or press Ctrl+C...'
+
 	sudo $(MAKE) install
 	
 	@echo 'Well done, next times you can simply do:'
