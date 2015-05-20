@@ -31,16 +31,22 @@ The project is under my own license:
 ### Building and Installation
 1. Get the sources:
 	- `git clone --recursive https://github.com/DmitryKuk/UniTrack`
-	- and `cd UniTrack`
+	- and `cd UniTrack/`
 2. Build and install:
-	- just do `make me happy` (uses `sudo` for installing)
+	- just do `make happy` (uses `sudo` for installing)
 	- or `make` and `sudo make install`
+    - *any of these methods will install default configuration and site data*
 3. Running:
 	- `unitrack` (by default, `/usr/bin/unitrack`)
 4. Upgrading:
-	- `make upgrade` for automatic uninstalling the old version, dowloading updates, building and installing the new one
+	- `make upgrade` for automatic uninstalling the old version, dowloading updates, building and installing the new one (uses `sudo`)
 5. Uninstalling:
 	- `sudo make uninstall` for completely uninstalling all libs and executables from your system
+6. Manual management (**do not use, if you don't know, why you need it**):
+    - **Use only if you want to recover corrupted configuration file or site!**
+    - **NOT required with any of installation method above!**
+    - `make install-config` to install configuration by default
+    - `make install-www` to install site
 
 
 ### Dependencies

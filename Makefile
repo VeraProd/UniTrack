@@ -8,6 +8,10 @@ export MAKEFILE_ADVANCED_ABS = $(abspath $(MAKEFILE_ADVANCED))
 include $(MAKEFILE_ADVANCED_ABS)
 
 
+# Project name
+PROJECT_NAME	= UniTrack
+
+
 # Project directories
 # Sources only
 SOURCES_DIR		= src
@@ -164,7 +168,7 @@ GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 	all clean												\
 	install-bin install-config install-www install			\
 	uninstall-bin uninstall-config uninstall-www uninstall	\
-	upgrade me happy git-pull								\
+	upgrade happy git-pull									\
 	check dirs modules main objects run run-tests
 
 
@@ -198,6 +202,8 @@ install-config:
 	
 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_CONFIG_FULL)\"...$(COLOR_RESET)"
 	find $(CONFIG) -type f -not -name '.*' -print | while read FILE; do install "$$FILE" "$(PREFIX_CONFIG_FULL)/$$FILE"; done
+	
+	@echo "$(COLOR_PASS)==> Config installed.$(COLOR_RESET)"
 
 
 install-www:
@@ -206,6 +212,8 @@ install-www:
 	
 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_WWW_FULL)\"...$(COLOR_RESET)"
 	find $(WWW) -type f -not -name '.*' -print | while read FILE; do install "$$FILE" "$(PREFIX_WWW_FULL)/$$FILE"; done
+	
+	@echo "$(COLOR_PASS)==> WWW data installed.$(COLOR_RESET)"
 
 
 install: install-bin install-config install-www
@@ -228,34 +236,37 @@ uninstall: uninstall-bin uninstall-config uninstall-www
 
 
 upgrade:
-	@echo "NOTE: \`upgrade' command will occur an error, if program was not installed."
+	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) \`upgrade' command will occur an error, if program was not installed."
 	sudo $(MAKE) uninstall-bin uninstall-www
 	
 	$(MAKE) git-pull
 	$(MAKE)
 	
-	@echo 'Please, enter the password for installation or press Ctrl+C...'
-	sudo $(MAKE) install-bin install-www
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation or press Ctrl+C...$(COLOR_RESET)"
+	sudo make install-bin install-www
+	@echo "$(COLOR_PASS)==> Successfully upgraded.$(COLOR_RESET)"
 
 
-me happy:
-	$(MAKE) git-pull
-	$(MAKE)
-
-	sudo $(MAKE) install
+happy: git-pull all
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation or press Ctrl+C...$(COLOR_RESET)"
+	sudo make install
+	@echo "$(COLOR_PASS)==> Successfully built and installed.$(COLOR_RESET)"
 	
-	@echo 'Well done, next times you can simply do:'
+	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) To work with $(PROJECT_NAME) try following commands:" \
+		  "$(addprefix \n    ,$(MAIN_TARGETS))"
+	
+	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) Next times you can simply do:"
 	@echo '    make upgrade'
 
 
 git-pull:
 	echo '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';							\
-	git pull;																				\
+	git pull --recurse-submodules=yes;														\
 	STATUS=$$?;																				\
 	if [ "X$$STATUS" = 'X0' ]; then															\
-		echo '$(COLOR_PASS)New version downloaded.$(COLOR_RESET)';							\
+		echo '$(COLOR_PASS)==> New version downloaded.$(COLOR_RESET)';						\
 	else																					\
-		echo "$(COLOR_FAIL)Download failed with status: $$STATUS.$(COLOR_RESET)";			\
+		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";		\
 	fi
 
 
@@ -273,56 +284,56 @@ main: $(TARGET_FILES)
 
 
 objects:
-	echo '$(COLOR_RUN)Building objects...$(COLOR_RESET)';									\
-	$(MAKE) -C $(SOURCES_DIR_CURR);															\
-	STATUS=$$?;																				\
-	if [ "X$$STATUS" = 'X0' ]; then															\
-		echo '$(COLOR_PASS)Objects built successfully.$(COLOR_RESET)';						\
-	else																					\
-		echo '$(COLOR_FAIL)Objects building failed.$(COLOR_RESET)';							\
+	echo '$(COLOR_RUN)Building objects...$(COLOR_RESET)';										\
+	$(MAKE) -C $(SOURCES_DIR_CURR);																\
+	STATUS=$$?;																					\
+	if [ "X$$STATUS" = 'X0' ]; then																\
+		echo '$(COLOR_PASS)==> Objects built successfully.$(COLOR_RESET)';						\
+	else																						\
+		echo '$(COLOR_FAIL)==> Objects building failed.$(COLOR_RESET)';							\
 	fi;
 
 
 modules: dirs
-	for T in $(MODULES); do																	\
-		echo "$(COLOR_RUN)Building module: \"$$T\"...$(COLOR_RESET)";						\
-		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T";						\
-		STATUS=$$?;																			\
-		if [ "X$$STATUS" = 'X0' ]; then														\
-			echo "$(COLOR_PASS)Module \"$$T\" built successfully.$(COLOR_RESET)";			\
-		else																				\
-			echo "$(COLOR_FAIL)Module \"$$T\" building failed.$(COLOR_RESET)";				\
-		fi;																					\
+	for T in $(MODULES); do																		\
+		echo "$(COLOR_RUN)Building module: \"$$T\"...$(COLOR_RESET)";							\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T";							\
+		STATUS=$$?;																				\
+		if [ "X$$STATUS" = 'X0' ]; then															\
+			echo "$(COLOR_PASS)==> Module \"$$T\" built successfully.$(COLOR_RESET)";			\
+		else																					\
+			echo "$(COLOR_FAIL)==> Module \"$$T\" building failed.$(COLOR_RESET)";				\
+		fi;																						\
 	done
 
 
 run: all
-	for T in $(MAIN_TARGETS); do															\
-		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";						\
-		$(call get_target_files,$$T);														\
-		STATUS=$$?;																			\
-		if [ "X$$STATUS" = 'X0' ]; then														\
-			echo "$(COLOR_PASS)Program \"$$T\" completed successfully.$(COLOR_RESET)";		\
-		else																				\
-			echo "$(COLOR_FAIL)Program \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";	\
-		fi;																					\
+	for T in $(MAIN_TARGETS); do																\
+		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";							\
+		$(call get_target_files,$$T);															\
+		STATUS=$$?;																				\
+		if [ "X$$STATUS" = 'X0' ]; then															\
+			echo "$(COLOR_PASS)==> Program \"$$T\" completed successfully.$(COLOR_RESET)";		\
+		else																					\
+			echo "$(COLOR_FAIL)==> Program \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";	\
+		fi;																						\
 	done
 
 
 # Running tests for submodules too
 run-tests: dirs $(TEST_TARGET_FILES)
-	for T in $(TEST_TARGETS); do															\
-		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";							\
-		$(call get_test_files,$$T);															\
-		STATUS=$$?;																			\
-		if [ "X$$STATUS" = 'X0' ]; then														\
-			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";							\
-		else																				\
-			echo "$(COLOR_FAIL)Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";		\
-		fi;																					\
-	done																					\
-	for T in $(MODULES); do																	\
-		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;				\
+	for T in $(TEST_TARGETS); do																\
+		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";								\
+		$(call get_test_files,$$T);																\
+		STATUS=$$?;																				\
+		if [ "X$$STATUS" = 'X0' ]; then															\
+			echo "$(COLOR_PASS)==> Test \"$$T\" passed.$(COLOR_RESET)";							\
+		else																					\
+			echo "$(COLOR_FAIL)==> Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";		\
+		fi;																						\
+	done																						\
+	for T in $(MODULES); do																		\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;					\
 	done
 
 
@@ -336,13 +347,13 @@ $(MODULE_FILES): modules
 
 # Main targets
 $(TARGET_FILES): $(HEADER_FILES) modules objects
-	echo '$(COLOR_RUN)Linking target...$(COLOR_RESET)';										\
-	$(call gpp_link) $(GPP_LIBS_CURR) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES);			\
-	STATUS=$$?;																				\
-	if [ "X$$STATUS" = 'X0' ]; then															\
-		echo "$(COLOR_PASS)Target linked successfully.$(COLOR_RESET)";						\
-	else																					\
-		echo "$(COLOR_FAIL)Target linking failed.$(COLOR_RESET)";							\
+	echo '$(COLOR_RUN)Linking target...$(COLOR_RESET)';											\
+	$(call gpp_link) $(GPP_LIBS_CURR) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES);				\
+	STATUS=$$?;																					\
+	if [ "X$$STATUS" = 'X0' ]; then																\
+		echo "$(COLOR_PASS)==> Target linked successfully.$(COLOR_RESET)";						\
+	else																						\
+		echo "$(COLOR_FAIL)==> Target linking failed.$(COLOR_RESET)";							\
 	fi;
 
 
