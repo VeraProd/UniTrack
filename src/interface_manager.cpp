@@ -28,6 +28,8 @@ interface_manager::interface_manager(logger::logger &logger,
 {
 	try {
 		nlohmann::json config = std::move(utils::json_from_file(config_file_path));
+		this->logger_.stream(logger::level::info)
+			<< "Interface manager: Read config: \"" << config_file_path << "\".";
 		
 		
 		// Server parameters

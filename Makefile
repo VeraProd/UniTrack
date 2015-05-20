@@ -95,18 +95,16 @@ GPP_LIB_PATHS				+= -L"$(abspath $(LIBS_DIR))"
 
 # Installation prefixes
 # Config
-PREFIX_CONFIG_FULL	= $(PREFIX_CONFIG)/unitrack
+PREFIX_CONFIG_FULL			= $(PREFIX_CONFIG)/unitrack
 
 # WWW data
-PREFIX_WWW_FULL		= $(PREFIX_WWW)/unitrack
+PREFIX_WWW_FULL				= $(PREFIX_WWW)/unitrack
 
-GPP_PREFIXES				+= -DPREFIX_LIBS="\"$(PREFIX_LIBS)\""			\
-							   -DPREFIX_TARGET="\"$(PREFIX_TARGET)\""		\
-							   -DPREFIX_CONFIG="\"$(PREFIX_CONFIG_FULL)\""	\
-							   -DPREFIX_WWW="\"$(PREFIX_WWW_FULL)\""
+GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG_FULL)/$(CONFIG)\""	\
+							   -DPATH_WWW="\"$(PREFIX_WWW_FULL)/$(WWW)\""
 
 # Compiler flags
-GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++11 -c $(GPP_PREFIXES) $(EXTRA_CPP_FLAGS)
+GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++11 -c $(GPP_PROJECT_DATA) $(EXTRA_CPP_FLAGS)
 GPP_LINK_FLAGS				+= -pipe -fPIC -O2 -Wall $(EXTRA_LINK_FLEGS)
 GPP_SHARED_LIB_FLAGS		+= -pipe -fPIC -O2 -Wall --shared $(EXTRA_SHARED_LIB_FLAGS)
 

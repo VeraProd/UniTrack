@@ -15,7 +15,7 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 # Sources and headers
 HEADERS =												\
-	prefix.h											\
+	project_data.h										\
 														\
 	page_model.h										\
 														\
@@ -31,7 +31,7 @@ HEADERS =												\
 
 
 SOURCES_CPP =											\
-	prefix.cpp											\
+	project_data.cpp									\
 														\
 	page_model.cpp										\
 														\
