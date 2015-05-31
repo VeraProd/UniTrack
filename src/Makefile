@@ -73,7 +73,7 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 # Targets
 .PHONY: all clean check dirs main run-tests
-.SILENT: clean dirs run-tests
+.SILENT:
 
 
 all: dirs main
@@ -105,9 +105,11 @@ run-tests: $(TEST_TARGET_FILES)
 
 # Objects compilation (universal for main program and tests)
 $(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
+	@echo "    $(COLOR_RUN)Compiling: $(subst $(OBJECTS_DIR_CURR)/,,$@) (main)...$(COLOR_RESET)"
 	$(call gpp_compile) -o '$@' '$<'
 
 
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
+	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) (main)...$(COLOR_RESET)"
 	$(call gpp_link) -o '$@' '$<' $(OBJECT_FILES)

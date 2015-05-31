@@ -80,7 +80,7 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 
 .PHONY: all clean check dirs main run-tests
-.SILENT: clean dirs modules run-tests
+.SILENT:
 
 
 all: dirs main
@@ -95,7 +95,7 @@ check: dirs run-tests
 
 
 dirs:
-	mkdir -p $(sort $(dir $(OBJECT_FILES) $(MAIN_OBJECT_FILES) $(TEST_OBJECT_FILES) \
+	mkdir -p $(sort $(dir $(OBJECT_FILES) $(TEST_OBJECT_FILES) \
 						  $(TARGET_LIB_FILE) $(TEST_TARGET_FILES)))
 
 
@@ -117,13 +117,16 @@ run-tests: $(TEST_TARGET_FILES)
 
 # Objects compilation (universal for main program and tests)
 $(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
+	@echo "    $(COLOR_RUN)Compiling: $(subst $(OBJECTS_DIR_CURR)/,,$@) ($(MODULE_NAME))...$(COLOR_RESET)"
 	$(call gpp_compile) -o '$@' '$<'
 
 
 $(TARGET_LIB_FILE): $(HEADER_FILES) $(OBJECT_FILES)
+	@echo "    $(COLOR_RUN)Linking shared lib: $(subst $(LIBS_DIR_CURR)/,,$@) ($(MODULE_NAME))...$(COLOR_RESET)"
 	$(call gpp_shared_lib) -o '$@' $(OBJECT_FILES)
 
 
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
+	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) ($(MODULE_NAME))...$(COLOR_RESET)"
 	$(call gpp_link) -o '$@' '$<' $(OBJECT_FILES)

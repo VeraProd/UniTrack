@@ -170,11 +170,7 @@ GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
 	check dirs modules main objects run run-tests
 
 
-.SILENT:													\
-	clean													\
-	upgrade git-pull										\
-	dirs modules main objects run run-tests					\
-	$(TARGET_FILES)
+.SILENT:
 
 
 all: dirs main
@@ -192,6 +188,7 @@ clean:
 install-bin:
 	install $(MODULE_FILES) $(PREFIX_LIBS)
 	install $(TARGET_FILES) $(PREFIX_TARGET)
+	@echo "$(COLOR_PASS)==> Binaries installed.$(COLOR_RESET)"
 
 
 install-config:
@@ -220,14 +217,17 @@ install: install-bin install-config install-www
 uninstall-bin:
 	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS))
 	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_LIBS))
+	@echo "$(COLOR_PASS)==> Binaries removed.$(COLOR_RESET)"
 
 
 uninstall-config:
 	rm -r $(addprefix $(PREFIX_CONFIG_FULL)/,$(CONFIG))
+	@echo "$(COLOR_PASS)==> Config removed.$(COLOR_RESET)"
 
 
 uninstall-www:
 	rm -r $(addprefix $(PREFIX_WWW_FULL)/,$(WWW))
+	@echo "$(COLOR_PASS)==> WWW data removed.$(COLOR_RESET)"
 
 
 uninstall: uninstall-bin uninstall-config uninstall-www
@@ -357,4 +357,5 @@ $(TARGET_FILES): $(HEADER_FILES) modules objects
 
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
+	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) (global)...$(COLOR_RESET)"
 	$(call gpp_link) -o '$@' '$<' $(OBJECT_FILES)
