@@ -81,6 +81,7 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 .PHONY: all clean check dirs main run-tests
 .SILENT:
+.NOTPARALLEL:
 
 
 all: dirs main
