@@ -12,49 +12,52 @@
 include $(MAKEFILE_ADVANCED_ABS)
 
 
-# Sources and headers
-HEADERS =							\
-	chunk.h							\
-	chunk_exceptions.h				\
-	page.h page.hpp					\
-	page_exceptions.h				\
-	model.h							\
-	model_exceptions.h				\
-	module_registrar.h				\
-	module_registrar_exceptions.h	\
-	module.h module.hpp				\
-	modules/var_chunk.h
-	
-
-
-SOURCES_CPP =						\
-	chunk.cpp						\
-	chunk_exceptions.cpp			\
-	page.cpp						\
-	page_exceptions.cpp				\
-	model.cpp						\
-	model_exceptions.cpp			\
-	module_registrar.cpp			\
-	module_registrar_exceptions.cpp	\
-	modules/var_chunk.cpp
-	
-
-
-# Static library
+# Dynamic library
 TARGET_LIB = libtemplatizer.so
 
 
-# Tests
-TEST_SOURCES_CPP =					\
-	
-
-
-# Absolute paths
+# Paths
 SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)/$(MODULE_NAME)
 BUILD_DIR_CURR				= $(BUILD_DIR_ABS)/$(MODULE_NAME)
 LIBS_DIR_CURR				= $(LIBS_DIR_ABS)
 OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)/$(MODULE_NAME)
 TEST_DIR_CURR				= $(TEST_DIR_ABS)/$(MODULE_NAME)
+
+
+# Sources and headers (files in modules/ must be _AFTER_ files in current dir!)
+HEADERS =																	\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		\( -name '*.h' -or -name '*.hpp' \) ))								\
+																			\
+	$(addprefix modules/,$(notdir $(shell find $(SOURCES_DIR_CURR)/modules	\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		\( -name '*.h' -or -name '*.hpp' \) )))
+
+
+SOURCES_CPP =																\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		-name '*.cpp' ))													\
+																			\
+	$(addprefix modules/,$(notdir $(shell find $(SOURCES_DIR_CURR)/modules	\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		-name '*.cpp' )))
+
+
+# Tests
+TEST_SOURCES_CPP =															\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-name 'test*.cpp' ))												\
+																			\
+	$(addprefix modules/,$(notdir $(shell find $(SOURCES_DIR_CURR)/modules	\
+		-depth 1 \( -type file -or -type link \)							\
+		-name 'test*.cpp' )))
 
 
 # Files

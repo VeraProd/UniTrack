@@ -7,56 +7,8 @@
 include $(MAKEFILE_ADVANCED_ABS)
 
 
-# Sources and headers
-HEADERS =									\
-	types.h									\
-											\
-	protocol_http.h protocol_http.hpp		\
-	protocol_http_statuses.hpp				\
-	protocol.h								\
-	protocol_exceptions.h					\
-											\
-	server_http.h server_http.hpp			\
-	acceptor.h								\
-	worker.h worker.hpp						\
-	client_manager.h client_manager.hpp		\
-											\
-	host.h host.hpp							\
-	host_parameters.h						\
-	file_host.h file_host.hpp				\
-	file_host_parameters.h					\
-	file_host_files_only.h					\
-	host_exceptions.h						\
-	host_manager.h							\
-	
-
-
-SOURCES_CPP =								\
-	protocol_http.cpp						\
-	protocol.cpp							\
-	protocol_exceptions.cpp					\
-											\
-	server_http.cpp							\
-	acceptor.cpp							\
-	worker.cpp								\
-	client_manager.cpp						\
-											\
-	host.cpp								\
-	host_parameters.cpp						\
-	file_host_parameters.cpp				\
-	file_host_files_only.cpp				\
-	host_exceptions.cpp						\
-	host_manager.cpp						\
-	
-
-
-# Static library
+# Dynamic library
 TARGET_LIB = libserver.so
-
-
-# Tests
-TEST_SOURCES_CPP =							\
-	
 
 
 # Requrements
@@ -70,7 +22,7 @@ else
 endif
 
 
-# Absolute paths
+# Paths
 SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)/$(MODULE_NAME)
 BUILD_DIR_CURR				= $(BUILD_DIR_ABS)/$(MODULE_NAME)
 LIBS_DIR_CURR				= $(LIBS_DIR_ABS)
@@ -78,10 +30,31 @@ OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)/$(MODULE_NAME)
 TEST_DIR_CURR				= $(TEST_DIR_ABS)/$(MODULE_NAME)
 
 
+# Sources and headers
+HEADERS =																	\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		\( -name '*.h' -or -name '*.hpp' \) ))
+
+
+SOURCES_CPP =																\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		-name '*.cpp' ))
+
+
+# Tests
+TEST_SOURCES_CPP =															\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-name 'test*.cpp' ))
+
+
 # Files
 HEADER_FILES				= $(call get_sources_files,$(HEADERS))
 SOURCES_CPP_FILES			= $(call get_sources_files,$(SOURCES_CPP))
-MAIN_SOURCES_CPP_FILES		= $(call get_sources_files,$(MAIN_SOURCES_CPP))
 
 # Object files
 OBJECTS						= $(call get_objects_cpp,$(SOURCES_CPP))
@@ -113,7 +86,7 @@ check: dirs run-tests
 
 
 dirs:
-	mkdir -p $(sort $(dir $(OBJECT_FILES) $(MAIN_OBJECT_FILES) $(TEST_OBJECT_FILES) \
+	mkdir -p $(sort $(dir $(OBJECT_FILES) $(TEST_OBJECT_FILES) \
 						  $(TARGET_LIB_FILE) $(TEST_TARGET_FILES)))
 
 

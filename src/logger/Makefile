@@ -7,36 +7,38 @@
 include $(MAKEFILE_ADVANCED_ABS)
 
 
-# Sources and headers
-HEADERS =								\
-	level.h								\
-	logger.h							\
-	record_object.h record_object.hpp	\
-	
-
-
-SOURCES_CPP =							\
-	level.cpp							\
-	logger.cpp							\
-	record_object.cpp					\
-	
-
-
-# Static library
+# Dynamic library
 TARGET_LIB = liblogger.so
 
 
-# Tests
-TEST_SOURCES_CPP =				\
-	
-
-
-# Absolute paths
+# Paths
 SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)/$(MODULE_NAME)
 BUILD_DIR_CURR				= $(BUILD_DIR_ABS)/$(MODULE_NAME)
 LIBS_DIR_CURR				= $(LIBS_DIR_ABS)
 OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)/$(MODULE_NAME)
 TEST_DIR_CURR				= $(TEST_DIR_ABS)/$(MODULE_NAME)
+
+
+# Sources and headers (files in modules/ must be _AFTER_ files in current dir!)
+HEADERS =																	\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		\( -name '*.h' -or -name '*.hpp' \) ))
+
+
+SOURCES_CPP =																\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		-name '*.cpp' ))
+
+
+# Tests
+TEST_SOURCES_CPP =															\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-name 'test*.cpp' ))
 
 
 # Files

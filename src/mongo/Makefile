@@ -7,36 +7,8 @@
 include $(MAKEFILE_ADVANCED_ABS)
 
 
-# Sources and headers
-HEADERS =						\
-	client.h					\
-	client_pool.h				\
-	collection.h				\
-	cursor.h					\
-	document.h					\
-	mongoc_handler.h			\
-	oid.h						\
-	uri.h
-
-
-SOURCES_CPP =					\
-	client.cpp					\
-	client_pool.cpp				\
-	collection.cpp				\
-	cursor.cpp					\
-	document.cpp				\
-	mongoc_handler.cpp			\
-	oid.cpp						\
-	uri.cpp
-
-
-# Static library
+# Dynamic library
 TARGET_LIB = libmongo.so
-
-
-# Tests
-TEST_SOURCES_CPP =				\
-	
 
 
 # Mongo flags
@@ -44,12 +16,34 @@ GPP_HEADER_PATHS			+= $(shell pkg-config --cflags libmongoc-1.0 libbson-1.0)
 GPP_LIBS					+= $(shell pkg-config --libs libmongoc-1.0 libbson-1.0)
 
 
-# Absolute paths
+# Paths
 SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)/$(MODULE_NAME)
 BUILD_DIR_CURR				= $(BUILD_DIR_ABS)/$(MODULE_NAME)
 LIBS_DIR_CURR				= $(LIBS_DIR_ABS)
 OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)/$(MODULE_NAME)
 TEST_DIR_CURR				= $(TEST_DIR_ABS)/$(MODULE_NAME)
+
+
+# Sources and headers
+HEADERS =																	\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		\( -name '*.h' -or -name '*.hpp' \) ))
+
+
+SOURCES_CPP =																\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		-name '*.cpp' ))
+
+
+# Tests
+TEST_SOURCES_CPP =															\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-name 'test*.cpp' ))
 
 
 # Files

@@ -13,54 +13,43 @@
 include $(MAKEFILE_ADVANCED_ABS)
 
 
-# Sources and headers
-HEADERS =												\
-	project_data.h										\
-														\
-	page_model.h										\
-														\
-	file_host_template_pages_only.h						\
-	file_host_files_and_template_pages.h				\
-	file_host_files_and_template_pages_parameters.h		\
-														\
-	interface_manager.h									\
-														\
-	json.hpp											\
-	json_utils.h										\
-	
-
-
-SOURCES_CPP =											\
-	project_data.cpp									\
-														\
-	page_model.cpp										\
-														\
-	file_host_template_pages_only.cpp					\
-	file_host_files_and_template_pages.cpp				\
-	file_host_files_and_template_pages_parameters.cpp	\
-														\
-	interface_manager.cpp								\
-														\
-	json_utils.cpp										\
-	
-
-
-# Sources needed for only main targets
-MAIN_SOURCES_CPP =				\
-	main.cpp
-
-
-# Tests
-TEST_SOURCES_CPP =				\
-	
-
-
 # Absolute paths
 SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)
 BUILD_DIR_CURR				= $(BUILD_DIR_ABS)
 LIBS_DIR_CURR				= $(LIBS_DIR_ABS)
 OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)
 TEST_DIR_CURR				= $(TEST_DIR_ABS)
+
+
+# Sources and headers
+HEADERS =																	\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not \( -name 'test*' -or -name 'main*' \)							\
+		\( -name '*.h' -or -name '*.hpp' \) ))
+
+
+SOURCES_CPP =																\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not \( -name 'test*' -or -name 'main*' \)							\
+		-name '*.cpp' ))
+
+
+# Tests
+TEST_SOURCES_CPP =															\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'main*'													\
+		-name 'test*.cpp' ))
+
+
+# Sources needed for only main targets
+MAIN_SOURCES_CPP =															\
+	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
+		-depth 1 \( -type file -or -type link \)							\
+		-not -name 'test*'													\
+		-name 'main*.cpp' ))
 
 
 # Files
