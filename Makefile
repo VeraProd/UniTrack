@@ -258,13 +258,13 @@ happy: git-pull all
 
 
 git-pull:
-	echo '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';							\
-	git pull --recurse-submodules=yes;														\
-	STATUS=$$?;																				\
-	if [ "X$$STATUS" = 'X0' ]; then															\
-		echo '$(COLOR_PASS)==> New version downloaded.$(COLOR_RESET)';						\
-	else																					\
-		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";		\
+	echo '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';						\
+	git pull --recurse-submodules=yes;													\
+	STATUS=$$?;																			\
+	if [ "X$$STATUS" = 'X0' ]; then														\
+		echo '$(COLOR_PASS)==> New version downloaded.$(COLOR_RESET)';					\
+	else																				\
+		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";	\
 	fi
 
 
@@ -345,13 +345,14 @@ $(MODULE_FILES): modules
 
 # Main targets
 $(TARGET_FILES): $(HEADER_FILES) modules objects
-	echo '$(COLOR_RUN)Linking target...$(COLOR_RESET)';											\
+	TARGET=$(subst $(BUILD_DIR_CURR)/,,$@);														\
+	echo "$(COLOR_RUN)Linking target: $$TARGET (global)...$(COLOR_RESET)";						\
 	$(call gpp_link) $(GPP_LIBS_CURR) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES);				\
 	STATUS=$$?;																					\
 	if [ "X$$STATUS" = 'X0' ]; then																\
-		echo "$(COLOR_PASS)==> Target linked successfully.$(COLOR_RESET)";						\
+		echo "$(COLOR_PASS)==> Target $$TARGET linked successfully.$(COLOR_RESET)";				\
 	else																						\
-		echo "$(COLOR_FAIL)==> Target linking failed.$(COLOR_RESET)";							\
+		echo "$(COLOR_FAIL)==> Target $$TARGET linking failed.$(COLOR_RESET)";					\
 	fi;
 
 
