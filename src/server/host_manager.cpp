@@ -8,7 +8,7 @@
 
 
 server::host_manager::host_manager(logger::logger &logger):
-	logger_(logger)
+	logger::enable_logger(logger)
 {}
 
 
@@ -20,18 +20,18 @@ bool
 server::host_manager::add_host(server::host_ptr_t host_ptr) noexcept
 {
 	if (host_ptr == nullptr) {
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Host manager: A nonexistent host can not be added: User, are you kidding?";
 		return false;
 	}
 	
 	auto p = this->hosts_.emplace(&host_ptr->name(), host_ptr);
 	if (p.second) {
-		this->logger_.stream(logger::level::info)
+		this->logger().stream(logger::level::info)
 			<< "Host manager: Host \"" << host_ptr->name()
 			<< "\" added.";
 	} else {
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Host manager: Host \"" << host_ptr->name()
 			<< "\" not added: Host already exists.";
 	}
@@ -48,7 +48,7 @@ server::host_manager::host(const std::string &name, server::port_t port)
 {
 	auto it = this->hosts_.find(&name);
 	if (it == this->hosts_.end()) {
-		this->logger_.stream(logger::level::sec_info)
+		this->logger().stream(logger::level::sec_info)
 			<< "Host manager: Requested access to nonexistent host: \"" << name
 			<< "\", port: " << port << '.';
 		
@@ -58,7 +58,7 @@ server::host_manager::host(const std::string &name, server::port_t port)
 	auto host_ptr = it->second;
 	
 	if (!host_ptr->port_allowed(port)) {
-		this->logger_.stream(logger::level::sec_warning)
+		this->logger().stream(logger::level::sec_warning)
 			<< "Host manager: Requested access to non-allowed port: host: \"" << name
 			<< "\", port: " << port << '.';
 		

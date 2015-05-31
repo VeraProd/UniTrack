@@ -8,10 +8,10 @@
 
 server::server_http::server_http(logger::logger &logger,
 								 const server_http_parameters &parameters):
-	logger_(logger),
+	logger::enable_logger(logger),
 	parameters_(parameters),
 	
-	host_manager_(logger_),
+	host_manager_(this->logger()),
 	
 	acceptors_io_service_(),
 	acceptor_empty_work_(acceptors_io_service_),
@@ -26,19 +26,19 @@ server::server_http::server_http(logger::logger &logger,
 			for (auto port: this->parameters_.ports) {
 				try {
 					this->acceptor_ptrs_.emplace_back(
-						new server::acceptor(this->logger_,
+						new server::acceptor(this->logger(),
 											 *this,
 											 { .port = port },
 											 this->acceptors_io_service_,
 											 this->workers_io_service_));
 				} catch (const boost::system::system_error &e) {
-					this->logger_.stream(logger::level::error)
+					this->logger().stream(logger::level::error)
 						<< "Server: Accepting on port: " << port
 						<< ": NOT started: " << e.what() << '.';
 				}
 			}
 			
-			this->logger_.stream(logger::level::info)
+			this->logger().stream(logger::level::info)
 				<< "Server: Acceptors created.";
 		}
 		
@@ -55,7 +55,7 @@ server::server_http::server_http(logger::logger &logger,
 				parameters.id = current_worker_id++;
 				
 				std::unique_ptr<server::worker> worker_ptr(
-					new server::worker(this->logger_,
+					new server::worker(this->logger(),
 									   parameters,
 									   this->workers_io_service_,
 									   this->host_manager()));
@@ -64,7 +64,7 @@ server::server_http::server_http(logger::logger &logger,
 				this->worker_ptrs_.emplace_back(std::move(worker_ptr));
 			}
 			
-			this->logger_.stream(logger::level::info)
+			this->logger().stream(logger::level::info)
 				<< "Server: " << this->parameters_.workers << " workers created.";
 		}
 		
@@ -72,10 +72,10 @@ server::server_http::server_http(logger::logger &logger,
 		// Server starting
 		this->server_thread_ = std::move(std::thread(std::bind(&server_http::run, this)));
 	} catch (const std::exception &e) {
-		this->logger_.stream(logger::level::critical)
+		this->logger().stream(logger::level::critical)
 			<< "Server: Exception: " << e.what() << '.';
 		
-		this->logger_.stream(logger::level::critical)
+		this->logger().stream(logger::level::critical)
 			<< "Server: NOT started.";
 	}
 }
@@ -84,7 +84,7 @@ server::server_http::server_http(logger::logger &logger,
 void
 server::server_http::stop() noexcept
 {
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Server: Stopping...";
 	
 	this->acceptors_io_service_.stop();	// Stopping acceptors
@@ -92,14 +92,14 @@ server::server_http::stop() noexcept
 	
 	
 	// Waiting for workers
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Server: Waiting for workers...";
 	
 	for (auto &worker_ptr: this->worker_ptrs_) {
 		try {
 			worker_ptr->join();
 		} catch (const std::system_error &e) {
-			this->logger_.stream(logger::level::error)
+			this->logger().stream(logger::level::error)
 				<< "Server: Unable to join to worker " << worker_ptr->id() << " thread: "
 				<< e.what() << '.';
 		}
@@ -110,7 +110,7 @@ server::server_http::stop() noexcept
 	try {
 		this->join();
 	} catch (const std::system_error &e) {
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Server: Unable to join to server thread: " << e.what() << '.';
 	}
 }
@@ -140,12 +140,12 @@ server::server_http::dispatch_client_worker_thread(server::socket_ptr_t socket_p
 		auto &worker_ptr = this->worker_ptrs_[worker_id];
 		worker_ptr->add_client(socket_ptr);
 	} catch (const std::out_of_range &) {	// Impossible
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Server: Invalid worker thread dispatched: "
 			<< ((current_thread_id == this->server_thread_.get_id())?
 				"server thread.": "unknown thread.");
 	} catch (...) {							// Impossible too
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Server: Unable to add client to worker. Unknown error.";
 	}
 }
@@ -155,7 +155,7 @@ void
 server::server_http::run() noexcept
 {
 	{
-		auto stream = std::move(this->logger_.stream(logger::level::info));
+		auto stream = std::move(this->logger().stream(logger::level::info));
 		stream << "Server: Started (ports:";
 		for (auto port: this->parameters_.ports)
 			stream << ' ' << port << ',';
@@ -166,10 +166,10 @@ server::server_http::run() noexcept
 	this->acceptors_io_service_.run(err);
 	
 	if (err) {
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Server: Stopped with error: " << err.message() << '.';
 	} else {
-		this->logger_.stream(logger::level::info)
+		this->logger().stream(logger::level::info)
 			<< "Server: Stopped.";
 	}
 }

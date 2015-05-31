@@ -11,11 +11,10 @@ const std::regex logger::record_object::regex_r_("\r", std::regex::optimize);
 const std::string logger::record_object::replace_r_by_("");
 
 
-logger::record_object::record_object(level level_, logger &logger_) noexcept:
-	level_(level_),
-	logger_(logger_),
+logger::record_object::record_object(logger &logger, level level) noexcept:
+	logger_ptr_(&logger),
 	
-	log_on_destroy_(true)
+	level_(level)
 {
 	// Printing timestamp in format: DD.MM.YYYY hh:mm:ss
 	time_t raw_time;
@@ -30,18 +29,30 @@ logger::record_object::record_object(level level_, logger &logger_) noexcept:
 
 
 logger::record_object::record_object(record_object &&other) noexcept:
-	level_(other.level_),
-	logger_(other.logger_),
-	stream_(std::move(other.stream_)),
+	logger_ptr_(other.logger_ptr_),
 	
-	log_on_destroy_(true)
+	level_(other.level_),
+	stream_(std::move(other.stream_))
 {
-	other.log_on_destroy_ = false;
+	other.logger_ptr_ = nullptr;
 }
 
 
 logger::record_object::~record_object()
 {
-	if (this->log_on_destroy_)
-		this->logger_.log_raw(this->level_, this->stream_.str());
+	if (this->logger_ptr_)
+		this->logger_ptr_->log_raw(this->level_, this->stream_.str());
+}
+
+
+logger::record_object &
+logger::record_object::operator=(record_object &&other)
+{
+	this->logger_ptr_ = other.logger_ptr_;
+	this->level_ = other.level_;
+	this->stream_ = std::move(other.stream_);
+	
+	other.logger_ptr_ = nullptr;
+	
+	return *this;
 }

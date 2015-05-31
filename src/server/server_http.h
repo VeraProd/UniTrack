@@ -25,7 +25,8 @@ struct server_http_parameters
 };
 
 
-class server_http
+class server_http:
+	protected logger::enable_logger
 {
 public:
 	server_http(logger::logger &logger,
@@ -67,8 +68,6 @@ private:
 	
 	
 	// Data
-	logger::logger &logger_;
-	
 	server_http_parameters parameters_;
 	
 	server::host_manager host_manager_;

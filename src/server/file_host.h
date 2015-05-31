@@ -53,7 +53,8 @@ namespace server {
 
 template<class HostType,
 		 class CacheType = server::file_host_cache<HostType>>
-class file_host: public server::host
+class file_host:
+	public server::host
 {
 public:
 	typedef CacheType cache_t;

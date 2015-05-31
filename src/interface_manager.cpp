@@ -22,13 +22,13 @@
 interface_manager::interface_manager(logger::logger &logger,
 									 const std::string &config_file_path,
 									 page_model &model):
-	logger_(logger),
+	logger::enable_logger(logger),
 	
 	model_(model)
 {
 	try {
 		nlohmann::json config = std::move(utils::json_from_file(config_file_path));
-		this->logger_.stream(logger::level::info)
+		this->logger().stream(logger::level::info)
 			<< "Interface manager: Read config: \"" << config_file_path << "\".";
 		
 		
@@ -55,14 +55,14 @@ interface_manager::interface_manager(logger::logger &logger,
 					if (type == "files_only") {
 						this->server_ptr_->host_manager().add_host(
 							std::make_shared<server::file_host<server::files_only>>(
-								this->logger_,
+								this->logger(),
 								params
 							)
 						);
 					} else if (type == "template_pages_only") {
 						this->server_ptr_->host_manager().add_host(
 							std::make_shared<server::file_host<template_pages_only>>(
-								this->logger_,
+								this->logger(),
 								params,
 								this->model_
 							)
@@ -72,7 +72,7 @@ interface_manager::interface_manager(logger::logger &logger,
 						
 						this->server_ptr_->host_manager().add_host(
 							std::make_shared<server::file_host<files_and_template_pages>>(
-								this->logger_,
+								this->logger(),
 								params,
 								files_and_template_pages(
 									this->model_,
@@ -87,7 +87,7 @@ interface_manager::interface_manager(logger::logger &logger,
 			}
 		}
 	} catch (const std::exception &e) {
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Interface manager: " << e.what() << '.';
 	}
 }

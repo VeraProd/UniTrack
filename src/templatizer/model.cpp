@@ -3,5 +3,4 @@
 #include <templatizer/model.h>
 
 
-templatizer::model::~model()
-{}
+templatizer::model::~model() = default;

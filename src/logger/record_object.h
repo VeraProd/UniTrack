@@ -19,15 +19,16 @@ class logger;
 class record_object
 {
 public:
-	record_object(level level_, logger &logger_) noexcept;
+	record_object(logger &logger, level level) noexcept;
 	record_object(record_object &&other) noexcept;
 	~record_object();
 	
+	record_object & operator=(record_object &&other);
 	
-	// Non-copy constructable or copy/move assignable.
+	
+	// Non-copy constructable/assignable.
 	record_object(const record_object &other) = delete;
 	record_object & operator=(const record_object &other) = delete;
-	record_object & operator=(record_object &&other) = delete;
 	
 	
 	template<class T>
@@ -37,15 +38,16 @@ private:
 	static const std::regex regex_r_;
 	static const std::string replace_r_by_;
 	
-	level level_;
-	logger &logger_;
-	std::ostringstream stream_;
 	
-	bool log_on_destroy_;
-};
+	class logger *logger_ptr_;
+	
+	level level_;
+	std::ostringstream stream_;
+};	// class record_object
 
 
 };	// logger
+
 
 #include <logger/record_object.hpp>
 

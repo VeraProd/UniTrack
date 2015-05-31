@@ -24,7 +24,8 @@ struct worker_parameters
 };
 
 
-class worker
+class worker:
+	protected logger::enable_logger
 {
 public:
 	worker(logger::logger &logger,
@@ -71,8 +72,6 @@ private:
 	
 	
 	// Data
-	logger::logger &logger_;
-	
 	worker_parameters parameters_;
 	
 	server::host_manager &host_manager_;

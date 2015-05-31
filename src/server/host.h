@@ -23,13 +23,14 @@ namespace server {
 
 // Server knows about all existing hosts. If client needs host, that does exist,
 // server dispatches request to the error_host.
-class host
+class host:
+	protected logger::enable_logger
 {
 public:
 	host(logger::logger &logger,
 		 const server::host_parameters &parameters);
 	
-	virtual ~host();
+	virtual ~host() = default;
 	
 	
 	// Returns host's name (name does not include port information!).
@@ -110,15 +111,10 @@ public:
 						   const send_buffer_t &buffer);
 	
 	static void validate_headers(const headers_t &headers);
-	
-	
-	inline logger::logger & logger() const noexcept;
 protected:
 	server::host_parameters host_parameters_;
 private:
 	static std::unique_ptr<host> error_host_;
-	
-	logger::logger &logger_;
 	
 	mutable std::minstd_rand0 server_name_generator_;
 };	// class host

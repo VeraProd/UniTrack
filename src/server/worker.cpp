@@ -9,7 +9,7 @@ server::worker::worker(logger::logger &logger,
 					   const server::worker_parameters &parameters,
 					   boost::asio::io_service &io_service,
 					   server::host_manager &host_manager):
-	logger_(logger),
+	logger::enable_logger(logger),
 	parameters_(parameters),
 	
 	host_manager_(host_manager),
@@ -26,25 +26,25 @@ server::worker::worker(logger::logger &logger,
 bool
 server::worker::add_client(server::socket_ptr_t socket_ptr) noexcept
 {
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Worker: Adding client to worker " << this->id() << '.';
 	
 	
 	try {
 		auto it = this->client_managers_.emplace(this->client_managers_.end(), nullptr);
-		*it = std::make_shared<server::client_manager>(this->logger_,
+		*it = std::make_shared<server::client_manager>(this->logger(),
 													   *this,
 													   it,
 													   socket_ptr,
 													   this->host_manager_);
 	} catch (...) {
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Worker: Worker " << this->id() << ": Client not added.";
 		return false;
 	}
 	
 	
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << ": Client added.";
 	return true;
 }
@@ -64,7 +64,7 @@ server::worker::erase_client(client_manager_list_const_iterator_t iterator) noex
 void
 server::worker::run() noexcept
 {
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << " started.";
 	
 	this->io_service_.run();	// Stops when server stops this service
@@ -77,11 +77,11 @@ server::worker::run() noexcept
 void
 server::worker::stop() noexcept
 {
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << " stopping...";
 	
 	
 	
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Worker: Worker " << this->id() << " stopped.";
 }

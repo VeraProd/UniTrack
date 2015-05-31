@@ -12,7 +12,8 @@ server::acceptor::acceptor(logger::logger &logger,
 						   const acceptor_parameters &parameters,
 						   boost::asio::io_service &acceptors_io_service,
 						   boost::asio::io_service &workers_io_service):
-	logger_(logger),
+	logger::enable_logger(logger),
+	
 	server_(server),
 	parameters_(parameters),
 	
@@ -24,7 +25,7 @@ server::acceptor::acceptor(logger::logger &logger,
 {
 	this->add_accept_handler();
 	
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Acceptor: Accepting on port: " << this->parameters_.port
 		<< ": started.";
 }
@@ -43,13 +44,13 @@ server::acceptor::accept_handler(server::socket_ptr_t socket_ptr,
 								 const boost::system::error_code &err) noexcept
 {
 	if (err) {
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Acceptor: Accepting on port: " << this->parameters_.port
 			<< ": " << err.message() << '.';
 	} else {
 		this->add_accept_handler();	// Continue accepting
 		
-		this->logger_.stream(logger::level::info)
+		this->logger().stream(logger::level::info)
 			<< "Acceptor: New connection on port: " << this->parameters_.port
 			<< ": Accepted.";
 	}

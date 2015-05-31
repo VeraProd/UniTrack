@@ -15,9 +15,11 @@ template<class ModuleRepr>
 class module
 {
 public:
-	module(const std::string &command,
-		   templatizer::module_registrar &registrar =
-		   	templatizer::module_registrar::default_module_registrar);
+	module(
+		const std::string &command,
+		templatizer::module_registrar &registrar =
+			templatizer::module_registrar::default_module_registrar
+	);
 };	// class module
 
 

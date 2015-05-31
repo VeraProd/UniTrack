@@ -23,15 +23,11 @@ std::unique_ptr<server::host> server::host::error_host_;
 
 server::host::host(logger::logger &logger,
 				   const server::host_parameters &parameters):
+	logger::enable_logger(logger),
+	
 	host_parameters_(parameters),
 	
-	logger_(logger),
-	
 	server_name_generator_(std::chrono::system_clock::now().time_since_epoch().count())
-{}
-
-
-server::host::~host()
 {}
 
 

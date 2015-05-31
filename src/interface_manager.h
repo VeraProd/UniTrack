@@ -12,7 +12,8 @@
 #include <page_model.h>
 
 
-class interface_manager
+class interface_manager:
+	protected logger::enable_logger
 {
 public:
 	interface_manager(logger::logger &logger,
@@ -28,8 +29,6 @@ public:
 	
 	void stop();
 private:
-	logger::logger &logger_;
-	
 	page_model &model_;
 	
 	std::unique_ptr<server::server_http> server_ptr_;

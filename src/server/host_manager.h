@@ -12,7 +12,8 @@
 namespace server {
 
 
-class host_manager
+class host_manager:
+	protected logger::enable_logger
 {
 public:
 	host_manager(logger::logger &logger);
@@ -30,9 +31,6 @@ public:
 	// Thread-sefety: yes (it's read function).
 	server::host_ptr_t host(const std::string &name, server::port_t port);
 private:
-	logger::logger &logger_;
-	
-	
 	class hosts_map_cmp: public std::less<std::string>
 	{
 	public:

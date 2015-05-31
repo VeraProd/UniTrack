@@ -25,7 +25,8 @@ namespace server {
 class worker;
 
 
-class client_manager
+class client_manager:
+	protected logger::enable_logger
 {
 public:
 	typedef std::shared_ptr<client_manager> ptr_t;
@@ -129,8 +130,6 @@ private:
 	
 	
 	// Data
-	logger::logger &logger_;
-	
 	server::host_manager &host_manager_;
 	
 	worker &worker_;

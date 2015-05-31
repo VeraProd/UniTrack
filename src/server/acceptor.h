@@ -20,7 +20,8 @@ struct acceptor_parameters {
 class server_http;
 
 
-class acceptor
+class acceptor:
+	protected logger::enable_logger
 {
 public:
 	acceptor(logger::logger &logger,
@@ -40,7 +41,6 @@ private:
 	
 	
 	// Data
-	logger::logger &logger_;
 	server::server_http &server_;
 	
 	acceptor_parameters parameters_;

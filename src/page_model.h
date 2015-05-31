@@ -12,7 +12,8 @@
 
 class page_model:
 	public templatizer::model,
-	public std::unordered_map<std::string, std::string>
+	public std::unordered_map<std::string, std::string>,
+	protected logger::enable_logger
 {
 public:
 	page_model(logger::logger &logger);
@@ -21,8 +22,6 @@ public:
 	virtual const std::string & variable(const std::string &var_name) const override;
 private:
 	static const std::string unknown_var_;
-	
-	logger::logger &logger_;
 };	// class model
 
 

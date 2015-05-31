@@ -5,6 +5,7 @@
 
 #include <string>
 
+
 namespace logger {
 
 
@@ -30,5 +31,6 @@ const std::string & level_to_str(level level_) noexcept;
 
 
 };	// logger
+
 
 #endif // LOGGER_LEVEL_H

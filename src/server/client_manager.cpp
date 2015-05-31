@@ -16,7 +16,7 @@ server::client_manager::client_manager(logger::logger &logger,
 									   const_iterator_t iterator,
 									   server::socket_ptr_t socket_ptr,
 									   server::host_manager &host_manager):
-	logger_(logger),
+	logger::enable_logger(logger),
 	
 	host_manager_(host_manager),
 	
@@ -35,7 +35,7 @@ server::client_manager::client_manager(logger::logger &logger,
 	unique_lock_t lock(*this);
 	
 	
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Client manager (worker " << this->worker_.id()
 		<< "): Client connected: " << this->client_ip_address() << '.';
 	
@@ -78,7 +78,7 @@ server::client_manager::unlock() noexcept
 void
 server::client_manager::log_error(const char *what, const server::http::status &status)
 {
-	this->logger_.stream(logger::level::error)
+	this->logger().stream(logger::level::error)
 		<< "Client manager (worker " << this->worker_.id()
 		<< "): " << this->client_ip_address() << ": " << what
 		<< " => " << status.code() << '.';
@@ -114,7 +114,7 @@ server::client_manager::add_request_handler()
 								  std::bind(&client_manager::request_handler, this,
 											request_data_ptr, _1, _2));
 	
-	this->logger_.stream(logger::level::info)
+	this->logger().stream(logger::level::info)
 		<< "Client manager (worker " << this->worker_.id()
 		<< "): " << this->client_ip_address()
 		<< ": Waiting for headers...";
@@ -135,7 +135,7 @@ server::client_manager::send_phony(server::client_manager::request_data_ptr_t re
 								   server::headers_t &&headers)
 {
 	// Getting data for the phony...
-	auto data = std::move(server::host::error_host(this->logger_).phony_response(
+	auto data = std::move(server::host::error_host(this->logger()).phony_response(
 		request_data_ptr->version,
 		status,
 		std::move(headers)));
@@ -216,7 +216,7 @@ server::client_manager::process_request(request_data_ptr_t request_data_ptr)
 		else requested_port = match_result[3];
 		
 		if (std::to_string(port) != requested_port) {
-			this->logger_.stream(logger::level::sec_warning)
+			this->logger().stream(logger::level::sec_warning)
 				<< "Client manager (worker " << this->worker_.id()
 				<< "): " << this->client_ip_address()
 				<< ": Incorrect port in Host header: \"" << host_str << "\".";
@@ -244,11 +244,11 @@ server::client_manager::request_handler(server::client_manager::request_data_ptr
 	
 	if (err) {
 		if (err == boost::asio::error::misc_errors::eof) {
-			this->logger_.stream(logger::level::info)
+			this->logger().stream(logger::level::info)
 				<< "Client manager (worker " << this->worker_.id()
 				<< "): Client disconnected: " << this->client_ip_address() << '.';
 		} else {
-			this->logger_.stream(logger::level::error)
+			this->logger().stream(logger::level::error)
 				<< "Client manager (worker " << this->worker_.id()
 				<< "): " << this->client_ip_address()
 				<< ": " << err.value() << " " << err.message() << '.';
@@ -262,7 +262,7 @@ server::client_manager::request_handler(server::client_manager::request_data_ptr
 		
 		
 		{
-			auto stream = this->logger_.stream(logger::level::info);
+			auto stream = this->logger().stream(logger::level::info);
 			stream
 				<< "Client manager (worker " << this->worker_.id()
 				<< "): " << this->client_ip_address()
@@ -348,12 +348,12 @@ server::client_manager::response_handler(server::host_cache::ptr_t cache_ptr,
 	
 	
 	if (err) {
-		this->logger_.stream(logger::level::error)
+		this->logger().stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
 			<< "): " << this->client_ip_address()
 			<< ": Error sending response: " << err.message() << '.';
 	} else {
-		this->logger_.stream(logger::level::info)
+		this->logger().stream(logger::level::info)
 			<< "Client manager (worker " << this->worker_.id()
 			<< "): " << this->client_ip_address()
 			<< ": Response sent.";
