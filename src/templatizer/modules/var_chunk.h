@@ -13,7 +13,8 @@
 namespace templatizer {
 
 
-class var_chunk: public templatizer::chunk
+class var_chunk:
+	public templatizer::chunk
 {
 public:
 	static const std::string var_chunk_cmd;	// = "var"

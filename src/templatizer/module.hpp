@@ -1,7 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 #include <memory>
-#include <functional>
 
 
 template<class ModuleRepr>
