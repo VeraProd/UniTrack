@@ -294,26 +294,26 @@ objects:
 
 modules: dirs
 	for T in $(MODULES); do																		\
-		echo "$(COLOR_RUN)Building module: \"$$T\"...$(COLOR_RESET)";							\
+		echo "$(COLOR_RUN)Building module: $$T...$(COLOR_RESET)";								\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T";							\
 		STATUS=$$?;																				\
 		if [ "X$$STATUS" = 'X0' ]; then															\
-			echo "$(COLOR_PASS)==> Module \"$$T\" built successfully.$(COLOR_RESET)";			\
+			echo "$(COLOR_PASS)==> Module $$T built successfully.$(COLOR_RESET)";				\
 		else																					\
-			echo "$(COLOR_FAIL)==> Module \"$$T\" building failed.$(COLOR_RESET)";				\
+			echo "$(COLOR_FAIL)==> Module $$T building failed.$(COLOR_RESET)";					\
 		fi;																						\
 	done
 
 
 run: all
 	for T in $(MAIN_TARGETS); do																\
-		echo "$(COLOR_RUN)Running program: \"$$T\"...$(COLOR_RESET)";							\
+		echo "$(COLOR_RUN)Running program: $$T...$(COLOR_RESET)";								\
 		$(call get_target_files,$$T);															\
 		STATUS=$$?;																				\
 		if [ "X$$STATUS" = 'X0' ]; then															\
-			echo "$(COLOR_PASS)==> Program \"$$T\" completed successfully.$(COLOR_RESET)";		\
+			echo "$(COLOR_PASS)==> Program $$T completed successfully.$(COLOR_RESET)";			\
 		else																					\
-			echo "$(COLOR_FAIL)==> Program \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";	\
+			echo "$(COLOR_FAIL)==> Program $$T failed with code: $$STATUS.$(COLOR_RESET)";		\
 		fi;																						\
 	done
 
@@ -321,13 +321,13 @@ run: all
 # Running tests for submodules too
 run-tests: dirs $(TEST_TARGET_FILES)
 	for T in $(TEST_TARGETS); do																\
-		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";								\
+		echo "$(COLOR_RUN)Running test: $$T...$(COLOR_RESET)";									\
 		$(call get_test_files,$$T);																\
 		STATUS=$$?;																				\
 		if [ "X$$STATUS" = 'X0' ]; then															\
-			echo "$(COLOR_PASS)==> Test \"$$T\" passed.$(COLOR_RESET)";							\
+			echo "$(COLOR_PASS)==> Test $$T passed.$(COLOR_RESET)";								\
 		else																					\
-			echo "$(COLOR_FAIL)==> Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";		\
+			echo "$(COLOR_FAIL)==> Test $$T failed with code: $$STATUS.$(COLOR_RESET)";			\
 		fi;																						\
 	done																						\
 	for T in $(MODULES); do																		\

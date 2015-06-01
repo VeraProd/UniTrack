@@ -85,13 +85,13 @@ main: $(TARGET_LIB_FILE)
 
 run-tests: $(TEST_TARGET_FILES)
 	for T in $(TEST_TARGETS); do															\
-		echo "$(COLOR_RUN)Running test: \"$$T\"...$(COLOR_RESET)";							\
+		echo "$(COLOR_RUN)Running test: $$T...$(COLOR_RESET)";								\
 		$(call get_test_files,$$T);															\
 		STATUS=$$?;																			\
 		if [ "X$$STATUS" == 'X0' ]; then													\
-			echo "$(COLOR_PASS)Test \"$$T\" passed.$(COLOR_RESET)";							\
+			echo "$(COLOR_PASS)Test $$T passed.$(COLOR_RESET)";								\
 		else																				\
-			echo "$(COLOR_FAIL)Test \"$$T\" failed with code: $$STATUS.$(COLOR_RESET)";		\
+			echo "$(COLOR_FAIL)Test $$T failed with code: $$STATUS.$(COLOR_RESET)";			\
 		fi;																					\
 	done
 
