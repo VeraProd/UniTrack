@@ -18,6 +18,10 @@
 #include <project_data.h>
 
 
+// #define LOGGER_JSON_FILE "logger.json"
+#define SERVER_JSON_FILE "server.json"
+
+
 int main(int argc, char **argv)
 {
 	// mongo::mongoc_handler handler;
@@ -39,7 +43,7 @@ int main(int argc, char **argv)
 	// templatizer::page page("www/profile.html");
 	
 	
-	logger::logger logger(std::clog);
+	logger::logger logger(std::clog, true);
 	
 	
 	// Profile page
@@ -54,7 +58,9 @@ int main(int argc, char **argv)
 	// std::cout << std::endl << "Generated page:" << std::endl
 	// 		  << profile_page(profile_model) << std::endl;
 	
-	interface_manager interface_manager(logger, project_data::config + "/config.json", profile_model);
+	interface_manager interface_manager(logger,
+										project_data::config + "/" + SERVER_JSON_FILE,
+										profile_model);
 	
 	// Waiting for Ctrl+D
 	while (std::cin) std::cin.get();

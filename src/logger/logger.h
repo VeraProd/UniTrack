@@ -16,7 +16,7 @@ namespace logger {
 class logger
 {
 public:
-	logger(std::ostream &log_stream);
+	logger(std::ostream &log_stream, bool colorize_output = false);
 	~logger();
 	
 	
@@ -34,6 +34,8 @@ public:
 private:
 	std::ostream &log_stream_;
 	std::mutex log_stream_mutex_;
+	
+	bool colorize_output_;
 };	// class logger
 
 

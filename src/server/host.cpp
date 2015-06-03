@@ -143,7 +143,8 @@ server::host::phony_response(server::http::version version,
 	// Inserting Content-Length and page content
 	{
 		auto
-			content_prefix_it = cache_ptr->strings.emplace(cache_ptr->strings.end(),
+			content_prefix_it = cache_ptr->strings.emplace(
+				cache_ptr->strings.end(),
 				"<html>"
 				"<head>"
 					"<meta charset=\"utf-8\">"
@@ -152,18 +153,22 @@ server::host::phony_response(server::http::version version,
 				"<body>"
 					"<h1>" + status.code_str() + space_str + status.description() + "</h1>"
 					"<hr width=\"100%\">"
-					"<p>"),
+					"<p>"
+			),
 			
-			content_suffix_it = cache_ptr->strings.emplace(cache_ptr->strings.end(),
+			content_suffix_it = cache_ptr->strings.emplace(
+				cache_ptr->strings.end(),
 					"</p>"
 				"</body>"
 				"</html>"
 			),
 			
-			len_it = cache_ptr->strings.emplace(cache_ptr->strings.end(),
+			len_it = cache_ptr->strings.emplace(
+				cache_ptr->strings.end(),
 				std::to_string(content_prefix_it->size()
 							   + server_name.first->size()
-							   + content_suffix_it->size()));
+							   + content_suffix_it->size())
+			);
 		
 		server::host::add_header(res, header_content_length, *len_it);
 		server::host::finish_headers(res);
@@ -233,7 +238,8 @@ server::host::add_start_string(server::send_buffers_t &buffers,
 			buffer(space_str),
 			buffer(status.description()),
 			buffer(newline_str)
-		});
+		}
+	);
 }
 
 
@@ -253,7 +259,8 @@ server::host::add_header(server::send_buffers_t &buffers,
 			buffer(header_separator_str),
 			buffer(value),
 			buffer(newline_str)
-		});
+		}
+	);
 }
 
 
@@ -272,7 +279,8 @@ server::host::add_header(server::send_buffers_t &buffers,
 			buffer(header_separator_str),
 			buffer(header.second),
 			buffer(newline_str)
-		});
+		}
+	);
 }
 
 

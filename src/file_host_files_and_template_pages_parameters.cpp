@@ -2,6 +2,7 @@
 
 #include <file_host_files_and_template_pages_parameters.h>
 
+
 files_and_template_pages_parameters::files_and_template_pages_parameters(const nlohmann::json &config)
 {
 	// Optional parameters

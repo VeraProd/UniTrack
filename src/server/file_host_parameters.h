@@ -41,7 +41,7 @@ struct file_host_only_parameters
 	allow_match_mode mode;					// Reqired
 	
 	
-	explicit file_host_only_parameters() {}
+	explicit file_host_only_parameters() = default;
 	explicit file_host_only_parameters(const nlohmann::json &config);
 };	// struct file_host_only_parameters
 

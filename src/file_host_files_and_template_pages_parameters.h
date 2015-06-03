@@ -23,7 +23,7 @@ struct files_and_template_pages_parameters
 	std::regex change_behavior_regex = std::regex(".*\\.html");	// Optional
 	
 	
-	explicit files_and_template_pages_parameters() {}
+	explicit files_and_template_pages_parameters() = default;
 	explicit files_and_template_pages_parameters(const nlohmann::json &config);
 };	// struct files_and_template_pages_parameters
 

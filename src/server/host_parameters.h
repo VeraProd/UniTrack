@@ -34,7 +34,7 @@ struct host_parameters
 		};
 	
 	
-	explicit host_parameters() {}
+	explicit host_parameters() = default;
 	explicit host_parameters(const nlohmann::json &config);
 };	// struct host_parameters
 
