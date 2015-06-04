@@ -4,6 +4,8 @@
 
 #include <chrono>
 #include <mutex>
+#include <regex>
+#include <algorithm>
 
 #include <server/host_exceptions.h>
 
@@ -325,4 +327,55 @@ server::host::validate_headers(const server::headers_t &headers)
 	
 	if (headers.find(header_content_length) != headers.end())
 		throw server::headers_has_content_length();
+}
+
+
+// static
+bool
+server::host::parse_uri(const std::string &uri, server::host_cache &cache)
+{
+	static const std::regex
+		base_regex(
+			"([^?]+)(\\?(.*))?",				// [1], [4]: path and args
+			std::regex::optimize
+		),
+		
+		args_regex(
+			"(\\&|\\?)?"						// [1]: '&' or '?'
+			"("
+				"([^\\&\\?]+)\\=([^\\&\\?]*)"	// [3], [4]: key, value
+			"|"
+				"([^\\&\\?]+)"					// [5]: key only
+			")",
+			std::regex::optimize
+		);
+	
+	static const std::regex_iterator<std::string::const_iterator> end;
+	
+	
+	std::smatch m;
+	if (std::regex_match(uri, m, base_regex)) {
+		cache.path = m[1];
+		
+		auto args_sm = m[3];
+		if (args_sm.length() != 0) {
+			std::string args = args_sm;
+			
+			auto begin = std::regex_iterator<std::string::const_iterator>(args.begin(), args.end(),
+																		  args_regex);
+			std::for_each(begin, end,
+				[&cache] (const auto &m) {
+					auto key = m[3];
+					if (key.length() == 0) {
+						cache.args_set.emplace(m[5]);		// Key without value
+					} else {
+						cache.args_map.emplace(key, m[4]);	// Key-Value pair
+					}
+				});
+		}
+	} else {
+		return false;
+	}
+	
+	return true;
 }

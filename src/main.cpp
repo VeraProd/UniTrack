@@ -70,5 +70,16 @@ int main(int argc, char **argv)
 	
 	interface_manager.stop();
 	
+	// server::host_cache cache;
+	// server::host::parse_uri("/index.html?param1=va1&param2=val2?param3&par4=&par5=&par6", cache);
+	
+	// std::cout << "Keys:" << std::endl;
+	// for (const auto &key: cache.args_set)
+	// 	std::cout << "    " << key << std::endl;
+	
+	// std::cout << "Pairs:" << std::endl;
+	// for (const auto &p: cache.args_map)
+	// 	std::cout << "    " << p.first << " = " << p.second << std::endl;
+	
 	return 0;
 }

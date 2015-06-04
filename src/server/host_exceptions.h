@@ -66,6 +66,13 @@ public:
 };
 
 
+class incorrect_uri: public host_error
+{
+public:
+	explicit incorrect_uri(const std::string &uri);
+};
+
+
 };	// namespace server
 
 

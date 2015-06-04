@@ -41,3 +41,8 @@ server::path_forbidden::path_forbidden(const std::string &path):
 server::path_not_found::path_not_found(const std::string &path):
 	server::host_error("Path not found: \"" + path + '\"')
 {}
+
+
+server::incorrect_uri::incorrect_uri(const std::string &uri):
+	server::host_error("Incorrect URI: \"" + uri + '\"')
+{}

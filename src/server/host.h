@@ -111,6 +111,10 @@ public:
 						   const send_buffer_t &buffer);
 	
 	static void validate_headers(const headers_t &headers);
+	
+	
+	// URI parsing
+	static bool parse_uri(const std::string &uri, server::host_cache &cache);
 protected:
 	server::host_parameters host_parameters_;
 private:

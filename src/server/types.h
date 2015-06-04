@@ -21,6 +21,11 @@ typedef std::pair<std::string, std::string> header_pair_t;
 typedef std::unordered_map<std::string, std::string> headers_t;
 
 
+// URI
+typedef std::unordered_map<std::string, std::string>	uri_arguments_map_t;
+typedef std::unordered_set<std::string>					uri_arguments_set_t;
+
+
 // Sockets
 typedef std::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr_t;
 
@@ -47,7 +52,10 @@ public:
 	
 	
 	// Data
-	std::string				uri;
+	std::string				path;
+	uri_arguments_map_t		args_map;
+	uri_arguments_set_t		args_set;
+	
 	
 	server::headers_t		request_headers,
 							response_headers,

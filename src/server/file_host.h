@@ -8,6 +8,8 @@
 #include <server/protocol.h>
 #include <server/types.h>
 
+#include <boost/filesystem/path.hpp>
+
 #include <server/file_host_parameters.h>
 #include <server/file_host_files_only.h>
 
@@ -98,8 +100,26 @@ public:
 			 server::headers_t &&request_headers,
 			 server::headers_t &&response_headers = {}) override;
 protected:
-	bool validate_uri(const std::string &uri) const noexcept;
+	bool validate_path(const std::string &path) const noexcept;
+	bool validate_args(const server::uri_arguments_map_t &args_map,
+					   const server::uri_arguments_set_t &args_set) const noexcept;
 	bool validate_method(server::http::method method) const noexcept;
+	
+	
+	server::response_data_t
+	log_and_phony_response(const boost::filesystem::path &path,
+						   const std::string &message,
+						   server::http::version version,
+						   const server::http::status &status,
+						   server::file_host<HostType, CacheType>::cache_shared_ptr_t &&cache_ptr);
+	
+	
+private:
+	server::response_data_t
+	response(server::file_host<HostType, CacheType>::cache_shared_ptr_t &&cache_ptr,
+			 server::http::method method,
+			 server::http::version version,
+			 server::headers_t &&request_headers);
 	
 	
 	// Data

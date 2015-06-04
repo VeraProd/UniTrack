@@ -33,8 +33,8 @@ server::parse_start_string(const std::string &str)
 {
 	static const std::regex
 		regex("^"
-			  "([_[:alnum:]]+)"			"[[:space:]]+"			// Method	[1]
-			  "([_/\\.%&=[:alnum:]]+)"	"[[:space:]]+"			// URI		[2]
+			  "([_[:alnum:]]+)"		"[[:space:]]+"				// Method	[1]
+			  "([^[:space:]]+)"		"[[:space:]]+"				// URI		[2]
 			  "([_[:alnum:]]+)/([[:digit:]]+\\.[[:digit:]]+)"	// Protocol	[3]/[4]
 			  "[\r\n]*$",
 			  std::regex::optimize);
