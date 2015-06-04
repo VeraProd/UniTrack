@@ -80,13 +80,13 @@ ifeq ($(SYSTEM),Darwin)
 	GPP_LIB_PATHS			+= -L/opt/local/lib
 	
 	# Strange, but this need for server
-	GPP_LIBS				+= -lboost_system-mt
+	GPP_LIBS				+= -lboost_system-mt -lboost_filesystem-mt
 else
-	# Use g++-5 because of c++11 features
+	# Use g++-5 because of c++14 features
 	GPP						= g++-5
 	
 	# Strange, but this need for server
-	GPP_LIBS				+= -lboost_system
+	GPP_LIBS				+= -lboost_system -lpthread -lboost_filesystem-mt
 endif
 
 
@@ -105,7 +105,7 @@ GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG_FULL)/$(CONFIG)\""	\
 							   -DPATH_WWW="\"$(PREFIX_WWW_FULL)/$(WWW)\""
 
 # Compiler flags
-GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++11 -c $(GPP_PROJECT_DATA) $(EXTRA_CPP_FLAGS)
+GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++14 -c $(GPP_PROJECT_DATA) $(EXTRA_CPP_FLAGS)
 GPP_LINK_FLAGS				+= -pipe -fPIC -O2 -Wall $(EXTRA_LINK_FLEGS)
 GPP_SHARED_LIB_FLAGS		+= -pipe -fPIC -O2 -Wall --shared $(EXTRA_SHARED_LIB_FLAGS)
 

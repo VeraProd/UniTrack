@@ -2,6 +2,10 @@
 
 #include <regex>
 
+#include <boost/filesystem.hpp>
+
+#include <base/mapped_file_exceptions.h>
+
 #include <server/host_exceptions.h>
 
 
@@ -31,7 +35,7 @@ server::file_host<HostType, CacheType>::file_host(logger::logger &logger,
 
 template<class HostType, class CacheType>
 // virtual
-std::pair<server::send_buffers_t, server::host_cache::ptr_t>
+server::response_data_t
 server::file_host<HostType, CacheType>::response(std::string &&uri,
 							server::http::method method,
 							server::http::version version,
@@ -44,7 +48,7 @@ server::file_host<HostType, CacheType>::response(std::string &&uri,
 			<< "\": Requested unallowed method: \"" << server::http::method_to_str(method)
 			<< "\" => " << server::http::status::method_not_allowed.code_str() << '.';
 		
-		return std::move(this->phony_response(
+		return this->phony_response(
 			version,
 			server::http::status::method_not_allowed,
 			std::move(response_headers),
@@ -53,7 +57,7 @@ server::file_host<HostType, CacheType>::response(std::string &&uri,
 					server::http::header_allow,
 					server::http::method_to_str(server::http::method::GET)
 				}
-			}));
+			});
 	}
 	
 	if (!this->validate_uri(uri)) {
@@ -62,9 +66,9 @@ server::file_host<HostType, CacheType>::response(std::string &&uri,
 			<< "\": Requested unallowed URI: \"" << uri
 			<< "\" => " << server::http::status::forbidden.code_str() << '.';
 		
-		return std::move(this->phony_response(version,
-											  server::http::status::forbidden,
-											  std::move(response_headers)));
+		return this->phony_response(version,
+									server::http::status::forbidden,
+									std::move(response_headers));
 	}
 	
 	
@@ -73,8 +77,9 @@ server::file_host<HostType, CacheType>::response(std::string &&uri,
 	
 	
 	// Processing
-	server::file_host<HostType, CacheType>::cache_ptr_t cache_ptr;
-	cache_ptr = std::make_shared<server::file_host<HostType, CacheType>::cache_t>();
+	server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr
+		= std::make_shared<server::file_host<HostType, CacheType>::cache_t>();
+	
 	cache_ptr->uri = std::move(uri);
 	cache_ptr->response_headers = std::move(response_headers);
 	
@@ -86,36 +91,48 @@ server::file_host<HostType, CacheType>::response(std::string &&uri,
 		
 		
 		// Fixing doubleslashes
-		std::string path = std::regex_replace(this->file_host_parameters_.root
-											  + '/' + cache_ptr->uri,
-											  slash_regex, single_slash);
+		// std::string path = std::regex_replace(this->file_host_parameters_.root
+		// 									  + '/' + cache_ptr->uri,
+		// 									  slash_regex, single_slash);
+		
+		boost::filesystem::path path = this->file_host_parameters_.root / cache_ptr->uri;
 		
 		try {
 			file_data = std::move(this->file_handler_(path, cache_ptr.get()));
+		} catch (const base::path_is_directory &) {
+			this->logger().stream(logger::level::info)
+				<< "File host: URI \"" << cache_ptr->uri << "\" points to directory => Try \""
+				<< cache_ptr->uri << "/index.html\".";
+			
+			return this->response(uri + "/index.html",
+								  method,
+								  version,
+								  std::move(request_headers),
+								  std::move(response_headers));
 		} catch (const server::path_forbidden &e) {
 			this->logger().stream(logger::level::error)
 				<< "File host: Can't send path: \"" << path << "\": " << e.what()
 				<< " => " << server::http::status::forbidden.code_str() << '.';
 			
-			return std::move(this->phony_response(version,
-												  server::http::status::forbidden,
-												  std::move(cache_ptr->response_headers)));
+			return this->phony_response(version,
+										server::http::status::forbidden,
+										std::move(cache_ptr->response_headers));
 		} catch (const server::path_not_found &e) {
 			this->logger().stream(logger::level::error)
 				<< "File host: Can't send path: \"" << path << "\": " << e.what()
 				<< " => " << server::http::status::not_found.code_str() << '.';
 			
-			return std::move(this->phony_response(version,
-												  server::http::status::not_found,
-												  std::move(cache_ptr->response_headers)));
+			return this->phony_response(version,
+										server::http::status::not_found,
+										std::move(cache_ptr->response_headers));
 		} catch (...) {
 			this->logger().stream(logger::level::error)
-				<< "File host: Can't send path: \"" << path << "\": Unknown error"
+				<< "HERE! File host: Can't send path: \"" << path << "\": Unknown error"
 				<< " => " << server::http::status::internal_server_error.code_str() << '.';
 			
-			return std::move(this->phony_response(version,
-												  server::http::status::internal_server_error,
-												  std::move(cache_ptr->response_headers)));
+			return this->phony_response(version,
+										server::http::status::internal_server_error,
+										std::move(cache_ptr->response_headers));
 		}
 	}
 	

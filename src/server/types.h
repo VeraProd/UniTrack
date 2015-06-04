@@ -38,11 +38,12 @@ typedef unsigned int worker_id_t;
 class host_cache
 {
 public:
-	typedef host_cache * raw_ptr_t;
-	typedef std::shared_ptr<host_cache> ptr_t;
+	typedef					host_cache *	raw_ptr_t;
+	typedef	std::unique_ptr<host_cache>		unique_ptr_t;
+	typedef	std::shared_ptr<host_cache>		shared_ptr_t;
 	
 	
-	virtual ~host_cache() {}
+	virtual ~host_cache() = default;
 	
 	
 	// Data
@@ -53,13 +54,13 @@ public:
 							additional_headers;
 	
 	std::list<std::string>	strings;
-};	// class cache
+};	// class host_cache
 
 
 typedef boost::asio::const_buffer send_buffer_t;
 typedef std::vector<send_buffer_t> send_buffers_t;
 
-typedef std::pair<send_buffers_t, host_cache::ptr_t> response_data_t;
+typedef std::pair<send_buffers_t, host_cache::shared_ptr_t> response_data_t;
 
 
 // File host
@@ -69,8 +70,9 @@ class file_host_cache:
 	public HostType::cache
 {
 public:
-	typedef file_host_cache * raw_ptr_t;
-	typedef std::shared_ptr<file_host_cache> ptr_t;
+	typedef					file_host_cache<HostType> *	raw_ptr_t;
+	typedef	std::unique_ptr<file_host_cache<HostType>>	unique_ptr_t;
+	typedef	std::shared_ptr<file_host_cache<HostType>>	shared_ptr_t;
 };	// class file_host_cache
 
 

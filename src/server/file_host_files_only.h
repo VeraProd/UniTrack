@@ -5,8 +5,9 @@
 
 #include <string>
 
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
+#include <boost/filesystem/path.hpp>
+
+#include <base/mapped_file.h>
 
 #include <server/types.h>
 
@@ -21,13 +22,12 @@ public:
 	{
 	public:
 		// Data
-		boost::interprocess::file_mapping	file_mapping;
-		boost::interprocess::mapped_region	mapped_region;
+		base::mapped_file mapped_file;
 	};
 	
 	
 	std::pair<server::send_buffers_t, server::send_buffers_t>
-	operator()(const std::string &path,
+	operator()(const boost::filesystem::path &path,
 			   server::file_host_cache<files_only>::raw_ptr_t cache_ptr);
 };	// class files_only
 

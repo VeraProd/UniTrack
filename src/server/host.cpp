@@ -90,9 +90,9 @@ server::host::response(std::string && /*uri*/,							// Unused
 					   server::headers_t && /*request_headers*/,		// Unused
 					   server::headers_t &&response_headers)
 {
-	return std::move(this->phony_response(version,
-										  server::http::status::not_found,
-										  std::move(response_headers)));
+	return this->phony_response(version,
+								server::http::status::not_found,
+								std::move(response_headers));
 }
 
 
@@ -213,7 +213,8 @@ server::host::create_error_host(logger::logger &logger)
 	
 	std::unique_lock<std::mutex> lock(m);
 	if (server::host::error_host_ == nullptr)
-		server::host::error_host_.reset(new server::host(logger, server::host_parameters()));
+		server::host::error_host_ = std::make_unique<server::host>(logger,
+																   server::host_parameters());
 }
 
 

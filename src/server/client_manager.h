@@ -124,7 +124,7 @@ private:
 	
 	void add_response_handler();
 	
-	void response_handler(server::host_cache::ptr_t cache_ptr,
+	void response_handler(server::host_cache::shared_ptr_t cache_ptr,
 						  const boost::system::error_code &err,
 						  size_t bytes_transferred);
 	

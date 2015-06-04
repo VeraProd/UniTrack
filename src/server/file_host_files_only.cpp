@@ -2,19 +2,14 @@
 
 #include <server/file_host_files_only.h>
 
+#include <base/mapped_file_exceptions.h>
+
 #include <server/host.h>
 #include <server/host_exceptions.h>
 
 
-namespace {
-
-const std::string zero_content_length_str = "0";
-
-};	// namespace
-
-
 std::pair<server::send_buffers_t, server::send_buffers_t>
-server::files_only::operator()(const std::string &path,
+server::files_only::operator()(const boost::filesystem::path &path,
 							   server::file_host_cache<server::files_only>::raw_ptr_t cache_ptr)
 {
 	using namespace boost::interprocess;
@@ -22,21 +17,15 @@ server::files_only::operator()(const std::string &path,
 	
 	
 	try {
-		cache_ptr->file_mapping = std::move(file_mapping(path.c_str(), read_only));
-		cache_ptr->mapped_region = std::move(mapped_region(cache_ptr->file_mapping, read_only,
-														   0, 0, nullptr, MAP_SHARED));
+		cache_ptr->mapped_file = std::move(base::mapped_file(path, read_only, MAP_SHARED));
+	} catch (const base::path_not_found &e) {
+		throw server::path_not_found(path.string());
 	} catch (const interprocess_exception &e) {
 		switch (e.get_error_code()) {
 			case not_such_file_or_directory: case not_found_error:
-				throw server::path_not_found(path);
-			case invalid_argument: {	// Thrown by mapped_region, when the file is empty
-				server::send_buffers_t headers;
-				server::host::add_header(headers, server::http::header_content_length,
-												  zero_content_length_str);
-				return { std::move(headers), {} };
-			}
+				throw server::path_not_found(path.string());
 			default:
-				throw server::path_forbidden(path + std::string(": file_mapping: ") + e.what());
+				throw server::path_forbidden(path.string() + ": file_mapping: " + e.what());
 		}
 	}
 	
@@ -45,8 +34,8 @@ server::files_only::operator()(const std::string &path,
 	res.second.reserve(1);
 	
 	
-	const void *file_content = cache_ptr->mapped_region.get_address();
-	size_t file_size = cache_ptr->mapped_region.get_size();
+	const void *file_content = cache_ptr->mapped_file.data();
+	size_t file_size = cache_ptr->mapped_file.size();
 	
 	auto len_it = cache_ptr->strings.emplace(cache_ptr->strings.end(), std::to_string(file_size));
 	

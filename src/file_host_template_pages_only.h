@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include <boost/filesystem/path.hpp>
+
 #include <server/types.h>
 #include <templatizer/page.h>
 
@@ -14,7 +16,7 @@
 class template_pages_only
 {
 public:
-	class cache: public templatizer::page
+	class cache
 	{
 	public:
 		templatizer::page page;
@@ -26,7 +28,7 @@ public:
 	
 	
 	std::pair<server::send_buffers_t, server::send_buffers_t>
-	operator()(const std::string &path,
+	operator()(const boost::filesystem::path &path,
 			   server::file_host_cache<template_pages_only>::raw_ptr_t cache_ptr);
 private:
 	page_model &page_model_;

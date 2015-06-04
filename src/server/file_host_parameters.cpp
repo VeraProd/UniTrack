@@ -2,10 +2,21 @@
 
 #include <server/file_host_parameters.h>
 
+#include <string>
+
+#include <boost/filesystem.hpp>
+
+#include <server/host_exceptions.h>
+
 
 server::file_host_only_parameters::file_host_only_parameters(const nlohmann::json &config):
-	root(config.at("root").get<decltype(this->root)>())
+	root(config.at("root").get<std::string>())
 {
+	if (!boost::filesystem::exists(this->root))
+		throw server::path_not_found(this->root.string());
+	this->root = std::move(boost::filesystem::canonical(this->root, "/"));
+	
+	
 	// Allow mode
 	{
 		const auto &mode = config.at("allow_match_mode").get<std::string>();

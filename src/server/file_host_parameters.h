@@ -3,9 +3,10 @@
 #ifndef SERVER_FILE_HOST_PARAMETERS_H
 #define SERVER_FILE_HOST_PARAMETERS_H
 
-#include <string>
 #include <vector>
 #include <regex>
+
+#include <boost/filesystem/path.hpp>
 
 #include <json.hpp>
 
@@ -25,7 +26,7 @@ struct file_host_only_parameters
 	};
 	
 	
-	std::string root;						// Required
+	boost::filesystem::path root;			// Required
 	
 	std::vector<std::regex>
 		deny_regexes =						// Optional

@@ -16,6 +16,9 @@ include $(MAKEFILE_ADVANCED_ABS)
 TARGET_LIB = templatizer
 
 
+GPP_LIBS					+= -lut_base
+
+
 # Paths
 SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)/$(MODULE_NAME)
 BUILD_DIR_CURR				= $(BUILD_DIR_ABS)/$(MODULE_NAME)

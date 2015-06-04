@@ -11,7 +11,7 @@ template_pages_only::template_pages_only(page_model &page_model):
 
 
 std::pair<server::send_buffers_t, server::send_buffers_t>
-template_pages_only::operator()(const std::string &path,
+template_pages_only::operator()(const boost::filesystem::path &path,
 								server::file_host_cache<template_pages_only>::raw_ptr_t cache_ptr)
 {
 	cache_ptr->page.load(path);

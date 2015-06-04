@@ -25,8 +25,8 @@ namespace server {
 // 	- must have non-static method:
 // 		
 // 		std::pair<server::send_buffers_t, server::send_buffers_t>
-// 		operator()(const std::string &path,				// File name the handler should process
-// 				   CacheType::raw_ptr_t cache_ptr);		// Cache that the handler can use
+// 		operator()(const boost::filesystem::path &path,		// Path the handler should process
+// 				   CacheType::raw_ptr_t cache_ptr);			// Cache that the handler can use
 // 		
 // 		Return value: first if headers buffers, second is content buffers.
 // 		Headers buffers must contain Content-Length, if need.
@@ -58,7 +58,7 @@ class file_host:
 {
 public:
 	typedef CacheType cache_t;
-	typedef typename cache_t::ptr_t cache_ptr_t;
+	typedef typename cache_t::shared_ptr_t cache_shared_ptr_t;
 	
 	
 	file_host(logger::logger &logger,
@@ -91,7 +91,7 @@ public:
 	// WARNING: first field of result does NOT contain data, only references. Second field
 	// contains data need to be sent, so save the given shared_ptr anywhere during all sending!
 	virtual
-	std::pair<server::send_buffers_t, server::host_cache::ptr_t>
+	server::response_data_t
 	response(std::string &&uri,
 			 server::http::method method,
 			 server::http::version version,

@@ -19,20 +19,22 @@ templatizer::page::page() noexcept:
 
 // Move constructor
 templatizer::page::page(templatizer::page &&other) noexcept:
+	base::mapped_file(std::move(other)),
+	
 	state_(other.state_),
-	chunk_ptrs_(std::move(other.chunk_ptrs_)),
-	file_mapping_(std::move(other.file_mapping_)),
-	mapped_region_(std::move(other.mapped_region_))
+	chunk_ptrs_(std::move(other.chunk_ptrs_))
 {
 	other.state_ = templatizer::page::state::ok;
 }
 
 
 // Constructs and loads template data
-templatizer::page::page(const std::string &file):
+templatizer::page::page(const boost::filesystem::path &path):
+	base::mapped_file(path, boost::interprocess::read_only, MAP_SHARED),	// This can throw
+	
 	state_(templatizer::page::state::ok)
 {
-	this->load(file);	// This can throw
+	this->load();	// This can throw
 }
 
 
@@ -40,35 +42,43 @@ templatizer::page::page(const std::string &file):
 templatizer::page &
 templatizer::page::operator=(templatizer::page &&other) noexcept
 {
+	this->base::mapped_file::operator=(std::move(other));
+	
 	this->state_			= other.state_;
 	this->chunk_ptrs_		= std::move(other.chunk_ptrs_);
-	this->file_mapping_		= std::move(other.file_mapping_);
-	this->mapped_region_	= std::move(other.mapped_region_);
 	
 	other.state_ = templatizer::page::state::ok;
 	
 	return *this;
 }
 
-#include <iostream>
+
 // Loads template from file.
 // If an error occured, throws templatizer::file_mapping_error
 // or templatizer::file_parsing_error.
 void
-templatizer::page::load(const std::string &file)
+templatizer::page::load(const boost::filesystem::path &path)
+{
+	*this = std::move(templatizer::page(path));
+}
+
+
+// Loads template from current file.
+// If an error occured, throws templatizer::file_mapping_error
+// or templatizer::file_parsing_error.
+void
+templatizer::page::load()
 {
 	using namespace boost::interprocess;
 	
 	try {
-		file_mapping mapping(file.c_str(), read_only);
-		mapped_region region(mapping, read_only);
 		chunk_ptrs_list_t chunk_ptrs;
 		
 		
 		// Parsing
 		{
-			const char *region_data = static_cast<const char *>(region.get_address());
-			size_t region_size = region.get_size() / sizeof(char);
+			const char *mapped_data = static_cast<const char *>(this->data());
+			size_t mapped_size = this->size() / sizeof(char);
 			
 			
 			// REGEX: ${command ARGUMENTS}	-- full form
@@ -80,17 +90,17 @@ templatizer::page::load(const std::string &file)
 			static const std::regex regex(
 				"("
 					// Full form: ${ COMMAND ... }
-					"\\$\\{[[:space:]]*([[:alpha:]_][[:alnum:]_]*)"		// COMMAND [2]
-						"[[:space:]]*([^\\}]*)\\}"						// ARG [3]
+					"\\$\\{[[:space:]]*([[:alpha:]_][[:alnum:]_]*)"	// COMMAND [2]
+						"[[:space:]]*([^\\}]*)\\}"					// ARG [3]
 				"|"	// 'Or'
 					// Short form: $VAR_NAME
-					"\\$([[:alpha:]_][[:alnum:]_]*)"					// VAR_NAME (in short form) [4]
+					"\\$([[:alpha:]_][[:alnum:]_]*)"				// VAR_NAME (in short form) [4]
 				")",
 				std::regex::optimize);
 			
 			
 			std::regex_iterator<const char *>
-				it(region_data, region_data + region_size, regex),
+				it(mapped_data, mapped_data + mapped_size, regex),
 				end;
 			
 			size_t old_pos = 0;
@@ -98,7 +108,8 @@ templatizer::page::load(const std::string &file)
 				// Adding previous raw chunk
 				size_t current_pos = it->position();
 				if (current_pos > old_pos) {	// Indexing previous raw chunk...
-					chunk_ptrs.emplace_back(new raw_chunk(region_data + old_pos, current_pos - old_pos));
+					chunk_ptrs.emplace_back(new raw_chunk(mapped_data + old_pos,
+														  current_pos - old_pos));
 					old_pos = current_pos + it->length();
 				}
 				
@@ -121,15 +132,13 @@ templatizer::page::load(const std::string &file)
 			}
 			
 			// Remember to index the last raw chunk
-			if (old_pos < region_size)
-				chunk_ptrs.emplace_back(new templatizer::raw_chunk(region_data + old_pos,
-																   region_size - old_pos));
+			if (old_pos < mapped_size)
+				chunk_ptrs.emplace_back(new templatizer::raw_chunk(mapped_data + old_pos,
+																   mapped_size - old_pos));
 		}	// End of parsing
 		
 		// Move data to *this, if success (if not success, see catch blocks below)
 		this->chunk_ptrs_		= std::move(chunk_ptrs);
-		this->file_mapping_		= std::move(mapping);
-		this->mapped_region_	= std::move(region);
 		
 		this->set_state(templatizer::page::state::ok);
 	} catch (const interprocess_exception &e) {	// Thrown by mapped_region, when the file is empty
@@ -137,11 +146,11 @@ templatizer::page::load(const std::string &file)
 			this->clear();
 		} else {
 			this->set_state(templatizer::page::state::file_error);
-			throw templatizer::file_mapping_error(file, e.what());
+			throw templatizer::file_mapping_error(this->path().string(), e.what());
 		}
 	} catch (const templatizer::module_not_found &e) {
 		this->set_state(templatizer::page::state::parse_error);
-		throw templatizer::file_parsing_error(file, e.what());
+		throw templatizer::file_parsing_error(this->path().string(), e.what());
 	}
 }
 
@@ -153,8 +162,6 @@ templatizer::page::clear() noexcept
 	using namespace boost::interprocess;
 	
 	this->chunk_ptrs_.clear();
-	this->file_mapping_ = std::move(file_mapping());
-	this->mapped_region_ = std::move(mapped_region());
 	this->set_state(templatizer::page::state::ok);
 }
 

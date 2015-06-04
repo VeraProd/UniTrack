@@ -24,6 +24,9 @@
 
 int main(int argc, char **argv)
 {
+	std::ios::sync_with_stdio(false);
+	
+	
 	// mongo::mongoc_handler handler;
 	
 	// mongo::client client("mongodb://localhost:27017/");

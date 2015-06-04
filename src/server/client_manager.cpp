@@ -328,7 +328,7 @@ server::client_manager::add_response_handler()
 		this->data_to_send_.pop();
 		
 		using namespace std::placeholders;
-		this->socket_ptr_->async_send(data.first,
+		this->socket_ptr_->async_send(std::move(data.first),
 									  std::bind(&client_manager::response_handler, this,
 												data.second, _1, _2));
 	}
@@ -336,7 +336,7 @@ server::client_manager::add_response_handler()
 
 
 void
-server::client_manager::response_handler(server::host_cache::ptr_t cache_ptr,
+server::client_manager::response_handler(server::host_cache::shared_ptr_t cache_ptr,
 										 const boost::system::error_code &err,
 										 size_t bytes_transferred)
 {

@@ -12,13 +12,13 @@ TARGET_LIB = server
 
 
 # Requrements
-GPP_LIBS					+= -lut_logger
+GPP_LIBS					+= -lut_base -lut_logger
 
 
 ifeq ($(SYSTEM),Darwin)
-	GPP_LIBS				+= -lboost_system-mt
+	GPP_LIBS				+= -lboost_system-mt -lboost_filesystem-mt
 else
-	GPP_LIBS				+= -lboost_system -lpthread
+	GPP_LIBS				+= -lboost_system -lpthread -lboost_filesystem
 endif
 
 

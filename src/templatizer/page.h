@@ -10,8 +10,9 @@
 #include <memory>
 #include <type_traits>
 
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
+#include <boost/filesystem/path.hpp>
+
+#include <base/mapped_file.h>
 
 #include <server/types.h>
 #include <templatizer/chunk.h>
@@ -21,7 +22,8 @@
 namespace templatizer {
 
 
-class page
+class page:
+	public base::mapped_file
 {
 public:
 	enum class state {
@@ -34,7 +36,7 @@ public:
 	// Constructors
 	page() noexcept;							// Default
 	page(page &&other) noexcept;				// Move
-	page(const std::string &file);				// Constructs and loads template data
+	page(const boost::filesystem::path &path);	// Constructs and loads template data
 	
 	page & operator=(page &&other) noexcept;	// Move
 	
@@ -47,7 +49,13 @@ public:
 	// Loads template from file.
 	// If an error occured, throws templatizer::file_mapping_error
 	// or templatizer::file_parsing_error.
-	void load(const std::string &file);
+	void load(const boost::filesystem::path &path);
+	
+	// Loads template from current file.
+	// If an error occured, throws templatizer::file_mapping_error
+	// or templatizer::file_parsing_error.
+	void load();
+	
 	
 	// Simply deletes all loaded template data
 	void clear() noexcept;
@@ -98,9 +106,6 @@ private:
 	
 	// Data
 	chunk_ptrs_list_t chunk_ptrs_;
-	
-	boost::interprocess::file_mapping file_mapping_;
-	boost::interprocess::mapped_region mapped_region_;
 };	// class page
 
 
