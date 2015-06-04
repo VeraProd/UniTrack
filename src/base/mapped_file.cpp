@@ -17,8 +17,7 @@ base::mapped_file::mapped_file(const boost::filesystem::path &path,
 	
 	if (is_directory(this->path())) throw base::path_is_directory(this->path().string());
 	
-	
-	if (!this->path().empty()) {
+	if (!is_empty(this->path())) {
 		this->file_mapping_  = std::move(file_mapping(this->path().c_str(), mode));
 		this->mapped_region_ = std::move(mapped_region(this->file_mapping_, mode,
 													   0, 0, nullptr, map_options));
