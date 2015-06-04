@@ -8,17 +8,17 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Dynamic library
-TARGET_LIB = server
+TARGET_LIB = base
 
 
 # Requrements
-GPP_LIBS					+= -lut_logger
+GPP_LIBS					+= 
 
 
 ifeq ($(SYSTEM),Darwin)
-	GPP_LIBS				+= -lboost_system-mt
+	GPP_LIBS				+= -lboost_system-mt -lboost_filesystem-mt
 else
-	GPP_LIBS				+= -lboost_system -lpthread
+	GPP_LIBS				+= -lboost_system -lpthread -lboost_filesystem-mt
 endif
 
 

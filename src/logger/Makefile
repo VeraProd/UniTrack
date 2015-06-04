@@ -8,7 +8,7 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Dynamic library
-TARGET_LIB = liblogger.so
+TARGET_LIB = logger
 
 
 # Paths

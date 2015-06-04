@@ -8,7 +8,7 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Dynamic library
-TARGET_LIB = libmongo.so
+TARGET_LIB = mongo
 
 
 # Mongo flags

@@ -13,7 +13,7 @@ include $(MAKEFILE_ADVANCED_ABS)
 
 
 # Dynamic library
-TARGET_LIB = libtemplatizer.so
+TARGET_LIB = templatizer
 
 
 # Paths

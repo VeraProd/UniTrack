@@ -51,6 +51,7 @@ PREFIX_WWW		= /var
 
 # Modules should be linked as dynamic libraries (not third-party!)
 MODULES =						\
+	base						\
 	logger						\
 	server						\
 	templatizer					\
@@ -158,7 +159,7 @@ MODULE_LIBS					= $(addprefix lib,$(addsuffix .so,$(MODULES)))
 MODULE_FILES				= $(call get_target_lib_files,$(MODULE_LIBS))
 
 
-GPP_LIBS_CURR				= $(addprefix -l,$(MODULES))
+GPP_LIBS_CURR				= $(addprefix -lut_,$(MODULES))
 
 
 # Targets
