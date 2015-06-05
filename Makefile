@@ -155,8 +155,8 @@ TEST_TARGETS				= $(call get_targets,$(TEST_SOURCES_CPP))
 TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 # Module dinamic libraries
-MODULE_LIBS					= $(addprefix lib,$(addsuffix .so,$(MODULES)))
-MODULE_FILES				= $(call get_target_lib_files,$(MODULE_LIBS))
+MODULE_FILES_ABS			= $(call get_target_lib_files,$(MODULES))
+MODULE_FILES				= $(notdir $(MODULE_FILES_ABS))
 
 
 GPP_LIBS_CURR				= $(addprefix -lut_,$(MODULES))
@@ -187,27 +187,31 @@ clean:
 
 
 install-bin:
-	install $(MODULE_FILES) $(PREFIX_LIBS)
+	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_LIBS)\"...$(COLOR_RESET)"
+	install $(MODULE_FILES_ABS) $(PREFIX_LIBS)
+	
+	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_TARGET)\"...$(COLOR_RESET)"
 	install $(TARGET_FILES) $(PREFIX_TARGET)
+	
 	@echo "$(COLOR_PASS)==> Binaries installed.$(COLOR_RESET)"
 
 
 install-config:
 	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_CONFIG_FULL)\"...$(COLOR_RESET)"
-	find $(CONFIG) -type d -not -name '.*' -print | while read DIR; do install -d "$(PREFIX_CONFIG_FULL)/$$DIR"; done
+	find $(CONFIG) -type d -not -name '.*' | while read DIR; do install -d "$(PREFIX_CONFIG_FULL)/$$DIR"; done
 	
 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_CONFIG_FULL)\"...$(COLOR_RESET)"
-	find $(CONFIG) -type f -not -name '.*' -print | while read FILE; do install "$$FILE" "$(PREFIX_CONFIG_FULL)/$$FILE"; done
+	find $(CONFIG) -type f -not -name '.*' | while read FILE; do install "$$FILE" "$(PREFIX_CONFIG_FULL)/$$FILE"; done
 	
 	@echo "$(COLOR_PASS)==> Config installed.$(COLOR_RESET)"
 
 
 install-www:
 	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_WWW_FULL)\"...$(COLOR_RESET)"
-	find $(WWW) -type d -not -name '.*' -print | while read DIR; do install -d "$(PREFIX_WWW_FULL)/$$DIR"; done
+	find $(WWW) -type d -not -name '.*' | while read DIR; do install -d "$(PREFIX_WWW_FULL)/$$DIR"; done
 	
 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_WWW_FULL)\"...$(COLOR_RESET)"
-	find $(WWW) -type f -not -name '.*' -print | while read FILE; do install "$$FILE" "$(PREFIX_WWW_FULL)/$$FILE"; done
+	find $(WWW) -type f -not -name '.*' | while read FILE; do install "$$FILE" "$(PREFIX_WWW_FULL)/$$FILE"; done
 	
 	@echo "$(COLOR_PASS)==> WWW data installed.$(COLOR_RESET)"
 
@@ -217,7 +221,7 @@ install: install-bin install-config install-www
 
 uninstall-bin:
 	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS))
-	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_LIBS))
+	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_FILES))
 	@echo "$(COLOR_PASS)==> Binaries removed.$(COLOR_RESET)"
 
 
@@ -341,7 +345,7 @@ $(OBJECT_FILES) $(MAIN_OBJECT_FILES): objects
 
 
 # Building of all module files
-$(MODULE_FILES): modules
+$(MODULE_FILES_ABS): modules
 
 
 # Main targets
