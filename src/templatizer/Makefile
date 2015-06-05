@@ -19,6 +19,13 @@ TARGET_LIB = templatizer
 GPP_LIBS					+= -lut_base
 
 
+ifeq ($(SYSTEM),Darwin)
+	GPP_LIBS				+= -lboost_system-mt -lboost_filesystem-mt
+else
+	GPP_LIBS				+= -lboost_system -lpthread -lboost_filesystem
+endif
+
+
 # Paths
 SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)/$(MODULE_NAME)
 BUILD_DIR_CURR				= $(BUILD_DIR_ABS)/$(MODULE_NAME)

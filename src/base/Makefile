@@ -18,7 +18,7 @@ GPP_LIBS					+=
 ifeq ($(SYSTEM),Darwin)
 	GPP_LIBS				+= -lboost_system-mt -lboost_filesystem-mt
 else
-	GPP_LIBS				+= -lboost_system -lpthread -lboost_filesystem-mt
+	GPP_LIBS				+= -lboost_system -lpthread -lboost_filesystem
 endif
 
 
