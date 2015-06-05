@@ -86,7 +86,7 @@ else
 	GPP						= g++-5
 	
 	# Strange, but this need for server
-	GPP_LIBS				+= -lboost_system -lpthread -lboost_filesystem-mt
+	GPP_LIBS				+= -lboost_system -lpthread -lboost_filesystem
 endif
 
 

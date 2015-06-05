@@ -24,14 +24,14 @@ TEST_DIR_CURR				= $(TEST_DIR_ABS)
 # Sources and headers
 HEADERS =																	\
 	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-not \( -name 'test*' -or -name 'main*' \)							\
 		\( -name '*.h' -or -name '*.hpp' \) ))
 
 
 SOURCES_CPP =																\
 	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-not \( -name 'test*' -or -name 'main*' \)							\
 		-name '*.cpp' ))
 
@@ -39,7 +39,7 @@ SOURCES_CPP =																\
 # Tests
 TEST_SOURCES_CPP =															\
 	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-not -name 'main*'													\
 		-name 'test*.cpp' ))
 
@@ -47,7 +47,7 @@ TEST_SOURCES_CPP =															\
 # Sources needed for only main targets
 MAIN_SOURCES_CPP =															\
 	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-not -name 'test*'													\
 		-name 'main*.cpp' ))
 

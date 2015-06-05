@@ -37,24 +37,24 @@ TEST_DIR_CURR				= $(TEST_DIR_ABS)/$(MODULE_NAME)
 # Sources and headers (files in modules/ must be _AFTER_ files in current dir!)
 HEADERS =																	\
 	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-not -name 'test*'													\
 		\( -name '*.h' -or -name '*.hpp' \) ))								\
 																			\
 	$(addprefix modules/,$(notdir $(shell find $(SOURCES_DIR_CURR)/modules	\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-not -name 'test*'													\
 		\( -name '*.h' -or -name '*.hpp' \) )))
 
 
 SOURCES_CPP =																\
 	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-not -name 'test*'													\
 		-name '*.cpp' ))													\
 																			\
 	$(addprefix modules/,$(notdir $(shell find $(SOURCES_DIR_CURR)/modules	\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-not -name 'test*'													\
 		-name '*.cpp' )))
 
@@ -62,11 +62,11 @@ SOURCES_CPP =																\
 # Tests
 TEST_SOURCES_CPP =															\
 	$(notdir $(shell find $(SOURCES_DIR_CURR)								\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-name 'test*.cpp' ))												\
 																			\
 	$(addprefix modules/,$(notdir $(shell find $(SOURCES_DIR_CURR)/modules	\
-		-depth 1 \( -type file -or -type link \)							\
+		-maxdepth 1 \( -type f -or -type l \)								\
 		-name 'test*.cpp' )))
 
 
