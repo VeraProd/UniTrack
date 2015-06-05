@@ -22,7 +22,7 @@ The project is under my own license:
 
 
 ### Requirements:
-- g++-5 or best (or clang++-3.6 or best, or any other C++11 compiler supporting std::regex, move-semantics and many more, *full support is best*).
+- g++-5 or best (or clang++-3.6 or best, or any other C++14 compiler supporting std::regex, move-semantics and many more, *full support is best*).
 - Boost (tested version: 1.58).
 - MongoDB C Driver (now disabled).
 - GNU Make (and a piece of shell) for building this.
