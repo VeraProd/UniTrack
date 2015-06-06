@@ -5,11 +5,10 @@
 
 #include <string>
 
-#include <boost/filesystem/path.hpp>
-
 #include <base/mapped_file.h>
 
 #include <server/types.h>
+#include <server/file_host.h>
 
 
 namespace server {
@@ -27,8 +26,10 @@ public:
 	
 	
 	std::pair<server::send_buffers_t, server::send_buffers_t>
-	operator()(const boost::filesystem::path &path,
-			   server::file_host_cache<files_only>::raw_ptr_t cache_ptr);
+	operator()(
+		const server::file_host<files_only,
+								server::file_host_cache<files_only>> &host,
+		server::file_host_cache<files_only> &cache);
 };	// class files_only
 
 

@@ -3,10 +3,10 @@
 #ifndef FILE_HOST_FILES_AND_TEMPLATE_PAGES_H
 #define FILE_HOST_FILES_AND_TEMPLATE_PAGES_H
 
-#include <boost/filesystem/path.hpp>
-
 #include <server/types.h>
+#include <server/file_host.h>
 #include <server/file_host_files_only.h>
+
 #include <file_host_template_pages_only.h>
 #include <file_host_files_and_template_pages_parameters.h>
 #include <page_model.h>
@@ -20,6 +20,7 @@ public:
 	class cache
 	{
 	public:
+		// Data
 		server::file_host_cache<files_only>::unique_ptr_t files_only_ptr;
 		server::file_host_cache<template_pages_only>::unique_ptr_t template_pages_only_ptr;
 	};	// class cache
@@ -30,8 +31,10 @@ public:
 	
 	
 	std::pair<server::send_buffers_t, server::send_buffers_t>
-	operator()(const boost::filesystem::path &path,
-			   server::file_host_cache<files_and_template_pages>::raw_ptr_t cache_ptr);
+	operator()(
+		const server::file_host<files_and_template_pages,
+						  server::file_host_cache<files_and_template_pages>> &host,
+		server::file_host_cache<files_and_template_pages> &cache);
 private:
 	files_and_template_pages_parameters parameters_;
 };	// files_and_template_pages

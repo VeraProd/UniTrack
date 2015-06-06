@@ -121,11 +121,14 @@ server::file_host<HostType, CacheType>::response(
 	server::http::version version,
 	server::headers_t &&request_headers)
 {
-	if (!this->validate_path(cache_ptr->path)) {
+	using namespace boost::filesystem;
+	
+	
+	if (!this->validate_path(cache_ptr->path.string())) {
 		this->logger().stream(logger::level::sec_warning)
 			<< "File host: Host \"" << this->name()
-			<< "\": Requested unallowed path: \"" << cache_ptr->path
-			<< "\" => " << server::http::status::forbidden.code_str() << '.';
+			<< "\": Requested unallowed path: " << cache_ptr->path
+			<< " => " << server::http::status::forbidden.code_str() << '.';
 		
 		return this->phony_response(version,
 									server::http::status::forbidden,
@@ -135,82 +138,76 @@ server::file_host<HostType, CacheType>::response(
 	
 	std::pair<server::send_buffers_t, server::send_buffers_t> file_data;
 	
-	{
-		boost::filesystem::path path;
+	try {
+		// The path is relative, see parse_uri(): "./index.html"
+		// Or absolute: "/var/unitrack/www/index.html"
+		cache_ptr->path = canonical(cache_ptr->path, this->file_host_parameters_.root);
 		
-		try {
-			path = boost::filesystem::canonical('.' + cache_ptr->path,
-												this->file_host_parameters_.root);
-			
-			file_data = std::move(this->file_handler_(path, cache_ptr.get()));
-		} catch (const base::path_is_directory &) {
-			auto rec_obj = std::move(this->logger().stream(logger::level::info)
-				<< "File host: Host \"" << this->name()
-				<< "\": URI points to directory: \"" << cache_ptr->path << "\"");
-			
-			// Append "/index.html"
-			{
-				auto &p = cache_ptr->path;
-				
-				if (!p.empty() && p.back() == '/') p += "index.html";
-				else p += "/index.html";
+		file_data = std::move(this->file_handler_(*this, *cache_ptr));
+	} catch (const base::path_is_directory &) {
+		auto &p = cache_ptr->path;
+		
+		auto rec_obj = std::move(this->logger().stream(logger::level::info)
+		<< "File host: Host \"" << this->name()
+		<< "\": URI points to directory: \"" << p << "\"");
+		
+		// Append "/index.html"
+		p /= "index.html";
+		
+		rec_obj << " => Try \"" << p << "\".";
+		
+		
+		return this->response(std::move(cache_ptr),
+							  method, version,
+							  std::move(request_headers));
+	} catch (const boost::filesystem::filesystem_error &e) {
+		switch (e.code().value()) {
+			case boost::system::errc::no_such_file_or_directory: {
+				return this->log_and_phony_response(
+					cache_ptr->path,
+					e.code().message(),
+					version,
+					server::http::status::not_found,
+					std::move(cache_ptr));
 			}
-			
-			rec_obj << " => Try \"" << cache_ptr->path << "\".";
-			
-			
-			return this->response(std::move(cache_ptr),
-								  method, version,
-								  std::move(request_headers));
-		} catch (const boost::filesystem::filesystem_error &e) {
-			switch (e.code().value()) {
-				case boost::system::errc::no_such_file_or_directory: {
-					return this->log_and_phony_response(
-						path,
-						e.code().message(),
-						version,
-						server::http::status::not_found,
-						std::move(cache_ptr));
-				}
-				case boost::system::errc::permission_denied: {
-					return this->log_and_phony_response(
-						path,
-						e.what(),
-						version,
-						server::http::status::forbidden,
-						std::move(cache_ptr));
-				}
-				default: {
-					return this->log_and_phony_response(
-						path,
-						e.what(),
-						version,
-						server::http::status::internal_server_error,
-						std::move(cache_ptr));
-				}
+			case boost::system::errc::permission_denied: {
+				return this->log_and_phony_response(
+					cache_ptr->path,
+					e.what(),
+					version,
+					server::http::status::forbidden,
+					std::move(cache_ptr));
 			}
-		} catch (const server::path_forbidden &e) {
-			return this->log_and_phony_response(
-						path,
-						e.what(),
-						version,
-						server::http::status::forbidden,
-						std::move(cache_ptr));
-		} catch (const server::path_not_found &e) {
-			return this->log_and_phony_response(
-						path,
-						e.what(),
-						version,
-						server::http::status::not_found,
-						std::move(cache_ptr));
-		} catch (...) {
-			return this->log_and_phony_response(
-						path,
-						"Unknown error",
-						version,
-						server::http::status::internal_server_error,
-						std::move(cache_ptr));
+			default: {
+				return this->log_and_phony_response(
+					cache_ptr->path,
+					e.what(),
+					version,
+					server::http::status::internal_server_error,
+					std::move(cache_ptr));
+			}
 		}
+	} catch (const server::path_forbidden &e) {
+		return this->log_and_phony_response(
+					cache_ptr->path,
+					e.what(),
+					version,
+					server::http::status::forbidden,
+					std::move(cache_ptr));
+	} catch (const server::path_not_found &e) {
+		return this->log_and_phony_response(
+					cache_ptr->path,
+					e.what(),
+					version,
+					server::http::status::not_found,
+					std::move(cache_ptr));
+	} catch (...) {
+		return this->log_and_phony_response(
+					cache_ptr->path,
+					"Unknown error",
+					version,
+					server::http::status::internal_server_error,
+					std::move(cache_ptr));
 	}
 	
 	
@@ -327,4 +324,19 @@ server::file_host<HostType, CacheType>::log_and_phony_response(
 	return this->phony_response(version,
 								status,
 								std::move(cache_ptr->response_headers));
+}
+
+
+template<class HostType, class CacheType>
+bool
+server::file_host<HostType, CacheType>::parse_uri(const std::string &uri,
+												  server::host_cache &cache)
+{
+	if (!server::host::parse_uri(uri, cache))
+		return false;
+	
+	// Making the path relative
+	
+	cache.path = canonical("." / cache.path, this->file_host_parameters_.root);
+	return true;
 }

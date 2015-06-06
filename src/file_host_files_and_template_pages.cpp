@@ -18,30 +18,43 @@ files_and_template_pages::files_and_template_pages(
 
 std::pair<server::send_buffers_t, server::send_buffers_t>
 files_and_template_pages::operator()(
-		const boost::filesystem::path &path,
-		server::file_host_cache<files_and_template_pages>::raw_ptr_t cache_ptr)
+	const server::file_host<files_and_template_pages,
+					  server::file_host_cache<files_and_template_pages>> &host,
+	server::file_host_cache<files_and_template_pages> &cache)
 {
 	bool is_template_page = ((this->parameters_.default_behavior
 							  == files_and_template_pages_parameters::behavior::template_pages)?
 							  true: false);
 	
-	if (std::regex_match(path.string(), this->parameters_.change_behavior_regex))
+	if (std::regex_match(cache.path.string(), this->parameters_.change_behavior_regex))
 		is_template_page = !is_template_page;
 	
 	
 	if (is_template_page) {
-		cache_ptr->template_pages_only_ptr
-			= std::make_unique<server::file_host_cache<template_pages_only>>();
+		cache.template_pages_only_ptr
+			= std::make_unique<server::file_host_cache<template_pages_only>>(std::move(cache));
 		
 		return this->template_pages_only::operator()(
-			path,
-			cache_ptr->template_pages_only_ptr.get());
+			reinterpret_cast<
+				const server::file_host<
+					template_pages_only,
+					server::file_host_cache<template_pages_only>
+				> &
+			>(host),
+			*cache.template_pages_only_ptr
+		);
 	} else {
-		cache_ptr->files_only_ptr
-			= std::make_unique<server::file_host_cache<files_only>>();
+		cache.files_only_ptr
+			= std::make_unique<server::file_host_cache<files_only>>(std::move(cache));
 		
 		return this->server::files_only::operator()(
-			path,
-			cache_ptr->files_only_ptr.get());
+			reinterpret_cast<
+				const server::file_host<
+					server::files_only,
+					server::file_host_cache<server::files_only>
+				> &
+			>(host),
+			*cache.files_only_ptr
+		);
 	}
 }

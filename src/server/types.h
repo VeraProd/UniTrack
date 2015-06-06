@@ -6,24 +6,20 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <list>
+#include <deque>
 #include <unordered_set>
 #include <unordered_map>
 
 #include <boost/asio.hpp>
+#include <boost/filesystem/path.hpp>
 
 
 namespace server {
 
 
-// Protocols
-typedef std::pair<std::string, std::string> header_pair_t;
-typedef std::unordered_map<std::string, std::string> headers_t;
+// Workers
+typedef unsigned int worker_id_t;
 
-
-// URI
-typedef std::unordered_map<std::string, std::string>	uri_arguments_map_t;
-typedef std::unordered_set<std::string>					uri_arguments_set_t;
 
 
 // Sockets
@@ -35,40 +31,50 @@ typedef unsigned short				port_t;
 typedef std::unordered_set<port_t>	port_set_t;
 
 
-// Workers
-typedef unsigned int worker_id_t;
+
+// Protocols
+typedef std::pair<std::string, std::string>				header_pair_t;
+typedef std::unordered_map<std::string, std::string>	headers_t;
+
+
+// URI
+typedef std::unordered_map<std::string, std::string>	uri_arguments_map_t;
+typedef std::unordered_set<std::string>					uri_arguments_set_t;
+
+
+// Send buffers
+typedef boost::asio::const_buffer	send_buffer_t;
+typedef std::vector<send_buffer_t>	send_buffers_t;
 
 
 // Hosts
 class host_cache
 {
 public:
+	// Types
 	typedef					host_cache *	raw_ptr_t;
 	typedef	std::unique_ptr<host_cache>		unique_ptr_t;
 	typedef	std::shared_ptr<host_cache>		shared_ptr_t;
 	
 	
-	virtual ~host_cache() = default;
-	
-	
 	// Data
-	std::string				path;
-	uri_arguments_map_t		args_map;
-	uri_arguments_set_t		args_set;
+	boost::filesystem::path		path;
+	uri_arguments_map_t			args_map;
+	uri_arguments_set_t			args_set;
 	
 	
-	server::headers_t		request_headers,
-							response_headers,
-							additional_headers;
+	server::headers_t			request_headers,
+								response_headers,
+								additional_headers;
 	
-	std::list<std::string>	strings;
+	
+	std::deque<std::string>		strings;
 };	// class host_cache
 
 
-typedef boost::asio::const_buffer send_buffer_t;
-typedef std::vector<send_buffer_t> send_buffers_t;
-
+// Response
 typedef std::pair<send_buffers_t, host_cache::shared_ptr_t> response_data_t;
+
 
 
 // File host
@@ -78,9 +84,40 @@ class file_host_cache:
 	public HostType::cache
 {
 public:
-	typedef					file_host_cache<HostType> *	raw_ptr_t;
-	typedef	std::unique_ptr<file_host_cache<HostType>>	unique_ptr_t;
-	typedef	std::shared_ptr<file_host_cache<HostType>>	shared_ptr_t;
+	// Types
+	typedef					file_host_cache<HostType> *		raw_ptr_t;
+	typedef	std::unique_ptr<file_host_cache<HostType>>		unique_ptr_t;
+	typedef	std::shared_ptr<file_host_cache<HostType>>		shared_ptr_t;
+	
+	
+	// Construct from server::host_cache
+	file_host_cache(const server::host_cache &other):
+		server::host_cache(other)
+	{}
+	
+	file_host_cache(server::host_cache &&other):
+		server::host_cache(std::move(other))
+	{}
+	
+	
+	// Construct from HostType::cache
+	file_host_cache(const typename HostType::cache &other):
+		HostType::cache(other)
+	{}
+	
+	file_host_cache(typename HostType::cache &&other):
+		HostType::cache(std::move(other))
+	{}
+	
+	
+	file_host_cache() = default;
+	file_host_cache(const file_host_cache &other) = default;
+	file_host_cache(file_host_cache &&other) = default;
+	
+	file_host_cache & operator=(const file_host_cache &other) = default;
+	file_host_cache & operator=(file_host_cache &&other) = default;
+	
+	virtual ~file_host_cache() = default;
 };	// class file_host_cache
 
 

@@ -11,7 +11,6 @@
 #include <boost/filesystem/path.hpp>
 
 #include <server/file_host_parameters.h>
-#include <server/file_host_files_only.h>
 
 
 namespace server {
@@ -27,8 +26,8 @@ namespace server {
 // 	- must have non-static method:
 // 		
 // 		std::pair<server::send_buffers_t, server::send_buffers_t>
-// 		operator()(const boost::filesystem::path &path,		// Path the handler should process
-// 				   CacheType::raw_ptr_t cache_ptr);			// Cache that the handler can use
+// 		operator()(const file_host<HostType, CacheType> &host,	// Host, that is handler's owner
+// 				   CacheType &cache);							// Cache that the handler can use
 // 		
 // 		Return value: first if headers buffers, second is content buffers.
 // 		Headers buffers must contain Content-Length, if need.
@@ -99,6 +98,10 @@ public:
 			 server::http::version version,
 			 server::headers_t &&request_headers,
 			 server::headers_t &&response_headers = {}) override;
+	
+	
+	// URI parsing
+	bool parse_uri(const std::string &uri, server::host_cache &cache);
 protected:
 	bool validate_path(const std::string &path) const noexcept;
 	bool validate_args(const server::uri_arguments_map_t &args_map,

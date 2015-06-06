@@ -5,9 +5,8 @@
 
 #include <string>
 
-#include <boost/filesystem/path.hpp>
-
 #include <server/types.h>
+#include <server/file_host.h>
 #include <templatizer/page.h>
 
 #include <page_model.h>
@@ -19,6 +18,7 @@ public:
 	class cache
 	{
 	public:
+		// Data
 		templatizer::page page;
 		std::string content_len_str;
 	};	// class cache
@@ -28,8 +28,10 @@ public:
 	
 	
 	std::pair<server::send_buffers_t, server::send_buffers_t>
-	operator()(const boost::filesystem::path &path,
-			   server::file_host_cache<template_pages_only>::raw_ptr_t cache_ptr);
+	operator()(
+		const server::file_host<template_pages_only,
+						  server::file_host_cache<template_pages_only>> &host,
+		server::file_host_cache<template_pages_only> &cache);
 private:
 	page_model &page_model_;
 };	// template_pages_only

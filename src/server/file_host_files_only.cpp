@@ -9,23 +9,25 @@
 
 
 std::pair<server::send_buffers_t, server::send_buffers_t>
-server::files_only::operator()(const boost::filesystem::path &path,
-							   server::file_host_cache<server::files_only>::raw_ptr_t cache_ptr)
+server::files_only::operator()(
+	const server::file_host<server::files_only,
+					  server::file_host_cache<server::files_only>> &host,
+	server::file_host_cache<server::files_only> &cache)
 {
 	using namespace boost::interprocess;
 	using boost::asio::buffer;
 	
 	
 	try {
-		cache_ptr->mapped_file = std::move(base::mapped_file(path, read_only, MAP_SHARED));
+		cache.mapped_file = std::move(base::mapped_file(cache.path, read_only, MAP_SHARED));
 	} catch (const base::path_not_found &e) {
-		throw server::path_not_found(path.string());
+		throw server::path_not_found(cache.path.string());
 	} catch (const interprocess_exception &e) {
 		switch (e.get_error_code()) {
 			case not_such_file_or_directory: case not_found_error:
-				throw server::path_not_found(path.string());
+				throw server::path_not_found(cache.path.string());
 			default:
-				throw server::path_forbidden(path.string() + ": file_mapping: " + e.what());
+				throw server::path_forbidden(cache.path.string() + ": file_mapping: " + e.what());
 		}
 	}
 	
@@ -34,10 +36,10 @@ server::files_only::operator()(const boost::filesystem::path &path,
 	res.second.reserve(1);
 	
 	
-	const void *file_content = cache_ptr->mapped_file.data();
-	size_t file_size = cache_ptr->mapped_file.size();
+	const void *file_content = cache.mapped_file.data();
+	size_t file_size = cache.mapped_file.size();
 	
-	auto len_it = cache_ptr->strings.emplace(cache_ptr->strings.end(), std::to_string(file_size));
+	auto len_it = cache.strings.emplace(cache.strings.end(), std::to_string(file_size));
 	
 	
 	server::host::add_header(res.first, server::http::header_content_length, *len_it);
