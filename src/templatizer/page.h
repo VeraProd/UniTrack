@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_set>
-#include <list>
+#include <deque>
 #include <memory>
 #include <type_traits>
 
@@ -98,14 +98,14 @@ protected:
 	
 	// Data
 	typedef std::unique_ptr<templatizer::chunk> chunk_ptr_t;
-	typedef std::list<chunk_ptr_t> chunk_ptrs_list_t;
+	typedef std::deque<chunk_ptr_t> chunk_ptrs_deque_t;
 private:
 	// State
 	state state_;
 	
 	
 	// Data
-	chunk_ptrs_list_t chunk_ptrs_;
+	chunk_ptrs_deque_t chunk_ptrs_;
 };	// class page
 
 

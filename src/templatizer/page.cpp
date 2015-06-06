@@ -72,7 +72,7 @@ templatizer::page::load()
 	using namespace boost::interprocess;
 	
 	try {
-		chunk_ptrs_list_t chunk_ptrs;
+		chunk_ptrs_deque_t chunk_ptrs;
 		
 		
 		// Parsing
@@ -108,8 +108,12 @@ templatizer::page::load()
 				// Adding previous raw chunk
 				size_t current_pos = it->position();
 				if (current_pos > old_pos) {	// Indexing previous raw chunk...
-					chunk_ptrs.emplace_back(new raw_chunk(mapped_data + old_pos,
-														  current_pos - old_pos));
+					chunk_ptrs.emplace_back(
+						std::make_unique<templatizer::raw_chunk>(
+							mapped_data + old_pos,
+							current_pos - old_pos
+						)
+					);
 					old_pos = current_pos + it->length();
 				}
 				
@@ -133,8 +137,12 @@ templatizer::page::load()
 			
 			// Remember to index the last raw chunk
 			if (old_pos < mapped_size)
-				chunk_ptrs.emplace_back(new templatizer::raw_chunk(mapped_data + old_pos,
-																   mapped_size - old_pos));
+				chunk_ptrs.emplace_back(
+						std::make_unique<templatizer::raw_chunk>(
+							mapped_data + old_pos,
+							mapped_size - old_pos
+						)
+					);
 		}	// End of parsing
 		
 		// Move data to *this, if success (if not success, see catch blocks below)
