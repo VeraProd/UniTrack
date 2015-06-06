@@ -355,7 +355,7 @@ server::host::parse_uri(const std::string &uri, server::host_cache &cache)
 	
 	std::smatch m;
 	if (std::regex_match(uri, m, base_regex)) {
-		cache.path = m[1];
+		cache.path = m[1].str();
 		
 		auto args_sm = m[3];
 		if (args_sm.length() != 0) {
