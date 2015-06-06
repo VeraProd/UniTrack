@@ -4,6 +4,8 @@
 #define FILE_HOST_TEMPLATE_PAGES_ONLY_H
 
 #include <string>
+#include <memory>
+#include <unordered_map>
 
 #include <server/types.h>
 #include <templatizer/page.h>
@@ -18,7 +20,7 @@ public:
 	{
 	public:
 		// Data
-		templatizer::page page;
+		std::shared_ptr<templatizer::page> page_ptr;
 		std::string content_len_str;
 	};	// class cache
 	
@@ -31,6 +33,8 @@ public:
 	operator()(const FileHost &host,
 			   server::file_host_cache<template_pages_only> &cache);
 private:
+	std::unordered_map<std::string, std::shared_ptr<templatizer::page>> pages_cache_;
+	
 	page_model &page_model_;
 };	// template_pages_only
 
