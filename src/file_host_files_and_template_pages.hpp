@@ -1,11 +1,10 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <file_host_files_and_template_pages.h>
-
 #include <string>
 #include <regex>
 
 
+inline
 files_and_template_pages::files_and_template_pages(
 		page_model &page_model,
 		const files_and_template_pages_parameters &parameters):
@@ -16,11 +15,10 @@ files_and_template_pages::files_and_template_pages(
 {}
 
 
+template<class FileHost>
 std::pair<server::send_buffers_t, server::send_buffers_t>
-files_and_template_pages::operator()(
-	const server::file_host<files_and_template_pages,
-					  server::file_host_cache<files_and_template_pages>> &host,
-	server::file_host_cache<files_and_template_pages> &cache)
+files_and_template_pages::operator()(const FileHost &host,
+									 server::file_host_cache<files_and_template_pages> &cache)
 {
 	bool is_template_page = ((this->parameters_.default_behavior
 							  == files_and_template_pages_parameters::behavior::template_pages)?
@@ -34,27 +32,11 @@ files_and_template_pages::operator()(
 		cache.template_pages_only_ptr
 			= std::make_unique<server::file_host_cache<template_pages_only>>(std::move(cache));
 		
-		return this->template_pages_only::operator()(
-			reinterpret_cast<
-				const server::file_host<
-					template_pages_only,
-					server::file_host_cache<template_pages_only>
-				> &
-			>(host),
-			*cache.template_pages_only_ptr
-		);
+		return this->template_pages_only::operator()(host, *cache.template_pages_only_ptr);
 	} else {
 		cache.files_only_ptr
 			= std::make_unique<server::file_host_cache<files_only>>(std::move(cache));
 		
-		return this->server::files_only::operator()(
-			reinterpret_cast<
-				const server::file_host<
-					server::files_only,
-					server::file_host_cache<server::files_only>
-				> &
-			>(host),
-			*cache.files_only_ptr
-		);
+		return this->server::files_only::operator()(host, *cache.files_only_ptr);
 	}
 }

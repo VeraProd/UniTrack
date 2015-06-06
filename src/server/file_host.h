@@ -110,13 +110,17 @@ protected:
 	
 	
 	server::response_data_t
-	log_and_phony_response(const boost::filesystem::path &path,
-						   const std::string &message,
+	log_and_phony_response(const std::string &message,
 						   server::http::version version,
-						   const server::http::status &status,
-						   server::file_host<HostType, CacheType>::cache_shared_ptr_t &&cache_ptr);
+						   server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr,
+						   const server::http::status &status);
 	
 	
+	server::response_data_t
+	handle_filesystem_error(const boost::filesystem::filesystem_error &e,
+							server::http::version version,
+							server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr,
+							const server::http::status &status);
 private:
 	server::response_data_t
 	response(server::file_host<HostType, CacheType>::cache_shared_ptr_t &&cache_ptr,

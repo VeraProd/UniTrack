@@ -70,15 +70,23 @@ server::file_host<HostType, CacheType>::response(std::string &&uri,
 		= std::make_shared<server::file_host<HostType, CacheType>::cache_t>();
 	
 	
-	if (!this->parse_uri(uri, *cache_ptr)) {
-		this->logger().stream(logger::level::sec_warning)
-			<< "File host: Host \"" << this->name()
-			<< "\": Incorrect URI: \"" << uri
-			<< "\" => " << server::http::status::bad_request.code_str() << '.';
-		
-		return this->phony_response(version,
-									server::http::status::bad_request,
-									std::move(response_headers));
+	// Parsing URI
+	try {
+		if (!this->parse_uri(uri, *cache_ptr)) {
+			this->logger().stream(logger::level::sec_warning)
+				<< "File host: Host \"" << this->name()
+				<< "\": Incorrect URI: \"" << uri
+				<< "\" => " << server::http::status::bad_request.code_str() << '.';
+			
+			return this->phony_response(version,
+										server::http::status::bad_request,
+										std::move(response_headers));
+		}
+	} catch (const boost::filesystem::filesystem_error &e) {
+		return this->handle_filesystem_error(
+			e, version, std::move(cache_ptr),
+			server::http::status::forbidden
+		);
 	}
 	
 	
@@ -161,53 +169,25 @@ server::file_host<HostType, CacheType>::response(
 							  method, version,
 							  std::move(request_headers));
 	} catch (const boost::filesystem::filesystem_error &e) {
-		switch (e.code().value()) {
-			case boost::system::errc::no_such_file_or_directory: {
-				return this->log_and_phony_response(
-					cache_ptr->path,
-					e.code().message(),
-					version,
-					server::http::status::not_found,
-					std::move(cache_ptr));
-			}
-			case boost::system::errc::permission_denied: {
-				return this->log_and_phony_response(
-					cache_ptr->path,
-					e.what(),
-					version,
-					server::http::status::forbidden,
-					std::move(cache_ptr));
-			}
-			default: {
-				return this->log_and_phony_response(
-					cache_ptr->path,
-					e.what(),
-					version,
-					server::http::status::internal_server_error,
-					std::move(cache_ptr));
-			}
-		}
+		return this->handle_filesystem_error(
+			e, version, std::move(cache_ptr),
+			server::http::status::forbidden
+		);
 	} catch (const server::path_forbidden &e) {
 		return this->log_and_phony_response(
-					cache_ptr->path,
-					e.what(),
-					version,
-					server::http::status::forbidden,
-					std::move(cache_ptr));
+			e.what(), version, std::move(cache_ptr),
+			server::http::status::forbidden
+		);
 	} catch (const server::path_not_found &e) {
 		return this->log_and_phony_response(
-					cache_ptr->path,
-					e.what(),
-					version,
-					server::http::status::not_found,
-					std::move(cache_ptr));
+			e.what(), version, std::move(cache_ptr),
+			server::http::status::not_found
+		);
 	} catch (...) {
 		return this->log_and_phony_response(
-					cache_ptr->path,
-					"Unknown error",
-					version,
-					server::http::status::internal_server_error,
-					std::move(cache_ptr));
+			"Unknown error", version, std::move(cache_ptr),
+			server::http::status::internal_server_error
+		);
 	}
 	
 	
@@ -310,20 +290,47 @@ server::file_host<HostType, CacheType>::validate_method(server::http::method met
 template<class HostType, class CacheType>
 server::response_data_t
 server::file_host<HostType, CacheType>::log_and_phony_response(
-	const boost::filesystem::path &path,
 	const std::string &message,
 	server::http::version version,
-	const server::http::status &status,
-	server::file_host<HostType, CacheType>::cache_shared_ptr_t &&cache_ptr)
+	server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr,
+	const server::http::status &status)
 {
 	this->logger().stream(logger::level::error)
 		<< "File host: Host \"" << this->name()
-		<< "\": Can't send path: " << path << ": " << message
+		<< "\": Can't send path: " << cache_ptr->path << ": " << message
 		<< " => " << status.code_str() << '.';
 	
 	return this->phony_response(version,
 								status,
 								std::move(cache_ptr->response_headers));
+}
+
+
+template<class HostType, class CacheType>
+server::response_data_t
+server::file_host<HostType, CacheType>::handle_filesystem_error(
+	const boost::filesystem::filesystem_error &e,
+	server::http::version version,
+	server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr,
+	const server::http::status &status)
+{
+	switch (e.code().value()) {
+		case boost::system::errc::no_such_file_or_directory:
+			return this->log_and_phony_response(
+				e.code().message(), version, std::move(cache_ptr),
+				server::http::status::not_found
+			);
+		case boost::system::errc::permission_denied:
+			return this->log_and_phony_response(
+				e.code().message(), version, std::move(cache_ptr),
+				server::http::status::forbidden
+			);
+		default:
+			return this->log_and_phony_response(
+				e.code().message(), version, std::move(cache_ptr),
+				server::http::status::internal_server_error
+			);
+	}
 }
 
 
@@ -336,7 +343,7 @@ server::file_host<HostType, CacheType>::parse_uri(const std::string &uri,
 		return false;
 	
 	// Making the path relative
-	
 	cache.path = canonical("." / cache.path, this->file_host_parameters_.root);
+	
 	return true;
 }

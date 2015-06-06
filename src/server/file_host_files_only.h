@@ -8,7 +8,6 @@
 #include <base/mapped_file.h>
 
 #include <server/types.h>
-#include <server/file_host.h>
 
 
 namespace server {
@@ -25,15 +24,16 @@ public:
 	};
 	
 	
+	template<class FileHost>
 	std::pair<server::send_buffers_t, server::send_buffers_t>
-	operator()(
-		const server::file_host<files_only,
-								server::file_host_cache<files_only>> &host,
-		server::file_host_cache<files_only> &cache);
+	operator()(const FileHost &host,
+			   server::file_host_cache<files_only> &cache);
 };	// class files_only
 
 
 };	// namespace server
 
+
+#include <server/file_host_files_only.hpp>
 
 #endif // SERVER_FILE_HOST_FILES_ONLY_H

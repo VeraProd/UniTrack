@@ -1,20 +1,18 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <file_host_template_pages_only.h>
-
 #include <server/host.h>
 
 
+inline
 template_pages_only::template_pages_only(page_model &page_model):
 	page_model_(page_model)
 {}
 
 
+template<class FileHost>
 std::pair<server::send_buffers_t, server::send_buffers_t>
-template_pages_only::operator()(
-	const server::file_host<template_pages_only,
-					  server::file_host_cache<template_pages_only>> &host,
-	server::file_host_cache<template_pages_only> &cache)
+template_pages_only::operator()(const FileHost &host,
+								server::file_host_cache<template_pages_only> &cache)
 {
 	cache.page.load(cache.path);
 	

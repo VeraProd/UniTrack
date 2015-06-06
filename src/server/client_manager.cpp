@@ -5,6 +5,7 @@
 #include <iostream>
 #include <functional>
 #include <regex>
+#include <stdexcept>
 
 #include <server/worker.h>
 #include <server/protocol_exceptions.h>
@@ -305,6 +306,10 @@ server::client_manager::request_handler(server::client_manager::request_data_ptr
 		// Also catches headers_has_content_length, duplicate_header
 		
 		this->handle_error(request_data_ptr, e,
+						   server::http::status::internal_server_error,
+						   true, true);
+	} catch (const std::exception &e) {									// Other errors
+		this->handle_error(request_data_ptr, e.what(),
 						   server::http::status::internal_server_error,
 						   true, true);
 	} catch (...) {														// Other errors

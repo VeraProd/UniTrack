@@ -1,18 +1,15 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <server/file_host_files_only.h>
-
 #include <base/mapped_file_exceptions.h>
 
 #include <server/host.h>
 #include <server/host_exceptions.h>
 
 
+template<class FileHost>
 std::pair<server::send_buffers_t, server::send_buffers_t>
-server::files_only::operator()(
-	const server::file_host<server::files_only,
-					  server::file_host_cache<server::files_only>> &host,
-	server::file_host_cache<server::files_only> &cache)
+server::files_only::operator()(const FileHost &host,
+							   server::file_host_cache<server::files_only> &cache)
 {
 	using namespace boost::interprocess;
 	using boost::asio::buffer;
