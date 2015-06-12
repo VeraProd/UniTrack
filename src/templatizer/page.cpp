@@ -90,11 +90,11 @@ templatizer::page::load()
 			static const std::regex regex(
 				"("
 					// Full form: ${ COMMAND ... }
-					"\\$\\{[[:space:]]*([[:alpha:]_][[:alnum:]_]*)"	// COMMAND [2]
-						"[[:space:]]*([^\\}]*)\\}"					// ARG [3]
+					"\\$[\\{\\(][[:space:]]*([[:alpha:]_][[:alnum:]_]*)"	// COMMAND [2]
+						"[[:space:]]*([^\\}\\)]*)[\\}\\)]"					// ARG [3]
 				"|"	// 'Or'
 					// Short form: $VAR_NAME
-					"\\$([[:alpha:]_][[:alnum:]_]*)"				// VAR_NAME (in short form) [4]
+					"\\$([[:alpha:]_][[:alnum:]_]*)"						// VAR_NAME (in short form) [4]
 				")",
 				std::regex::optimize);
 			
