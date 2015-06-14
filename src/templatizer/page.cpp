@@ -62,7 +62,7 @@ templatizer::page::load(const boost::filesystem::path &path)
 	*this = std::move(templatizer::page(path));
 }
 
-
+#include <iostream>
 // Loads template from current file.
 // If an error occured, throws templatizer::file_mapping_error
 // or templatizer::file_parsing_error.
@@ -126,7 +126,7 @@ templatizer::page::load()
 					argument = std::move(it->str(4));
 				}
 				
-				
+				std::cerr << "Requested module: " << command << std::endl;
 				// These can throw
 				auto chunk_generator =
 					templatizer::module_registrar::default_module_registrar.module(command);
@@ -146,7 +146,7 @@ templatizer::page::load()
 		}	// End of parsing
 		
 		// Move data to *this, if success (if not success, see catch blocks below)
-		this->chunk_ptrs_		= std::move(chunk_ptrs);
+		this->chunk_ptrs_ = std::move(chunk_ptrs);
 		
 		this->set_state(templatizer::page::state::ok);
 	} catch (const interprocess_exception &e) {	// Thrown by mapped_region, when the file is empty
@@ -174,26 +174,21 @@ templatizer::page::clear() noexcept
 }
 
 
-// Generates result page from template using data model sending all data to the stream.
-// Returns number of sent bytes.
+// Generates result page from template using data model
+	// adding all data to the buffers and using the cache.
+	// Returns summary size of all added buffers.
 size_t
-templatizer::page::generate(std::ostream &stream, const templatizer::model &model) const
+templatizer::page::generate(server::send_buffers_t &buffers,
+							server::strings_cache_t &cache,
+							const templatizer::model &model) const
 {
+	auto buffers_ins_it = std::back_inserter(buffers);
+	auto cache_ins_it = std::back_inserter(cache);
+	auto cache_ext_it = base::back_extractor(cache);
+	
 	size_t content_len = 0;
 	for (const auto &chunk_ptr: this->chunk_ptrs_)
-		content_len += chunk_ptr->generate(stream, model);
-	return content_len;
-}
-
-
-// Generates result page from template using data model adding all data to the buffers.
-// Returns summary size of all added buffers.
-size_t
-templatizer::page::generate(server::send_buffers_t &buffers, const templatizer::model &model) const
-{
-	size_t content_len = 0;
-	for (const auto &chunk_ptr: this->chunk_ptrs_)
-		content_len += chunk_ptr->generate(buffers, model);
+		content_len += chunk_ptr->generate(buffers_ins_it, cache_ins_it, cache_ext_it, model);
 	return content_len;
 }
 
@@ -214,4 +209,22 @@ templatizer::page::export_symbols(templatizer::page::symbol_set &symbols) const
 {
 	for (const auto &chunk_ptr: this->chunk_ptrs_)
 		chunk_ptr->export_symbols(symbols);
+}
+
+
+std::ostream &
+operator<<(std::ostream &stream, const templatizer::page::page_printer &printer)
+{
+	server::send_buffers_t buffers;
+	server::strings_cache_t cache;
+	
+	// Generating the page...
+	printer.page.generate(buffers, cache, printer.model);
+	
+	// ...and printing it
+	for (const auto &buffer: buffers)
+		stream.write(boost::asio::buffer_cast<const char *>(buffer),
+					 boost::asio::buffer_size(buffer));
+	
+	return stream;
 }

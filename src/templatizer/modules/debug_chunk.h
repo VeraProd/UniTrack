@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef TEMPLATIZER_VAR_CHUNK_CPP
-#define TEMPLATIZER_VAR_CHUNK_CPP
+#ifndef TEMPLATIZER_DEBUG_CHUNK_CPP
+#define TEMPLATIZER_DEBUG_CHUNK_CPP
 
 #include <string>
 
@@ -13,15 +13,15 @@
 namespace templatizer {
 
 
-class var_chunk:
+class debug_chunk:
 	public templatizer::chunk
 {
 public:
-	static const std::string var_chunk_cmd;	// = "var"
+	static const std::string debug_chunk_cmd;	// = "debug"
 	
 	
-	var_chunk(const std::string &symbol);
-	var_chunk(std::string &&symbol) noexcept;
+	debug_chunk(const std::string &symbol);
+	debug_chunk(std::string &&symbol) noexcept;
 	
 	
 	virtual size_t generate(server::send_buffers_insert_iterator_t buffers_ins_it,
@@ -33,10 +33,10 @@ public:
 	virtual void export_symbols(std::unordered_set<std::string> &symbols) const override;
 private:
 	const std::string symbol_;
-};	// class var_chunk
+};	// class debug_chunk
 
 
 };	// namespace templatizer
 
 
-#endif // TEMPLATIZER_VAR_CHUNK_CPP
+#endif // TEMPLATIZER_DEBUG_CHUNK_CPP

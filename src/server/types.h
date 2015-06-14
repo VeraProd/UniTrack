@@ -9,6 +9,9 @@
 #include <deque>
 #include <unordered_set>
 #include <unordered_map>
+#include <iterator>
+
+#include <base/iterator.h>
 
 #include <boost/asio.hpp>
 #include <boost/filesystem/path.hpp>
@@ -43,8 +46,15 @@ typedef std::unordered_set<std::string>					uri_arguments_set_t;
 
 
 // Send buffers
-typedef boost::asio::const_buffer	send_buffer_t;
-typedef std::vector<send_buffer_t>	send_buffers_t;
+typedef boost::asio::const_buffer						send_buffer_t;
+typedef std::vector<send_buffer_t>						send_buffers_t;
+typedef std::back_insert_iterator<send_buffers_t>		send_buffers_insert_iterator_t;
+
+
+// Strings cache
+typedef std::deque<std::string>							strings_cache_t;
+typedef std::back_insert_iterator<strings_cache_t>		strings_cache_insert_iterator_t;
+typedef base::back_extract_iterator<strings_cache_t>	strings_cache_extract_iterator_t;
 
 
 // Hosts
@@ -68,7 +78,7 @@ public:
 								additional_headers;
 	
 	
-	std::deque<std::string>		strings;
+	strings_cache_t				strings;
 };	// class host_cache
 
 

@@ -29,21 +29,12 @@ templatizer::var_chunk::var_chunk(std::string &&symbol) noexcept:
 
 // virtual
 size_t
-templatizer::var_chunk::generate(std::ostream &stream,
+templatizer::var_chunk::generate(server::send_buffers_insert_iterator_t buffers_ins_it,
+								 server::strings_cache_insert_iterator_t /*cache_ins_it*/,
+								 server::strings_cache_extract_iterator_t /*cache_ext_it*/,
 								 const templatizer::model &model) const
 {
-	// This can throw:
-	stream << model.variable(this->symbol_);
-	return this->symbol_.size();
-}
-
-
-// virtual
-size_t
-templatizer::var_chunk::generate(server::send_buffers_t &buffers,
-								 const templatizer::model &model) const
-{
-	buffers.emplace_back(boost::asio::buffer(model.variable(this->symbol_)));
+	*buffers_ins_it = boost::asio::buffer(model.variable(this->symbol_));
 	return this->symbol_.size();
 }
 

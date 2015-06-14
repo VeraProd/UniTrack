@@ -5,11 +5,6 @@
 #include <boost/asio/buffer.hpp>
 
 
-// class chunk
-templatizer::chunk::~chunk()
-{}
-
-
 // class raw_chunk
 templatizer::raw_chunk::raw_chunk(const char *data, size_t size) noexcept:
 	data_(data),
@@ -19,20 +14,12 @@ templatizer::raw_chunk::raw_chunk(const char *data, size_t size) noexcept:
 
 // virtual
 size_t
-templatizer::raw_chunk::generate(std::ostream &stream,
+templatizer::raw_chunk::generate(server::send_buffers_insert_iterator_t buffers_ins_it,
+								 server::strings_cache_insert_iterator_t /*cache_ins_it*/,
+								 server::strings_cache_extract_iterator_t /*cache_ext_it*/,
 								 const templatizer::model &model) const
 {
-	stream.write(this->data_, this->size_);
-	return this->size_;
-}
-
-
-// virtual
-size_t
-templatizer::raw_chunk::generate(server::send_buffers_t &buffers,
-								 const templatizer::model &model) const
-{
-	buffers.emplace_back(boost::asio::buffer(this->data_, this->size_));
+	*buffers_ins_it = boost::asio::buffer(this->data_, this->size_);
 	return this->size_;
 }
 

@@ -61,14 +61,11 @@ public:
 	void clear() noexcept;
 	
 	
-	// Generates result page from template using data model sending all data to the stream.
-	// Returns number of sent bytes.
-	size_t generate(std::ostream &stream,
-					const templatizer::model &model) const;
-	
-	// Generates result page from template using data model adding all data to the buffers.
+	// Generates result page from template using data model
+	// adding all data to the buffers and using the cache.
 	// Returns summary size of all added buffers.
 	size_t generate(server::send_buffers_t &buffers,
+					server::strings_cache_t &cache,
 					const templatizer::model &model) const;
 	
 	
@@ -112,7 +109,6 @@ private:
 };	// namespace templatizer
 
 
-inline
 std::ostream &
 operator<<(std::ostream &stream, const templatizer::page::page_printer &printer);
 

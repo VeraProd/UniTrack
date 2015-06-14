@@ -18,18 +18,14 @@ namespace templatizer {
 class chunk
 {
 public:
-	virtual ~chunk() = 0;
-	
-	
-	// Generates page content sending it to the stream.
-	// Returns number of sent bytes.
-	virtual size_t generate(std::ostream &stream,
-							const templatizer::model &model) const = 0;
+	virtual ~chunk() = default;
 	
 	
 	// Generates page content adding it to the buffers.
 	// Returns size of added buffer.
-	virtual size_t generate(server::send_buffers_t &buffers,
+	virtual size_t generate(server::send_buffers_insert_iterator_t buffers_ins_it,
+							server::strings_cache_insert_iterator_t cache_ins_it,
+							server::strings_cache_extract_iterator_t cache_ext_it,
 							const templatizer::model &model) const = 0;
 	
 	
@@ -43,11 +39,9 @@ public:
 	raw_chunk(const char *data, size_t size) noexcept;
 	
 	
-	virtual size_t generate(std::ostream &stream,
-							const templatizer::model &model) const override;
-	
-	
-	virtual size_t generate(server::send_buffers_t &buffers,
+	virtual size_t generate(server::send_buffers_insert_iterator_t buffers_ins_it,
+							server::strings_cache_insert_iterator_t cache_ins_it,
+							server::strings_cache_extract_iterator_t cache_ext_it,
 							const templatizer::model &model) const override;
 	
 	
