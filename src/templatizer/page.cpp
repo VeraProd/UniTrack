@@ -175,9 +175,8 @@ templatizer::page::clear() noexcept
 
 
 // Generates result page from template using data model
-	// adding all data to the buffers and using the cache.
-	// Returns summary size of all added buffers.
-size_t
+// adding all data to the buffers and using the cache.
+void
 templatizer::page::generate(server::send_buffers_t &buffers,
 							server::strings_cache_t &cache,
 							const templatizer::model &model) const
@@ -186,10 +185,8 @@ templatizer::page::generate(server::send_buffers_t &buffers,
 	auto cache_ins_it = std::back_inserter(cache);
 	auto cache_ext_it = base::back_extractor(cache);
 	
-	size_t content_len = 0;
 	for (const auto &chunk_ptr: this->chunk_ptrs_)
-		content_len += chunk_ptr->generate(buffers_ins_it, cache_ins_it, cache_ext_it, model);
-	return content_len;
+		chunk_ptr->generate(buffers_ins_it, cache_ins_it, cache_ext_it, model);
 }
 
 

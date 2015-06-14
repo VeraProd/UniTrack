@@ -29,7 +29,7 @@ templatizer::debug_chunk::debug_chunk(std::string &&symbol) noexcept:
 
 
 // virtual
-size_t
+void
 templatizer::debug_chunk::generate(server::send_buffers_insert_iterator_t buffers_ins_it,
 								   server::strings_cache_insert_iterator_t cache_ins_it,
 								   server::strings_cache_extract_iterator_t cache_ext_it,
@@ -37,28 +37,19 @@ templatizer::debug_chunk::generate(server::send_buffers_insert_iterator_t buffer
 {
 	const auto &value = model.variable(this->symbol_);	// This can throw
 	
-	size_t length = 0;
-	
 	*cache_ins_it = "DEBUG (length = ";
 	*buffers_ins_it = boost::asio::buffer(*cache_ext_it);
-	length += cache_ext_it->size();
 	
 	*cache_ins_it = std::to_string(value.size());
 	*buffers_ins_it = boost::asio::buffer(*cache_ext_it);
-	length += cache_ext_it->size();
 	
 	*cache_ins_it = "): \"";
 	*buffers_ins_it = boost::asio::buffer(*cache_ext_it);
-	length += cache_ext_it->size();
 	
 	*buffers_ins_it = boost::asio::buffer(value);
-	length += value.size();
 	
 	*cache_ins_it = "\"";
 	*buffers_ins_it = boost::asio::buffer(*cache_ext_it);
-	length += cache_ext_it->size();
-	
-	return length;
 }
 
 

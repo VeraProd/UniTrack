@@ -1,6 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 #include <stdexcept>
+#include <numeric>
 
 #include <server/host.h>
 
@@ -27,7 +28,12 @@ template_pages_only::operator()(const FileHost &host,
 	
 	// Generating data to send
 	std::pair<server::send_buffers_t, server::send_buffers_t> res;
-	size_t content_len = cache.page_ptr->generate(res.second, cache.strings, this->page_model_);
+	
+	cache.page_ptr->generate(res.second, cache.strings, this->page_model_);
+	
+	size_t content_len = 0;
+	for (const auto &buffer: res.second)
+		content_len += boost::asio::buffer_size(buffer);
 	
 	cache.content_len_str = std::move(std::to_string(content_len));
 	

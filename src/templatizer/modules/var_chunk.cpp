@@ -28,14 +28,13 @@ templatizer::var_chunk::var_chunk(std::string &&symbol) noexcept:
 
 
 // virtual
-size_t
+void
 templatizer::var_chunk::generate(server::send_buffers_insert_iterator_t buffers_ins_it,
 								 server::strings_cache_insert_iterator_t /*cache_ins_it*/,
 								 server::strings_cache_extract_iterator_t /*cache_ext_it*/,
 								 const templatizer::model &model) const
 {
 	*buffers_ins_it = boost::asio::buffer(model.variable(this->symbol_));
-	return this->symbol_.size();
 }
 
 

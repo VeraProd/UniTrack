@@ -63,10 +63,9 @@ public:
 	
 	// Generates result page from template using data model
 	// adding all data to the buffers and using the cache.
-	// Returns summary size of all added buffers.
-	size_t generate(server::send_buffers_t &buffers,
-					server::strings_cache_t &cache,
-					const templatizer::model &model) const;
+	void generate(server::send_buffers_t &buffers,
+				  server::strings_cache_t &cache,
+				  const templatizer::model &model) const;
 	
 	
 	// Syntax sugar, same as generate(). Usage:

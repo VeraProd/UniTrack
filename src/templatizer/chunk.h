@@ -23,10 +23,10 @@ public:
 	
 	// Generates page content adding it to the buffers.
 	// Returns size of added buffer.
-	virtual size_t generate(server::send_buffers_insert_iterator_t buffers_ins_it,
-							server::strings_cache_insert_iterator_t cache_ins_it,
-							server::strings_cache_extract_iterator_t cache_ext_it,
-							const templatizer::model &model) const = 0;
+	virtual void generate(server::send_buffers_insert_iterator_t buffers_ins_it,
+						  server::strings_cache_insert_iterator_t cache_ins_it,
+						  server::strings_cache_extract_iterator_t cache_ext_it,
+						  const templatizer::model &model) const = 0;
 	
 	
 	virtual void export_symbols(std::unordered_set<std::string> &symbols) const = 0;
@@ -39,10 +39,10 @@ public:
 	raw_chunk(const char *data, size_t size) noexcept;
 	
 	
-	virtual size_t generate(server::send_buffers_insert_iterator_t buffers_ins_it,
-							server::strings_cache_insert_iterator_t cache_ins_it,
-							server::strings_cache_extract_iterator_t cache_ext_it,
-							const templatizer::model &model) const override;
+	virtual void generate(server::send_buffers_insert_iterator_t buffers_ins_it,
+						  server::strings_cache_insert_iterator_t cache_ins_it,
+						  server::strings_cache_extract_iterator_t cache_ext_it,
+						  const templatizer::model &model) const override;
 	
 	
 	virtual void export_symbols(std::unordered_set<std::string> &symbols) const noexcept override;
