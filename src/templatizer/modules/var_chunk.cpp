@@ -5,12 +5,12 @@
 #include <templatizer/module.h>
 
 
-const std::string templatizer::var_chunk::var_chunk_cmd = "var";
+const std::string templatizer::var_chunk::cmd = "var";
 
 
 namespace {	// Module
 
-templatizer::module<templatizer::var_chunk> var_chunk_module(templatizer::var_chunk::var_chunk_cmd);
+templatizer::module<templatizer::var_chunk> module(templatizer::var_chunk::cmd);
 
 };	// namespace
 

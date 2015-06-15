@@ -122,7 +122,7 @@ templatizer::page::load()
 				std::string command  = std::move(it->str(2)),
 							argument = std::move(it->str(3));
 				if (it->length(2) == 0) {	// Short form (because of command is empty)
-					command  = templatizer::var_chunk::var_chunk_cmd;
+					command  = templatizer::var_chunk::cmd;
 					argument = std::move(it->str(4));
 				}
 				

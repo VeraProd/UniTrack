@@ -19,7 +19,7 @@ class debug_chunk:
 	public templatizer::chunk
 {
 public:
-	static const std::string debug_chunk_cmd;	// = "debug"
+	static const std::string cmd;	// = "debug"
 	
 	
 	debug_chunk(const std::string &symbol);

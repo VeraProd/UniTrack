@@ -5,13 +5,12 @@
 #include <templatizer/module.h>
 
 
-const std::string templatizer::debug_chunk::debug_chunk_cmd = "debug";
+const std::string templatizer::debug_chunk::cmd = "debug";
 
 
 namespace {	// Module
 
-templatizer::module<templatizer::debug_chunk>
-	test_chunk_module(templatizer::debug_chunk::debug_chunk_cmd);
+templatizer::module<templatizer::debug_chunk> module(templatizer::debug_chunk::cmd);
 
 };	// namespace
 

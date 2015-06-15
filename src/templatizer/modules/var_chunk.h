@@ -19,7 +19,7 @@ class var_chunk:
 	public templatizer::chunk
 {
 public:
-	static const std::string var_chunk_cmd;	// = "var"
+	static const std::string cmd;	// = "var"
 	
 	
 	var_chunk(const std::string &symbol);
