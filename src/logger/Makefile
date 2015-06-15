@@ -1,6 +1,6 @@
 # Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-# Makefile for server part of this program.
+# Makefile for logger part of this program.
 
 
 # Makefile advanced
