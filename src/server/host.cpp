@@ -109,7 +109,7 @@ server::host::phony_response(server::http::version version,
 							 server::headers_t &&additional_headers)
 {
 	using namespace server::http;
-	using boost::asio::buffer;
+	using base::buffer;
 	
 	
 	// Headers must NOT contain "Content-Length"!
@@ -227,7 +227,7 @@ server::host::add_start_string(base::send_buffers_t &buffers,
 							   server::http::version version,
 							   const server::http::status &status)
 {
-	using boost::asio::buffer;
+	using base::buffer;
 	using namespace server::http;
 	
 	buffers.insert(
@@ -252,7 +252,7 @@ server::host::add_header(base::send_buffers_t &buffers,
 						 const std::string &header,
 						 const std::string &value)
 {
-	using boost::asio::buffer;
+	using base::buffer;
 	using namespace server::http;
 	
 	buffers.insert(
@@ -272,7 +272,7 @@ void
 server::host::add_header(base::send_buffers_t &buffers,
 						 const server::header_pair_t &header)
 {
-	using boost::asio::buffer;
+	using base::buffer;
 	using namespace server::http;
 	
 	buffers.insert(
@@ -303,7 +303,7 @@ server::host::add_headers(base::send_buffers_t &buffers,
 void
 server::host::finish_headers(base::send_buffers_t &buffers)
 {
-	using boost::asio::buffer;
+	using base::buffer;
 	using namespace server::http;
 	
 	buffers.push_back(buffer(newline_str));
