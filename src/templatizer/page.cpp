@@ -219,8 +219,8 @@ operator<<(std::ostream &stream, const templatizer::page::page_printer &printer)
 	
 	// ...and printing it
 	for (const auto &buffer: buffers)
-		stream.write(boost::asio::buffer_cast<const char *>(buffer),
-					 boost::asio::buffer_size(buffer));
+		stream.write(base::buffer_cast<const char *>(buffer),
+					 base::buffer_size(buffer));
 	
 	return stream;
 }
