@@ -2,8 +2,6 @@
 
 #include <templatizer/modules/var_chunk.h>
 
-#include <boost/asio/buffer.hpp>
-
 #include <templatizer/module.h>
 
 
@@ -29,12 +27,11 @@ templatizer::var_chunk::var_chunk(std::string &&symbol) noexcept:
 
 // virtual
 void
-templatizer::var_chunk::generate(server::send_buffers_insert_iterator_t buffers_ins_it,
-								 server::strings_cache_insert_iterator_t /*cache_ins_it*/,
-								 server::strings_cache_extract_iterator_t /*cache_ext_it*/,
+templatizer::var_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
+								 base::strings_cache_insert_functor_t /*cache_inserter*/,
 								 const templatizer::model &model) const
 {
-	*buffers_ins_it = boost::asio::buffer(model.variable(this->symbol_));
+	*buffers_ins_it = base::buffer(model.variable(this->symbol_));
 }
 
 

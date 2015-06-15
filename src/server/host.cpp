@@ -125,7 +125,7 @@ server::host::phony_response(server::http::version version,
 	auto server_name = this->server_name(cache_ptr->response_headers, cache_ptr->additional_headers);
 	
 	
-	server::send_buffers_t res;
+	base::send_buffers_t res;
 	res.reserve(16 + 4 * (cache_ptr->response_headers.size()
 						  + cache_ptr->additional_headers.size()
 						  + ((server_name.second)? 1: 0)));
@@ -223,7 +223,7 @@ server::host::create_error_host(logger::logger &logger)
 // Response forming helpers
 // static
 void
-server::host::add_start_string(server::send_buffers_t &buffers,
+server::host::add_start_string(base::send_buffers_t &buffers,
 							   server::http::version version,
 							   const server::http::status &status)
 {
@@ -248,7 +248,7 @@ server::host::add_start_string(server::send_buffers_t &buffers,
 
 // static
 void
-server::host::add_header(server::send_buffers_t &buffers,
+server::host::add_header(base::send_buffers_t &buffers,
 						 const std::string &header,
 						 const std::string &value)
 {
@@ -269,7 +269,7 @@ server::host::add_header(server::send_buffers_t &buffers,
 
 // static
 void
-server::host::add_header(server::send_buffers_t &buffers,
+server::host::add_header(base::send_buffers_t &buffers,
 						 const server::header_pair_t &header)
 {
 	using boost::asio::buffer;
@@ -289,7 +289,7 @@ server::host::add_header(server::send_buffers_t &buffers,
 
 // static
 void
-server::host::add_headers(server::send_buffers_t &buffers,
+server::host::add_headers(base::send_buffers_t &buffers,
 						  const server::headers_t &headers)
 {
 	buffers.reserve(buffers.size() + 4 * headers.size());
@@ -301,7 +301,7 @@ server::host::add_headers(server::send_buffers_t &buffers,
 
 // static
 void
-server::host::finish_headers(server::send_buffers_t &buffers)
+server::host::finish_headers(base::send_buffers_t &buffers)
 {
 	using boost::asio::buffer;
 	using namespace server::http;
@@ -312,8 +312,8 @@ server::host::finish_headers(server::send_buffers_t &buffers)
 
 // static
 void
-server::host::add_buffer(server::send_buffers_t &buffers,
-						 const server::send_buffer_t &buffer)
+server::host::add_buffer(base::send_buffers_t &buffers,
+						 const base::send_buffer_t &buffer)
 {
 	buffers.push_back(buffer);
 }

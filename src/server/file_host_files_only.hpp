@@ -7,7 +7,7 @@
 
 
 template<class FileHost>
-std::pair<server::send_buffers_t, server::send_buffers_t>
+std::pair<base::send_buffers_t, base::send_buffers_t>
 server::files_only::operator()(const FileHost &host,
 							   server::file_host_cache<server::files_only> &cache)
 {
@@ -29,7 +29,7 @@ server::files_only::operator()(const FileHost &host,
 	}
 	
 	
-	std::pair<server::send_buffers_t, server::send_buffers_t> res;
+	std::pair<base::send_buffers_t, base::send_buffers_t> res;
 	res.second.reserve(1);
 	
 	

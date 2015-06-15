@@ -177,16 +177,15 @@ templatizer::page::clear() noexcept
 // Generates result page from template using data model
 // adding all data to the buffers and using the cache.
 void
-templatizer::page::generate(server::send_buffers_t &buffers,
-							server::strings_cache_t &cache,
+templatizer::page::generate(base::send_buffers_t &buffers,
+							base::strings_cache_t &cache,
 							const templatizer::model &model) const
 {
 	auto buffers_ins_it = std::back_inserter(buffers);
-	auto cache_ins_it = std::back_inserter(cache);
-	auto cache_ext_it = base::back_extractor(cache);
+	auto cache_inserter = base::make_back_inserter_functor(cache);
 	
 	for (const auto &chunk_ptr: this->chunk_ptrs_)
-		chunk_ptr->generate(buffers_ins_it, cache_ins_it, cache_ext_it, model);
+		chunk_ptr->generate(buffers_ins_it, cache_inserter, model);
 }
 
 
@@ -212,8 +211,8 @@ templatizer::page::export_symbols(templatizer::page::symbol_set &symbols) const
 std::ostream &
 operator<<(std::ostream &stream, const templatizer::page::page_printer &printer)
 {
-	server::send_buffers_t buffers;
-	server::strings_cache_t cache;
+	base::send_buffers_t buffers;
+	base::strings_cache_t cache;
 	
 	// Generating the page...
 	printer.page.generate(buffers, cache, printer.model);

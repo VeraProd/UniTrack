@@ -13,8 +13,9 @@
 #include <boost/filesystem/path.hpp>
 
 #include <base/mapped_file.h>
+#include <base/buffer.h>
+#include <base/cache.h>
 
-#include <server/types.h>
 #include <templatizer/chunk.h>
 #include <templatizer/model.h>
 
@@ -63,8 +64,8 @@ public:
 	
 	// Generates result page from template using data model
 	// adding all data to the buffers and using the cache.
-	void generate(server::send_buffers_t &buffers,
-				  server::strings_cache_t &cache,
+	void generate(base::send_buffers_t &buffers,
+				  base::strings_cache_t &cache,
 				  const templatizer::model &model) const;
 	
 	

@@ -3,13 +3,15 @@
 #ifndef SERVER_FILE_HOST_H
 #define SERVER_FILE_HOST_H
 
+#include <boost/filesystem/path.hpp>
+
+#include <base/buffer.h>
+
 #include <logger/logger.h>
+
 #include <server/host.h>
 #include <server/protocol.h>
 #include <server/types.h>
-
-#include <boost/filesystem/path.hpp>
-
 #include <server/file_host_parameters.h>
 
 
@@ -25,7 +27,7 @@ namespace server {
 // 		HostType object will be unable to use own cache.
 // 	- must have non-static method:
 // 		
-// 		std::pair<server::send_buffers_t, server::send_buffers_t>
+// 		std::pair<base::send_buffers_t, base::send_buffers_t>
 // 		operator()(const file_host<HostType, CacheType> &host,	// Host, that is handler's owner
 // 				   CacheType &cache);							// Cache that the handler can use
 // 		
@@ -39,7 +41,7 @@ namespace server {
 // 		ready to socket.async_send(). All data is in that cache.
 // 
 // See also:
-// - server/types.h for server::send_buffers_t and server::file_host_cache<>::ptr_t
+// - base/buffer.h and server/types.h for base::send_buffers_t and server::file_host_cache<>::ptr_t
 
 // Requirements to class CacheType:
 // 	- must be inheritor of server::host_cache

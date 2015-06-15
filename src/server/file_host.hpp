@@ -144,7 +144,7 @@ server::file_host<HostType, CacheType>::response(
 	}
 	
 	
-	std::pair<server::send_buffers_t, server::send_buffers_t> file_data;
+	std::pair<base::send_buffers_t, base::send_buffers_t> file_data;
 	
 	try {
 		// The path is relative, see parse_uri(): "./index.html"
@@ -194,7 +194,7 @@ server::file_host<HostType, CacheType>::response(
 	auto server_name = this->server_name(cache_ptr->response_headers, {});
 	
 	
-	server::send_buffers_t res;
+	base::send_buffers_t res;
 	res.reserve(4 + 4 * (cache_ptr->response_headers.size()
 						 + file_data.first.size() + file_data.second.size()
 						 + ((server_name.second)? 1: 0)));

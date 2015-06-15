@@ -16,7 +16,7 @@ files_and_template_pages::files_and_template_pages(
 
 
 template<class FileHost>
-std::pair<server::send_buffers_t, server::send_buffers_t>
+std::pair<base::send_buffers_t, base::send_buffers_t>
 files_and_template_pages::operator()(const FileHost &host,
 									 server::file_host_cache<files_and_template_pages> &cache)
 {

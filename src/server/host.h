@@ -12,7 +12,10 @@
 
 #include <boost/asio/buffer.hpp>
 
+#include <base/buffer.h>
+
 #include <logger/logger.h>
+
 #include <server/protocol.h>
 #include <server/types.h>
 #include <server/host_parameters.h>
@@ -90,25 +93,25 @@ public:
 	
 	// Response forming helpers
 	// For headers
-	static void add_start_string(send_buffers_t &buffers,
+	static void add_start_string(base::send_buffers_t &buffers,
 								 server::http::version version,
 								 const server::http::status &status);
 	
-	static void add_header(send_buffers_t &buffers,
+	static void add_header(base::send_buffers_t &buffers,
 						   const std::string &header,
 						   const std::string &value);
 	
-	static void add_header(send_buffers_t &buffers,
+	static void add_header(base::send_buffers_t &buffers,
 						   const server::header_pair_t &header);
 	
-	static void add_headers(send_buffers_t &buffers,
+	static void add_headers(base::send_buffers_t &buffers,
 							const server::headers_t &headers);
 	
-	static void finish_headers(send_buffers_t &buffers);
+	static void finish_headers(base::send_buffers_t &buffers);
 	
 	// For body
-	static void add_buffer(send_buffers_t &buffers,
-						   const send_buffer_t &buffer);
+	static void add_buffer(base::send_buffers_t &buffers,
+						   const base::send_buffer_t &buffer);
 	
 	static void validate_headers(const headers_t &headers);
 	

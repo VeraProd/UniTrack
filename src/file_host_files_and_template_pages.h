@@ -3,7 +3,7 @@
 #ifndef FILE_HOST_FILES_AND_TEMPLATE_PAGES_H
 #define FILE_HOST_FILES_AND_TEMPLATE_PAGES_H
 
-#include <server/types.h>
+#include <base/buffer.h>
 #include <server/file_host_files_only.h>
 
 #include <file_host_template_pages_only.h>
@@ -30,7 +30,7 @@ public:
 	
 	
 	template<class FileHost>
-	std::pair<server::send_buffers_t, server::send_buffers_t>
+	std::pair<base::send_buffers_t, base::send_buffers_t>
 	operator()(const FileHost &host,
 			   server::file_host_cache<files_and_template_pages> &cache);
 private:

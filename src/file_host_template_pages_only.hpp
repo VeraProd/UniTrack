@@ -13,7 +13,7 @@ template_pages_only::template_pages_only(page_model &page_model):
 
 
 template<class FileHost>
-std::pair<server::send_buffers_t, server::send_buffers_t>
+std::pair<base::send_buffers_t, base::send_buffers_t>
 template_pages_only::operator()(const FileHost &host,
 								server::file_host_cache<template_pages_only> &cache)
 {
@@ -27,13 +27,13 @@ template_pages_only::operator()(const FileHost &host,
 	
 	
 	// Generating data to send
-	std::pair<server::send_buffers_t, server::send_buffers_t> res;
+	std::pair<base::send_buffers_t, base::send_buffers_t> res;
 	
 	cache.page_ptr->generate(res.second, cache.strings, this->page_model_);
 	
 	size_t content_len = 0;
 	for (const auto &buffer: res.second)
-		content_len += boost::asio::buffer_size(buffer);
+		content_len += base::buffer_size(buffer);
 	
 	cache.content_len_str = std::move(std::to_string(content_len));
 	

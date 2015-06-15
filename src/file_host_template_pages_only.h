@@ -7,7 +7,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include <server/types.h>
+#include <base/buffer.h>
 #include <templatizer/page.h>
 
 #include <page_model.h>
@@ -29,7 +29,7 @@ public:
 	
 	
 	template<class FileHost>
-	std::pair<server::send_buffers_t, server::send_buffers_t>
+	std::pair<base::send_buffers_t, base::send_buffers_t>
 	operator()(const FileHost &host,
 			   server::file_host_cache<template_pages_only> &cache);
 private:

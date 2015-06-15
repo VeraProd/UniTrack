@@ -5,15 +5,14 @@
 
 #include <string>
 #include <memory>
-#include <vector>
-#include <deque>
 #include <unordered_set>
 #include <unordered_map>
 #include <iterator>
 
-#include <base/iterator.h>
+#include <base/cache.h>
+#include <base/buffer.h>
 
-#include <boost/asio.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/filesystem/path.hpp>
 
 
@@ -45,17 +44,6 @@ typedef std::unordered_map<std::string, std::string>	uri_arguments_map_t;
 typedef std::unordered_set<std::string>					uri_arguments_set_t;
 
 
-// Send buffers
-typedef boost::asio::const_buffer						send_buffer_t;
-typedef std::vector<send_buffer_t>						send_buffers_t;
-typedef std::back_insert_iterator<send_buffers_t>		send_buffers_insert_iterator_t;
-
-
-// Strings cache
-typedef std::deque<std::string>							strings_cache_t;
-typedef std::back_insert_iterator<strings_cache_t>		strings_cache_insert_iterator_t;
-typedef base::back_extract_iterator<strings_cache_t>	strings_cache_extract_iterator_t;
-
 
 // Hosts
 class host_cache
@@ -78,12 +66,12 @@ public:
 								additional_headers;
 	
 	
-	strings_cache_t				strings;
+	base::strings_cache_t		strings;
 };	// class host_cache
 
 
 // Response
-typedef std::pair<send_buffers_t, host_cache::shared_ptr_t> response_data_t;
+typedef std::pair<base::send_buffers_t, host_cache::shared_ptr_t> response_data_t;
 
 
 

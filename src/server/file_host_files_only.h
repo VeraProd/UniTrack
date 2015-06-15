@@ -6,6 +6,7 @@
 #include <string>
 
 #include <base/mapped_file.h>
+#include <base/buffer.h>
 
 #include <server/types.h>
 
@@ -25,7 +26,7 @@ public:
 	
 	
 	template<class FileHost>
-	std::pair<server::send_buffers_t, server::send_buffers_t>
+	std::pair<base::send_buffers_t, base::send_buffers_t>
 	operator()(const FileHost &host,
 			   server::file_host_cache<files_only> &cache);
 };	// class files_only

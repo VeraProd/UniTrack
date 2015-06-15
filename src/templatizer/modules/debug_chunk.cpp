@@ -2,8 +2,6 @@
 
 #include <templatizer/modules/debug_chunk.h>
 
-#include <boost/asio/buffer.hpp>
-
 #include <templatizer/module.h>
 
 
@@ -30,26 +28,17 @@ templatizer::debug_chunk::debug_chunk(std::string &&symbol) noexcept:
 
 // virtual
 void
-templatizer::debug_chunk::generate(server::send_buffers_insert_iterator_t buffers_ins_it,
-								   server::strings_cache_insert_iterator_t cache_ins_it,
-								   server::strings_cache_extract_iterator_t cache_ext_it,
+templatizer::debug_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
+								   base::strings_cache_insert_functor_t cache_inserter,
 								   const templatizer::model &model) const
 {
 	const auto &value = model.variable(this->symbol_);	// This can throw
 	
-	*cache_ins_it = "DEBUG (length = ";
-	*buffers_ins_it = boost::asio::buffer(*cache_ext_it);
-	
-	*cache_ins_it = std::to_string(value.size());
-	*buffers_ins_it = boost::asio::buffer(*cache_ext_it);
-	
-	*cache_ins_it = "): \"";
-	*buffers_ins_it = boost::asio::buffer(*cache_ext_it);
-	
-	*buffers_ins_it = boost::asio::buffer(value);
-	
-	*cache_ins_it = "\"";
-	*buffers_ins_it = boost::asio::buffer(*cache_ext_it);
+	*buffers_ins_it = base::buffer(cache_inserter("DEBUG (length = "));
+	*buffers_ins_it = base::buffer(cache_inserter(std::to_string(value.size())));
+	*buffers_ins_it = base::buffer(cache_inserter("): \""));
+	*buffers_ins_it = base::buffer(value);
+	*buffers_ins_it = base::buffer(cache_inserter("\""));
 }
 
 
