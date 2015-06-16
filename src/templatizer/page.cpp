@@ -62,7 +62,7 @@ templatizer::page::load(const boost::filesystem::path &path)
 	*this = std::move(templatizer::page(path));
 }
 
-#include <iostream>
+
 // Loads template from current file.
 // If an error occured, throws templatizer::file_mapping_error
 // or templatizer::file_parsing_error.
@@ -126,7 +126,7 @@ templatizer::page::load()
 					argument = std::move(it->str(4));
 				}
 				
-				std::cerr << "Requested module: " << command << std::endl;
+				
 				// These can throw
 				auto chunk_generator =
 					templatizer::module_registrar::default_module_registrar.module(command);

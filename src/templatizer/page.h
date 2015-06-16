@@ -69,7 +69,7 @@ public:
 				  const templatizer::model &model) const;
 	
 	
-	// Syntax sugar, same as generate(). Usage:
+	// Syntax sugar, based on generate(). Usage:
 	// 	std::cout << page(model);
 	struct page_printer;
 	inline page_printer operator()(const templatizer::model &model) const;
