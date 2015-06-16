@@ -39,8 +39,8 @@ templatizer::date_chunk::generate(base::send_buffers_insert_iterator_t buffers_i
 	::strftime(date_str, 11, "%d.%m.%Y", time_info);
 	
 	*buffers_ins_it = base::buffer(cache_inserter(date_str));
-	
 }
+
 
 void
 templatizer::date_chunk::export_symbols(std::unordered_set<std::string> &symbols) const
