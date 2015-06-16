@@ -29,8 +29,8 @@ templatizer::toupper_chunk::toupper_chunk(std::string &&symbol) noexcept:
 // virtual
 void
 templatizer::toupper_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
-								 base::strings_cache_insert_functor_t cache_inserter,
-								 const templatizer::model &model) const
+									 base::strings_cache_insert_functor_t cache_inserter,
+									 const templatizer::model &model) const
 { 
 	auto toup = model.variable(this->symbol_);
 	std::transform(toup.begin(), toup.end(), toup.begin(), toupper);

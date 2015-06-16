@@ -30,8 +30,8 @@ templatizer::time_chunk::time_chunk(std::string &&symbol) noexcept:
 // virtual
 void
 templatizer::time_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
-								 base::strings_cache_insert_functor_t cache_inserter,
-								 const templatizer::model &model) const
+								  base::strings_cache_insert_functor_t cache_inserter,
+								  const templatizer::model &model) const
 {
 	time_t raw_time;
 	::time(&raw_time);
