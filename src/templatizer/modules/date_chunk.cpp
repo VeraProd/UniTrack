@@ -16,13 +16,8 @@ templatizer::module<templatizer::date_chunk> module(templatizer::date_chunk::cmd
 
 };	// namespace
 
-templatizer::date_chunk::date_chunk(const std::string &symbol):
-	symbol_(symbol)
-{}
 
-
-templatizer::date_chunk::date_chunk(std::string &&symbol) noexcept:
-	symbol_(std::move(symbol))
+templatizer::date_chunk::date_chunk(const std::string &) noexcept
 {}
 
 
@@ -43,7 +38,5 @@ templatizer::date_chunk::generate(base::send_buffers_insert_iterator_t buffers_i
 
 
 void
-templatizer::date_chunk::export_symbols(std::unordered_set<std::string> &symbols) const
-{
-	symbols.insert(this->symbol_);
-}
+templatizer::date_chunk::export_symbols(std::unordered_set<std::string> &) const noexcept
+{}

@@ -22,8 +22,7 @@ public:
 	static const std::string cmd;	// = "time"
 	
 	
-	time_chunk(const std::string &symbol);
-	time_chunk(std::string &&symbol) noexcept;
+	time_chunk(const std::string &not_used) noexcept;
 	
 	
 	virtual void generate(base::send_buffers_insert_iterator_t buffers_ins_it,
@@ -31,9 +30,7 @@ public:
 						  const templatizer::model &model) const override;
 	
 	
-	virtual void export_symbols(std::unordered_set<std::string> &symbols) const override;
-private:
-	const std::string symbol_;
+	virtual void export_symbols(std::unordered_set<std::string> &symbols) const override noexcept;
 };	// class time_chunk
 
 
